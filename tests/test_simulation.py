@@ -80,6 +80,19 @@ def test_policies_expose_location_decision_hook() -> None:
     assert callable(cash_hungry.choose_location)
 
 
+def test_balanced_policy_moves_to_job_location_before_offsite_work() -> None:
+    bundle = load_all_content()
+    policy = get_policy("balanced")
+    _, state = start_new_game(bundle=bundle, preset_id="default_student", seed=404)
+    state = state.model_copy(
+        update={"player": state.player.model_copy(update={"location_id": "campus_dorm", "energy": 70, "stress": 20})}
+    )
+
+    target_location = policy.choose_location(state, bundle)
+
+    assert target_location == "campus_library"
+
+
 def test_presets_do_not_start_in_immediate_game_over_state() -> None:
     bundle = load_all_content()
     for preset in bundle.presets:
@@ -139,6 +152,34 @@ def test_simulation_aggregate_rates_are_sane_numbers() -> None:
     assert isinstance(overall, dict)
     assert 0.0 <= float(overall["survival_rate"]) <= 1.0
     assert math.isfinite(float(overall["avg_final_score"]))
+
+
+def test_default_student_has_a_survival_path_on_normal_balanced_policy() -> None:
+    bundle = load_all_content()
+    results = run_simulation_batch(
+        bundle,
+        preset_ids=["default_student"],
+        difficulty_id="normal",
+        runs_per_preset=10,
+        policy_name="balanced",
+        seed=100,
+    )
+
+    assert any(result.survived_term for result in results)
+
+
+def test_easy_balanced_policy_is_winnable_for_all_presets() -> None:
+    bundle = load_all_content()
+    results = run_simulation_batch(
+        bundle,
+        preset_ids=[preset.id for preset in bundle.presets],
+        difficulty_id="easy",
+        runs_per_preset=3,
+        policy_name="balanced",
+        seed=100,
+    )
+
+    assert all(result.survived_term for result in results)
 
 
 def test_simulation_reports_can_be_written_to_files(tmp_path) -> None:

@@ -2,48 +2,44 @@
 
 ## Current State
 - Branch: `main`
-- Status: loop redesign + terminal UX cleanup + stability hardening is implemented in working tree and ready to ship.
-- Test status: `59 passed` (full suite).
+- Status: balance and winnability tuning is implemented in working tree and ready to ship.
+- Test status: `62 passed` (full suite).
 
 ## What Landed In This Pass
-- Core loop rhythm tightened around tactical actions:
-  - `work`, `rest`, `move location`, `switch job`, `buy item`, `save and quit`
-- Location choice made central:
-  - new `move_location(...)` helper
-  - dedicated move action in game loop
-  - config-driven location move friction (`location_move_stress_penalty`)
-  - config-driven offsite work penalties when working away from job location
-- UI now favors readability over transcript logs:
-  - compact dashboard layout (`render_game_screen`)
-  - persistent status + position + week outlook + recent activity + action panel
-  - activity window capped to recent lines for normal terminal readability
-- Weekly message spam reduced:
-  - routine accounting lines compressed into weekly summaries
-  - key consequences preserved in recent log
-- Simulation compatibility preserved and extended:
-  - simulation policies now include a location decision hook
+- Economy and survivability were rebalanced in core data:
+  - lower mandatory weekly burden
+  - lower debt interest / overdraft pressure
+  - stronger weekly job income
+  - better starting cash/savings/debt buffers
+- Simulation policy was tightened so the balanced policy moves to the job location before taking avoidable offsite strain.
+- Winnability smoke tests were added so the repo now guards against sliding back into obvious auto-lose balance.
+
+## Current Balance Snapshot
+- Mandatory weekly essentials are now materially lower than the earlier unwinnable build.
+- Sampled simulation results after tuning:
+  - `normal + balanced`: about `50.7%` survival overall
+  - `default_student`: about `60%` survival
+  - `commuter_student`: about `92%` survival
+  - `easy + balanced`: `100%` survival in the sampled runs
+- Important caveat:
+  - `financially_stretched_student` on `normal` is still too punishing and remains the clearest balance outlier.
 
 ## Files Updated
-- `src/budgetwars/game.py`
-- `src/budgetwars/ui.py`
-- `src/budgetwars/locations.py`
-- `src/budgetwars/models.py`
-- `src/budgetwars/validators.py`
 - `src/budgetwars/simulation.py`
 - `data/config.json`
-- `tests/test_loop_redesign.py` (new)
-- `tests/test_temporary_effects.py`
+- `data/expenses.json`
+- `data/jobs.json`
+- `data/presets.json`
+- `tests/test_balance_profiles.py`
 - `tests/test_simulation.py`
-- `tests/test_validators.py`
-- `README.md`
-- `docs/gameplay-loop.md`
-- `docs/data-schema.md`
-- `docs/product.md`
 
 ## Known Limits (Intentional)
-- No map/pathfinding/travel graph added.
-- No giant market subsystem added yet.
-- Week outlook is heuristic and lightweight by design.
+- The game now has winning lanes, but preset spread is still too wide.
+- `commuter_student` is currently safer than intended.
+- `financially_stretched_student` is still not healthy on `normal`.
 
 ## Recommended Next Pass
-- Add a lightweight weekly opportunity board (rotating pressure/opportunity signals) that changes tactical value of jobs/locations week-to-week without introducing a large new system.
+- Do a focused preset-economy pass:
+  - bring `financially_stretched_student` off zero on `normal`
+  - pull `commuter_student` back from near-free survival
+  - preserve the current “easy is clearly winnable” baseline

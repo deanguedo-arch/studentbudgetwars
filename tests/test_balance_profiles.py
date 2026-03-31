@@ -13,7 +13,7 @@ def test_optional_expense_pay_vs_skip_changes_state() -> None:
     paid = apply_optional_weekly_expenses(state, [expense], decisions={expense.id: True})
     skipped = apply_optional_weekly_expenses(state, [expense], decisions={expense.id: False})
 
-    assert paid.player.cash == 84
+    assert paid.player.cash == 88
     assert paid.player.stress == 19
     assert paid.player.energy == 62
     assert skipped.player.cash == 100

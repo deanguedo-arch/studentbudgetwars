@@ -2,8 +2,8 @@
   {
     "id": "library_assistant",
     "name": "Library Assistant",
-    "hourly_pay": 14,
-    "hours_per_week": 9,
+    "hourly_pay": 16,
+    "hours_per_week": 10,
     "energy_cost": 8,
     "stress_delta": 1,
     "location_id": "campus_library",
@@ -22,7 +22,7 @@
   {
     "id": "campus_rec_attendant",
     "name": "Campus Rec Attendant",
-    "hourly_pay": 15,
+    "hourly_pay": 17,
     "hours_per_week": 11,
     "energy_cost": 12,
     "stress_delta": 2,
@@ -32,7 +32,7 @@
   {
     "id": "barista",
     "name": "Barista",
-    "hourly_pay": 17,
+    "hourly_pay": 19,
     "hours_per_week": 12,
     "energy_cost": 17,
     "stress_delta": 5,
@@ -52,10 +52,10 @@
   {
     "id": "food_delivery",
     "name": "Food Delivery",
-    "hourly_pay": 23,
-    "hours_per_week": 8,
-    "energy_cost": 22,
-    "stress_delta": 6,
+    "hourly_pay": 26,
+    "hours_per_week": 9,
+    "energy_cost": 21,
+    "stress_delta": 5,
     "location_id": "town_center",
     "description": "High hourly income with major fatigue and pressure.",
     "work_temporary_effects": [
@@ -73,8 +73,8 @@
   {
     "id": "tutoring",
     "name": "Tutoring",
-    "hourly_pay": 24,
-    "hours_per_week": 5,
+    "hourly_pay": 26,
+    "hours_per_week": 6,
     "energy_cost": 7,
     "stress_delta": 1,
     "location_id": "campus_library",

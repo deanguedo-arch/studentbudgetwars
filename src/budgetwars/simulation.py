@@ -153,9 +153,18 @@ def _balanced_choose_location(state: GameState, bundle: ContentBundle) -> str | 
     if current_job is None:
         return None
 
+    likely_action = _balanced_choose_action(state, bundle)
+
     if state.player.energy <= state.low_energy_threshold + 4 or state.player.stress >= state.max_stress - 10:
         target_id = _choose_recovery_location(bundle)
         return target_id if target_id != state.player.location_id else None
+
+    if (
+        likely_action == "work"
+        and state.player.location_id != current_job.location_id
+        and state.player.stress + bundle.config.location_move_stress_penalty < state.max_stress
+    ):
+        return current_job.location_id
 
     if (
         state.player.debt >= int(state.debt_game_over_threshold * 0.70)

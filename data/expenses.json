@@ -2,7 +2,7 @@
   {
     "id": "dorm_fee",
     "name": "Dorm Fee",
-    "amount": 125,
+    "amount": 95,
     "cadence": "weekly",
     "mandatory": true,
     "description": "Baseline weekly dorm housing cost."
@@ -10,7 +10,7 @@
   {
     "id": "phone_bill",
     "name": "Phone Bill",
-    "amount": 12,
+    "amount": 10,
     "cadence": "weekly",
     "mandatory": true,
     "description": "A simplified weekly share of a phone plan."
@@ -18,7 +18,7 @@
   {
     "id": "groceries",
     "name": "Groceries",
-    "amount": 32,
+    "amount": 26,
     "cadence": "weekly",
     "mandatory": true,
     "description": "Basic food costs if you are trying to stay afloat."
@@ -26,7 +26,7 @@
   {
     "id": "transit_top_up",
     "name": "Transit Top-Up",
-    "amount": 16,
+    "amount": 12,
     "cadence": "weekly",
     "mandatory": false,
     "description": "Keeps your transit pass active enough to avoid exhausting workarounds.",
@@ -64,7 +64,7 @@
   {
     "id": "utilities_share",
     "name": "Utilities Share",
-    "amount": 16,
+    "amount": 12,
     "cadence": "weekly",
     "mandatory": true,
     "description": "Shared electricity, water, and campus service costs."
@@ -72,7 +72,7 @@
   {
     "id": "course_materials",
     "name": "Course Materials",
-    "amount": 14,
+    "amount": 8,
     "cadence": "weekly",
     "mandatory": true,
     "description": "A normalized weekly burn for class supplies and printing."
@@ -80,7 +80,7 @@
   {
     "id": "streaming_social_budget",
     "name": "Streaming / Social Budget",
-    "amount": 12,
+    "amount": 10,
     "cadence": "weekly",
     "mandatory": false,
     "description": "A small social and entertainment spend to keep stress from compounding.",
@@ -115,7 +115,7 @@
   {
     "id": "laundry_upkeep",
     "name": "Laundry Upkeep",
-    "amount": 10,
+    "amount": 8,
     "cadence": "weekly",
     "mandatory": false,
     "description": "Basic weekly upkeep that prevents small life friction from piling up.",
@@ -152,7 +152,7 @@
   {
     "id": "emergency_tech_buffer",
     "name": "Emergency Tech Buffer",
-    "amount": 8,
+    "amount": 6,
     "cadence": "weekly",
     "mandatory": false,
     "description": "A tiny reserve for cables, adapters, and small tech failures.",
