@@ -1,0 +1,26 @@
+[
+  {
+    "id": "campus_dorm",
+    "name": "Campus Dorm",
+    "description": "Close to classes and campus jobs.",
+    "modifiers": {
+      "stress": -2
+    }
+  },
+  {
+    "id": "campus_library",
+    "name": "Campus Library",
+    "description": "Quiet study and work space.",
+    "modifiers": {
+      "energy": -1
+    }
+  },
+  {
+    "id": "town_center",
+    "name": "Town Center",
+    "description": "Higher opportunity, higher spending risk.",
+    "modifiers": {
+      "cash": -5
+    }
+  }
+]

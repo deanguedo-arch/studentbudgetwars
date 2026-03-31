@@ -1,0 +1,34 @@
+[
+  {
+    "id": "instant_noodles",
+    "name": "Instant Noodles",
+    "category": "food",
+    "price": 3,
+    "description": "Cheap meal that helps stretch a bad week.",
+    "effects": {
+      "energy": 2,
+      "stress": -1
+    }
+  },
+  {
+    "id": "coffee",
+    "name": "Coffee",
+    "category": "consumable",
+    "price": 4,
+    "description": "Small boost for an exhausting day.",
+    "effects": {
+      "energy": 6,
+      "stress": 1
+    }
+  },
+  {
+    "id": "planner",
+    "name": "Weekly Planner",
+    "category": "study",
+    "price": 12,
+    "description": "Helps bring some order to a chaotic term.",
+    "effects": {
+      "stress": -4
+    }
+  }
+]

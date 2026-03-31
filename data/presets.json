@@ -1,0 +1,14 @@
+[
+  {
+    "id": "default_student",
+    "name": "Default Student",
+    "description": "Balanced starting profile for early testing.",
+    "starting_cash": 120,
+    "starting_savings": 40,
+    "starting_debt": 250,
+    "starting_stress": 20,
+    "starting_energy": 75,
+    "starting_location_id": "campus_dorm",
+    "starting_job_id": "library_assistant"
+  }
+]

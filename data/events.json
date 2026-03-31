@@ -1,0 +1,61 @@
+[
+  {
+    "id": "textbook_shock",
+    "name": "Unexpected Textbook Cost",
+    "description": "A required course suddenly needs another book.",
+    "weight": 10,
+    "effects": {
+      "stress": 2
+    },
+    "choices": [
+      {
+        "id": "pay_now",
+        "label": "Buy it now",
+        "description": "Protect your grade but take the hit immediately.",
+        "effects": {
+          "cash": -45,
+          "stress": 4
+        }
+      },
+      {
+        "id": "put_on_credit",
+        "label": "Put it on credit",
+        "description": "Preserve cash today, but worsen the debt problem.",
+        "effects": {
+          "debt": 55,
+          "stress": 8
+        }
+      }
+    ]
+  },
+  {
+    "id": "friend_brings_dinner",
+    "name": "Friend Brings Dinner",
+    "description": "A friend covers dinner after a rough week.",
+    "weight": 6,
+    "effects": {
+      "stress": -2
+    },
+    "choices": [
+      {
+        "id": "accept",
+        "label": "Accept the help",
+        "description": "Take the meal and recover a little.",
+        "effects": {
+          "cash": 12,
+          "stress": -3,
+          "energy": 4
+        }
+      },
+      {
+        "id": "decline_and_study",
+        "label": "Stay in and study",
+        "description": "Keep working, but lose the social reset.",
+        "effects": {
+          "energy": -2,
+          "stress": 1
+        }
+      }
+    ]
+  }
+]

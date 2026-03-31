@@ -1,0 +1,22 @@
+[
+  {
+    "id": "library_assistant",
+    "name": "Library Assistant",
+    "hourly_pay": 15,
+    "hours_per_week": 10,
+    "energy_cost": 12,
+    "stress_delta": 2,
+    "location_id": "campus_library",
+    "description": "Predictable on-campus job with modest pay."
+  },
+  {
+    "id": "food_delivery",
+    "name": "Food Delivery",
+    "hourly_pay": 18,
+    "hours_per_week": 8,
+    "energy_cost": 18,
+    "stress_delta": 5,
+    "location_id": "town_center",
+    "description": "Flexible off-campus work with higher strain."
+  }
+]

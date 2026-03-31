@@ -1,0 +1,18 @@
+[
+  {
+    "id": "rent_dorm",
+    "name": "Dorm Fee",
+    "amount": 175,
+    "cadence": "weekly",
+    "mandatory": true,
+    "description": "Baseline weekly dorm housing cost."
+  },
+  {
+    "id": "phone_bill",
+    "name": "Phone Bill",
+    "amount": 15,
+    "cadence": "weekly",
+    "mandatory": true,
+    "description": "A simplified weekly share of a monthly phone plan."
+  }
+]

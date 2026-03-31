@@ -1,0 +1,47 @@
+{
+  "game_title": "Student Budget Wars",
+  "term_weeks": 12,
+  "starting_week": 1,
+  "default_seed": 42,
+  "max_stress": 100,
+  "max_energy": 100,
+  "message_log_limit": 20,
+  "starting_location_id": "campus_dorm",
+  "weekly_event_chance": 0.65,
+  "low_energy_threshold": 15,
+  "low_energy_week_limit": 2,
+  "debt_game_over_threshold": 600,
+  "max_missed_essential_weeks": 3,
+  "debt_interest_rate": 0.08,
+  "overdraft_fee": 20,
+  "autosave_name": "autosave.json",
+  "difficulties": [
+    {
+      "id": "easy",
+      "name": "Easy",
+      "description": "A more forgiving term with better margins.",
+      "income_multiplier": 1.1,
+      "expense_multiplier": 0.9,
+      "stress_multiplier": 0.9,
+      "starting_cash_bonus": 40
+    },
+    {
+      "id": "normal",
+      "name": "Normal",
+      "description": "Baseline weekly pressure.",
+      "income_multiplier": 1.0,
+      "expense_multiplier": 1.0,
+      "stress_multiplier": 1.0,
+      "starting_cash_bonus": 0
+    },
+    {
+      "id": "hard",
+      "name": "Hard",
+      "description": "Tighter expenses and sharper stress costs.",
+      "income_multiplier": 0.9,
+      "expense_multiplier": 1.1,
+      "stress_multiplier": 1.15,
+      "starting_cash_bonus": -30
+    }
+  ]
+}

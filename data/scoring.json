@@ -1,0 +1,9 @@
+{
+  "cash_weight": 1.0,
+  "savings_weight": 1.5,
+  "debt_weight": -1.25,
+  "stress_weight": -0.75,
+  "energy_weight": 0.5,
+  "survival_bonus": 100,
+  "failure_floor": -100
+}
