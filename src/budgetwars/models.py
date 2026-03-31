@@ -50,6 +50,20 @@ class ItemDefinition(BaseModel):
     effects: StatEffects = Field(default_factory=dict)
 
 
+class TemporaryEffectDefinition(BaseModel):
+    id: str
+    label: str
+    duration_weeks: int = Field(gt=0)
+    effects: StatEffects = Field(default_factory=dict)
+
+
+class ActiveTemporaryEffect(BaseModel):
+    id: str
+    label: str
+    remaining_weeks: int = Field(gt=0)
+    effects: StatEffects = Field(default_factory=dict)
+
+
 class ExpenseDefinition(BaseModel):
     id: str
     name: str
@@ -59,6 +73,8 @@ class ExpenseDefinition(BaseModel):
     description: str
     pay_effects: StatEffects = Field(default_factory=dict)
     skip_effects: StatEffects = Field(default_factory=dict)
+    pay_temporary_effects: list[TemporaryEffectDefinition] = Field(default_factory=list)
+    skip_temporary_effects: list[TemporaryEffectDefinition] = Field(default_factory=list)
 
 
 class JobDefinition(BaseModel):
@@ -70,6 +86,7 @@ class JobDefinition(BaseModel):
     stress_delta: int
     location_id: str
     description: str
+    work_temporary_effects: list[TemporaryEffectDefinition] = Field(default_factory=list)
 
 
 class LocationDefinition(BaseModel):
@@ -84,6 +101,7 @@ class EventChoiceDefinition(BaseModel):
     label: str
     description: str
     effects: StatEffects = Field(default_factory=dict)
+    temporary_effects: list[TemporaryEffectDefinition] = Field(default_factory=list)
 
 
 class EventDefinition(BaseModel):
@@ -92,6 +110,7 @@ class EventDefinition(BaseModel):
     description: str
     weight: int = Field(gt=0)
     effects: StatEffects = Field(default_factory=dict)
+    temporary_effects: list[TemporaryEffectDefinition] = Field(default_factory=list)
     choices: list[EventChoiceDefinition] = Field(default_factory=list)
 
 
@@ -148,6 +167,7 @@ class GameState(BaseModel):
     game_over_reason: str | None = None
     message_log: list[str] = Field(default_factory=list)
     active_event_ids: list[str] = Field(default_factory=list)
+    temporary_effects: list[ActiveTemporaryEffect] = Field(default_factory=list)
 
     @field_validator("message_log")
     @classmethod

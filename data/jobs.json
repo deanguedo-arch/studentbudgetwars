@@ -7,7 +7,17 @@
     "energy_cost": 8,
     "stress_delta": 1,
     "location_id": "campus_library",
-    "description": "Steady, low-drama campus work that is easier to sustain."
+    "description": "Steady, low-drama campus work that is easier to sustain.",
+    "work_temporary_effects": [
+      {
+        "id": "quiet_routine",
+        "label": "Quiet Routine",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": -1
+        }
+      }
+    ]
   },
   {
     "id": "campus_rec_attendant",
@@ -27,7 +37,17 @@
     "energy_cost": 17,
     "stress_delta": 5,
     "location_id": "town_center",
-    "description": "Strong weekly cash flow, but rushes and customers hit hard."
+    "description": "Strong weekly cash flow, but rushes and customers hit hard.",
+    "work_temporary_effects": [
+      {
+        "id": "rush_aftershock",
+        "label": "Rush Aftershock",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": 2
+        }
+      }
+    ]
   },
   {
     "id": "food_delivery",
@@ -37,7 +57,18 @@
     "energy_cost": 22,
     "stress_delta": 6,
     "location_id": "town_center",
-    "description": "High hourly income with major fatigue and pressure."
+    "description": "High hourly income with major fatigue and pressure.",
+    "work_temporary_effects": [
+      {
+        "id": "fatigue_carryover",
+        "label": "Fatigue Carryover",
+        "duration_weeks": 1,
+        "effects": {
+          "energy": -4,
+          "stress": 1
+        }
+      }
+    ]
   },
   {
     "id": "tutoring",
@@ -47,6 +78,16 @@
     "energy_cost": 7,
     "stress_delta": 1,
     "location_id": "campus_library",
-    "description": "Best hourly pay, but fewer hours cap total weekly income."
+    "description": "Best hourly pay, but fewer hours cap total weekly income.",
+    "work_temporary_effects": [
+      {
+        "id": "prep_momentum",
+        "label": "Prep Momentum",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": -1
+        }
+      }
+    ]
   }
 ]

@@ -17,9 +17,12 @@ Core design goals:
 - Resolve the term one week at a time in the terminal.
 - Choose to work, rest, buy an item, or switch jobs before ending the week.
 - Pay mandatory recurring expenses and make explicit decisions on optional upkeep/lifestyle expenses.
+- Optional expense decisions can now create short-lived carryover effects for upcoming weeks.
 - Gain job income when working.
+- Some jobs add small next-week carryover effects, creating stronger week-to-week identity.
 - Apply location modifiers once each week.
 - Resolve one random event with a choice-based outcome.
+- Some events now create temporary consequences that persist into later weeks.
 - Lose from stress collapse, low-energy streaks, debt spiral, or repeated essential shortfalls.
 
 ## Current Strategic Profiles
@@ -28,6 +31,7 @@ Core design goals:
 - Jobs are tuned to distinct survival styles (sustainable, cashflow-heavy, high-strain, high-hourly/low-hours).
 - Locations nudge weekly outcomes toward different pressure patterns.
 - Presets are intended to feel like different opening problems, not cosmetic stat variants.
+- Temporary weekly modifiers let decisions echo forward without adding heavy simulation complexity.
 
 ## Planned Mechanics
 

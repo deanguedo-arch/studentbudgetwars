@@ -48,9 +48,40 @@ def test_validator_rejects_invalid_optional_expense_effect_key() -> None:
 def test_validator_rejects_optional_expense_without_tradeoff_effects() -> None:
     bundle = load_all_content()
     target = next(expense for expense in bundle.expenses if not expense.mandatory)
-    broken = target.model_copy(update={"pay_effects": {}, "skip_effects": {}})
+    broken = target.model_copy(
+        update={
+            "pay_effects": {},
+            "skip_effects": {},
+            "pay_temporary_effects": [],
+            "skip_temporary_effects": [],
+        }
+    )
     fixed_expenses = [broken if expense.id == target.id else expense for expense in bundle.expenses]
     invalid_bundle = bundle.model_copy(update={"expenses": fixed_expenses})
 
-    with pytest.raises(ValueError, match="should define pay_effects or skip_effects"):
+    with pytest.raises(ValueError, match="should define pay_effects, skip_effects, or temporary effects"):
+        validate_content_bundle(invalid_bundle)
+
+
+def test_validator_rejects_invalid_temporary_effect_keys() -> None:
+    bundle = load_all_content()
+    target = next(expense for expense in bundle.expenses if expense.pay_temporary_effects)
+    broken_effect = target.pay_temporary_effects[0].model_copy(update={"effects": {"luck": 1}})
+    broken_expense = target.model_copy(update={"pay_temporary_effects": [broken_effect]})
+    fixed_expenses = [broken_expense if expense.id == target.id else expense for expense in bundle.expenses]
+    invalid_bundle = bundle.model_copy(update={"expenses": fixed_expenses})
+
+    with pytest.raises(ValueError, match="invalid effect keys"):
+        validate_content_bundle(invalid_bundle)
+
+
+def test_validator_rejects_invalid_temporary_effect_duration() -> None:
+    bundle = load_all_content()
+    target = next(job for job in bundle.jobs if job.work_temporary_effects)
+    broken_effect = target.work_temporary_effects[0].model_copy(update={"duration_weeks": 0})
+    broken_job = target.model_copy(update={"work_temporary_effects": [broken_effect]})
+    fixed_jobs = [broken_job if job.id == target.id else job for job in bundle.jobs]
+    invalid_bundle = bundle.model_copy(update={"jobs": fixed_jobs})
+
+    with pytest.raises(ValueError, match="duration_weeks must be between 1 and 4"):
         validate_content_bundle(invalid_bundle)

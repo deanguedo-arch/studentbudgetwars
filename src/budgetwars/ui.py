@@ -27,6 +27,10 @@ def render_summary(console: Console, state: GameState) -> None:
     table.add_row("Essential Misses", str(state.missed_essential_weeks))
     table.add_row("Location", state.player.location_id)
     table.add_row("Job", state.player.job_id or "None")
+    active_effects = ", ".join(
+        f"{effect.label} ({effect.remaining_weeks}w)" for effect in state.temporary_effects
+    ) or "None"
+    table.add_row("Temporary Effects", active_effects)
     console.print(table)
 
 

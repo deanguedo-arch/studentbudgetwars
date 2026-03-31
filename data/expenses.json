@@ -37,7 +37,29 @@
     "skip_effects": {
       "stress": 2,
       "energy": -4
-    }
+    },
+    "pay_temporary_effects": [
+      {
+        "id": "smooth_commute",
+        "label": "Smooth Commute",
+        "duration_weeks": 1,
+        "effects": {
+          "energy": 2,
+          "stress": -1
+        }
+      }
+    ],
+    "skip_temporary_effects": [
+      {
+        "id": "commute_drag",
+        "label": "Commute Drag",
+        "duration_weeks": 1,
+        "effects": {
+          "energy": -2,
+          "stress": 1
+        }
+      }
+    ]
   },
   {
     "id": "utilities_share",
@@ -68,7 +90,27 @@
     },
     "skip_effects": {
       "stress": 3
-    }
+    },
+    "pay_temporary_effects": [
+      {
+        "id": "social_reset",
+        "label": "Social Reset",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": -1
+        }
+      }
+    ],
+    "skip_temporary_effects": [
+      {
+        "id": "isolation_spike",
+        "label": "Isolation Spike",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": 2
+        }
+      }
+    ]
   },
   {
     "id": "laundry_upkeep",
@@ -83,7 +125,29 @@
     "skip_effects": {
       "stress": 3,
       "energy": -2
-    }
+    },
+    "pay_temporary_effects": [
+      {
+        "id": "organized_week",
+        "label": "Organized Week",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": -1,
+          "energy": 1
+        }
+      }
+    ],
+    "skip_temporary_effects": [
+      {
+        "id": "friction_build_up",
+        "label": "Friction Build Up",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": 2,
+          "energy": -1
+        }
+      }
+    ]
   },
   {
     "id": "emergency_tech_buffer",
@@ -98,6 +162,26 @@
     "skip_effects": {
       "stress": 2,
       "energy": -1
-    }
+    },
+    "pay_temporary_effects": [
+      {
+        "id": "prepared_kit",
+        "label": "Prepared Kit",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": -1
+        }
+      }
+    ],
+    "skip_temporary_effects": [
+      {
+        "id": "tech_friction",
+        "label": "Tech Friction",
+        "duration_weeks": 1,
+        "effects": {
+          "stress": 2
+        }
+      }
+    ]
   }
 ]

@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from .models import ExpenseDefinition, GameState, JobDefinition, StatEffects
+from .models import (
+    ActiveTemporaryEffect,
+    ExpenseDefinition,
+    GameState,
+    JobDefinition,
+    StatEffects,
+    TemporaryEffectDefinition,
+)
 from .utils import clamp
 
 
@@ -24,7 +31,7 @@ def _withdraw_liquid_funds(state: GameState, amount: int) -> tuple[GameState, in
     return state.model_copy(update={"player": player}), remaining
 
 
-def _apply_effects(state: GameState, effects: StatEffects, source_label: str) -> GameState:
+def apply_stat_effects(state: GameState, effects: StatEffects, source_label: str) -> GameState:
     if not effects:
         return state
 
@@ -71,6 +78,64 @@ def _apply_expense_charge(
     return updated_state, used_debt_for_essential
 
 
+def add_temporary_effects(
+    state: GameState,
+    temporary_effects: list[TemporaryEffectDefinition],
+    source_label: str,
+) -> GameState:
+    if not temporary_effects:
+        return state
+
+    active_effects = [*state.temporary_effects]
+    messages = [*state.message_log]
+    for effect in temporary_effects:
+        active_effects.append(
+            ActiveTemporaryEffect(
+                id=effect.id,
+                label=effect.label,
+                remaining_weeks=effect.duration_weeks,
+                effects=effect.effects,
+            )
+        )
+        messages.append(
+            f"{source_label} created temporary effect '{effect.label}' ({effect.duration_weeks} week(s))."
+        )
+    return state.model_copy(update={"temporary_effects": active_effects, "message_log": messages})
+
+
+def apply_start_of_week_temporary_effects(state: GameState) -> GameState:
+    updated_state = state
+    for effect in state.temporary_effects:
+        updated_state = apply_stat_effects(
+            updated_state,
+            effect.effects,
+            f"Temporary effect active ({effect.label})",
+        )
+    return updated_state
+
+
+def decrement_temporary_effects(state: GameState, active_effects_at_week_start: int | None = None) -> GameState:
+    if not state.temporary_effects:
+        return state
+
+    decrement_count = len(state.temporary_effects) if active_effects_at_week_start is None else active_effects_at_week_start
+    kept_effects: list[ActiveTemporaryEffect] = []
+    messages = [*state.message_log]
+
+    for index, effect in enumerate(state.temporary_effects):
+        if index >= decrement_count:
+            kept_effects.append(effect)
+            continue
+
+        remaining = effect.remaining_weeks - 1
+        if remaining <= 0:
+            messages.append(f"Temporary effect expired: {effect.label}.")
+        else:
+            kept_effects.append(effect.model_copy(update={"remaining_weeks": remaining}))
+
+    return state.model_copy(update={"temporary_effects": kept_effects, "message_log": messages})
+
+
 def apply_mandatory_weekly_expenses(
     state: GameState,
     expenses: list[ExpenseDefinition],
@@ -107,10 +172,28 @@ def apply_optional_weekly_expenses(
         if should_pay:
             cost = int(round(expense.amount * expense_multiplier))
             updated_state, _ = _apply_expense_charge(updated_state, expense, cost)
-            updated_state = _apply_effects(updated_state, expense.pay_effects, f"Optional expense paid ({expense.name})")
+            updated_state = apply_stat_effects(
+                updated_state,
+                expense.pay_effects,
+                f"Optional expense paid ({expense.name})",
+            )
+            updated_state = add_temporary_effects(
+                updated_state,
+                expense.pay_temporary_effects,
+                f"Optional expense paid ({expense.name})",
+            )
         else:
             updated_state = _append_message(updated_state, f"Skipped optional expense: {expense.name}.")
-            updated_state = _apply_effects(updated_state, expense.skip_effects, f"Optional expense skipped ({expense.name})")
+            updated_state = apply_stat_effects(
+                updated_state,
+                expense.skip_effects,
+                f"Optional expense skipped ({expense.name})",
+            )
+            updated_state = add_temporary_effects(
+                updated_state,
+                expense.skip_temporary_effects,
+                f"Optional expense skipped ({expense.name})",
+            )
 
     return updated_state
 

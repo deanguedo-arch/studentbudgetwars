@@ -122,15 +122,26 @@
       "stress": -1
     },
     "choices": [
-      {
-        "id": "accept_box",
-        "label": "Accept it",
-        "description": "You take the help and breathe a little easier.",
-        "effects": {
-          "cash": 18,
-          "stress": -2
-        }
-      },
+        {
+          "id": "accept_box",
+          "label": "Accept it",
+          "description": "You take the help and breathe a little easier.",
+          "effects": {
+            "cash": 18,
+            "stress": -2
+          },
+          "temporary_effects": [
+            {
+              "id": "pantry_buffer",
+              "label": "Pantry Buffer",
+              "duration_weeks": 1,
+              "effects": {
+                "cash": 8,
+                "stress": -1
+              }
+            }
+          ]
+        },
       {
         "id": "decline_pride",
         "label": "Decline politely",
@@ -179,26 +190,47 @@
       "stress": 2
     },
     "choices": [
-      {
-        "id": "grind_through",
-        "label": "Push through",
-        "description": "You keep everything on track by burning yourself down a bit.",
-        "effects": {
-          "energy": -7,
-          "stress": 4
+        {
+          "id": "grind_through",
+          "label": "Push through",
+          "description": "You keep everything on track by burning yourself down a bit.",
+          "effects": {
+            "energy": -7,
+            "stress": 4
+          },
+          "temporary_effects": [
+            {
+              "id": "burnout_tail",
+              "label": "Burnout Tail",
+              "duration_weeks": 1,
+              "effects": {
+                "energy": -4,
+                "stress": 2
+              }
+            }
+          ]
+        },
+        {
+          "id": "ask_for_help",
+          "label": "Ask for help",
+          "description": "You share the load, even if progress feels slower.",
+          "effects": {
+            "energy": -2,
+            "stress": -1
+          },
+          "temporary_effects": [
+            {
+              "id": "shared_momentum",
+              "label": "Shared Momentum",
+              "duration_weeks": 1,
+              "effects": {
+                "stress": -1
+              }
+            }
+          ]
         }
-      },
-      {
-        "id": "ask_for_help",
-        "label": "Ask for help",
-        "description": "You share the load, even if progress feels slower.",
-        "effects": {
-          "energy": -2,
-          "stress": -1
-        }
-      }
-    ]
-  },
+      ]
+    },
   {
     "id": "friend_brings_dinner",
     "name": "Friend Brings Dinner",
@@ -267,15 +299,25 @@
       "stress": -1
     },
     "choices": [
-      {
-        "id": "eat_here",
-        "label": "Go eat",
-        "description": "You save a little money and feel human again.",
-        "effects": {
-          "cash": 10,
-          "energy": 4
-        }
-      },
+        {
+          "id": "eat_here",
+          "label": "Go eat",
+          "description": "You save a little money and feel human again.",
+          "effects": {
+            "cash": 10,
+            "energy": 4
+          },
+          "temporary_effects": [
+            {
+              "id": "fed_for_week",
+              "label": "Fed For Week",
+              "duration_weeks": 1,
+              "effects": {
+                "energy": 2
+              }
+            }
+          ]
+        },
       {
         "id": "save_the_time",
         "label": "Skip it",
@@ -304,17 +346,27 @@
           "stress": 1
         }
       },
-      {
-        "id": "live_with_it",
-        "label": "Live with it",
-        "description": "You save money, but every day gets a little more annoying.",
-        "effects": {
-          "energy": -2,
-          "stress": 3
+        {
+          "id": "live_with_it",
+          "label": "Live with it",
+          "description": "You save money, but every day gets a little more annoying.",
+          "effects": {
+            "energy": -2,
+            "stress": 3
+          },
+          "temporary_effects": [
+            {
+              "id": "tech_annoyance",
+              "label": "Tech Annoyance",
+              "duration_weeks": 1,
+              "effects": {
+                "stress": 2
+              }
+            }
+          ]
         }
-      }
-    ]
-  },
+      ]
+    },
   {
     "id": "bursary_opportunity",
     "name": "Bursary Opportunity",
@@ -382,27 +434,48 @@
       "stress": 2
     },
     "choices": [
-      {
-        "id": "rest_and_miss_shift",
-        "label": "Rest and miss work",
-        "description": "You recover a bit, but the missed money stings.",
-        "effects": {
-          "cash": -18,
-          "energy": 10,
-          "stress": -1
+        {
+          "id": "rest_and_miss_shift",
+          "label": "Rest and miss work",
+          "description": "You recover a bit, but the missed money stings.",
+          "effects": {
+            "cash": -18,
+            "energy": 10,
+            "stress": -1
+          },
+          "temporary_effects": [
+            {
+              "id": "recovery_tail",
+              "label": "Recovery Tail",
+              "duration_weeks": 1,
+              "effects": {
+                "energy": 3
+              }
+            }
+          ]
+        },
+        {
+          "id": "push_through",
+          "label": "Push through it",
+          "description": "You force the week forward at a real cost.",
+          "effects": {
+            "energy": -8,
+            "stress": 6
+          },
+          "temporary_effects": [
+            {
+              "id": "lingering_fatigue",
+              "label": "Lingering Fatigue",
+              "duration_weeks": 1,
+              "effects": {
+                "energy": -5,
+                "stress": 1
+              }
+            }
+          ]
         }
-      },
-      {
-        "id": "push_through",
-        "label": "Push through it",
-        "description": "You force the week forward at a real cost.",
-        "effects": {
-          "energy": -8,
-          "stress": 6
-        }
-      }
-    ]
-  },
+      ]
+    },
   {
     "id": "tuition_payment_reminder",
     "name": "Tuition Payment Reminder",

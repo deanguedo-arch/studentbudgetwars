@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import random
 
+from .budget import add_temporary_effects, apply_stat_effects
 from .models import EventDefinition, GameState
-from .utils import clamp
 
 
 def roll_event(
@@ -31,28 +31,15 @@ def resolve_event_choice(
         for key, value in choice.effects.items():
             combined_effects[key] = combined_effects.get(key, 0) + value
 
-    updated_values = {
-        "cash": state.player.cash,
-        "savings": state.player.savings,
-        "debt": state.player.debt,
-        "stress": state.player.stress,
-        "energy": state.player.energy,
-    }
-
-    for stat, delta in combined_effects.items():
-        if stat in {"cash", "savings", "debt"}:
-            updated_values[stat] += delta
-        elif stat == "stress":
-            updated_values["stress"] = clamp(updated_values["stress"] + delta, 0, state.max_stress)
-        elif stat == "energy":
-            updated_values["energy"] = clamp(updated_values["energy"] + delta, 0, state.max_energy)
-
-    player = state.player.model_copy(update=updated_values)
+    updated_state = apply_stat_effects(state, combined_effects, f"Event effects ({event.name})")
     choice_text = choice.label if choice is not None else "Default outcome"
-    return state.model_copy(
+    updated_state = updated_state.model_copy(
         update={
-            "player": player,
-            "active_event_ids": [*state.active_event_ids, event.id],
-            "message_log": [*state.message_log, f"Event: {event.name} -> {choice_text}."],
+            "active_event_ids": [*updated_state.active_event_ids, event.id],
+            "message_log": [*updated_state.message_log, f"Event: {event.name} -> {choice_text}."],
         }
     )
+    event_temporary_effects = [*event.temporary_effects]
+    if choice is not None:
+        event_temporary_effects.extend(choice.temporary_effects)
+    return add_temporary_effects(updated_state, event_temporary_effects, f"Event ({event.name})")

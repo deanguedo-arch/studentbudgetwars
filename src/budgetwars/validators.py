@@ -32,6 +32,15 @@ def _validate_range(value: float, minimum: float, maximum: float, label: str) ->
         raise ValueError(f"{label} must be between {minimum} and {maximum}")
 
 
+def _validate_temporary_effects(temporary_effects: list[object], label: str) -> None:
+    _ensure_unique_ids(temporary_effects, f"{label} temporary effect")
+    for effect in temporary_effects:
+        duration = getattr(effect, "duration_weeks")
+        if duration < 1 or duration > 4:
+            raise ValueError(f"{label} temporary effect '{effect.id}' duration_weeks must be between 1 and 4")
+        _validate_effect_mapping(getattr(effect, "effects"), f"{label} temporary effect '{effect.id}'")
+
+
 def validate_content_bundle(bundle: ContentBundle) -> None:
     _ensure_unique_ids(bundle.items, "item")
     _ensure_unique_ids(bundle.expenses, "expense")
@@ -59,12 +68,17 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     for event in bundle.events:
         _ensure_unique_ids(event.choices, f"event choice for {event.id}")
         _validate_effect_mapping(event.effects, f"Event '{event.id}'")
+        _validate_temporary_effects(event.temporary_effects, f"Event '{event.id}'")
         if not event.choices:
             raise ValueError(f"Event '{event.id}' must include at least one choice")
         if event.weight > 100:
             raise ValueError(f"Event '{event.id}' weight is implausibly high")
         for choice in event.choices:
             _validate_effect_mapping(choice.effects, f"Event '{event.id}' choice '{choice.id}'")
+            _validate_temporary_effects(
+                choice.temporary_effects,
+                f"Event '{event.id}' choice '{choice.id}'",
+            )
 
     for item in bundle.items:
         _validate_effect_mapping(item.effects, f"Item '{item.id}'")
@@ -79,8 +93,18 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Expense '{expense.id}' amount is implausibly high")
         _validate_effect_mapping(expense.pay_effects, f"Expense '{expense.id}' pay_effects")
         _validate_effect_mapping(expense.skip_effects, f"Expense '{expense.id}' skip_effects")
-        if not expense.mandatory and not expense.pay_effects and not expense.skip_effects:
-            raise ValueError(f"Optional expense '{expense.id}' should define pay_effects or skip_effects")
+        _validate_temporary_effects(expense.pay_temporary_effects, f"Expense '{expense.id}' pay")
+        _validate_temporary_effects(expense.skip_temporary_effects, f"Expense '{expense.id}' skip")
+        if (
+            not expense.mandatory
+            and not expense.pay_effects
+            and not expense.skip_effects
+            and not expense.pay_temporary_effects
+            and not expense.skip_temporary_effects
+        ):
+            raise ValueError(
+                f"Optional expense '{expense.id}' should define pay_effects, skip_effects, or temporary effects"
+            )
 
     for job in bundle.jobs:
         if job.location_id not in location_ids:
@@ -91,6 +115,7 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Job '{job.id}' hours_per_week is implausibly high")
         if job.energy_cost > bundle.config.max_energy:
             raise ValueError(f"Job '{job.id}' energy_cost exceeds config.max_energy")
+        _validate_temporary_effects(job.work_temporary_effects, f"Job '{job.id}' work")
 
     for difficulty in bundle.config.difficulties:
         _validate_range(difficulty.income_multiplier, 0.5, 1.5, f"Difficulty '{difficulty.id}' income_multiplier")

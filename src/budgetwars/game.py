@@ -6,7 +6,10 @@ from typing import Callable
 from rich.console import Console
 
 from .budget import (
+    add_temporary_effects,
+    apply_start_of_week_temporary_effects,
     apply_interest_and_fees,
+    decrement_temporary_effects,
     apply_mandatory_weekly_expenses,
     apply_optional_weekly_expenses,
     apply_rest_action,
@@ -142,6 +145,9 @@ def advance_week(
 ) -> GameState:
     difficulty = _lookup_difficulty(bundle, state.difficulty_id)
     updated_state = state.model_copy(update={"message_log": [*state.message_log, f"Resolving week {state.current_week}."]})
+    active_effects_at_week_start = len(updated_state.temporary_effects)
+
+    updated_state = apply_start_of_week_temporary_effects(updated_state)
 
     updated_state = apply_mandatory_weekly_expenses(
         updated_state,
@@ -160,12 +166,19 @@ def advance_week(
     )
 
     if action == "work":
+        current_job = get_job(bundle.jobs, updated_state.player.job_id)
         updated_state = apply_weekly_income(
             updated_state,
-            get_job(bundle.jobs, updated_state.player.job_id),
+            current_job,
             income_multiplier=difficulty.income_multiplier,
             stress_multiplier=difficulty.stress_multiplier,
         )
+        if current_job is not None:
+            updated_state = add_temporary_effects(
+                updated_state,
+                current_job.work_temporary_effects,
+                f"Job carryover ({current_job.name})",
+            )
     elif action == "rest":
         updated_state = apply_rest_action(updated_state)
     else:
@@ -184,6 +197,7 @@ def advance_week(
         interest_rate=bundle.config.debt_interest_rate,
         overdraft_fee=bundle.config.overdraft_fee,
     )
+    updated_state = decrement_temporary_effects(updated_state, active_effects_at_week_start=active_effects_at_week_start)
 
     updated_state = _update_failure_trackers(updated_state)
     updated_state = updated_state.model_copy(update={"current_week": state.current_week + 1})

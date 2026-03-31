@@ -8,6 +8,7 @@
 - Avoid hardcoded content-specific player attributes.
 - Keep randomness injectable or seedable for tests.
 - Add features in focused modules with clear ownership.
+- Keep carryover/temporary effects lightweight, typed, and validator-backed.
 - Do not add a database for v1.
 - Do not add a web frontend for v1.
 - Prefer small, safe extensions over speculative complexity.
