@@ -30,6 +30,38 @@ You can pass normal CLI flags through the launcher, for example:
 live_preview.bat --preset commuter_student --difficulty hard
 ```
 
+## Simulation And Balance Audit
+
+Run non-interactive simulations against the real weekly game loop:
+
+```bash
+python tools/simulate_runs.py --preset default_student --runs 100 --difficulty normal --policy balanced --seed 42
+```
+
+Compare multiple presets in one run:
+
+```bash
+python tools/simulate_runs.py --preset default_student,commuter_student,financially_stretched_student --runs 50 --policy cash_hungry --seed 42
+```
+
+Optional report artifacts:
+
+```bash
+python tools/simulate_runs.py --runs 25 --output-json reports/sim_audit.json --output-csv reports/sim_runs.csv
+```
+
+Available simulation policies:
+- `balanced`: prefers stability, avoids collapse, and only chases cash when debt pressure is high
+- `cash_hungry`: prioritizes income/debt pressure and accepts more stress and energy risk
+
+Reported metrics include runs, survivals, survival rate, average score, average ending resources/stats, common game-over reasons, and breakdowns by preset and starting job.
+Use these outputs to tune data values in `data/*.json` and verify whether one preset or strategy is dominating.
+
+Simulation limitations:
+- policy decisions are heuristic, not optimal play
+- audit outputs show directional balance signals, not perfect balance proofs
+- event outcomes remain seeded and deterministic per run seed
+
 ## What Exists Now
 
 - Package scaffold for a modular terminal game

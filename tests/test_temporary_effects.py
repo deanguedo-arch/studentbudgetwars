@@ -1,4 +1,5 @@
 from budgetwars.budget import (
+    add_temporary_effects,
     apply_optional_weekly_expenses,
     apply_start_of_week_temporary_effects,
     decrement_temporary_effects,
@@ -69,6 +70,91 @@ def test_temporary_effect_applies_and_expires_after_duration() -> None:
     expired = decrement_temporary_effects(applied, active_effects_at_week_start=1)
     assert expired.temporary_effects == []
     assert any("Temporary effect expired: Rough Week." in message for message in expired.message_log)
+
+
+def test_multiple_temporary_effects_apply_and_clamp_in_same_week() -> None:
+    state = _make_state(
+        stress=95,
+        energy=4,
+        temporary_effects=[
+            ActiveTemporaryEffect(
+                id="stack_a",
+                label="Stack A",
+                remaining_weeks=1,
+                effects={"stress": 4, "energy": -3},
+            ),
+            ActiveTemporaryEffect(
+                id="stack_b",
+                label="Stack B",
+                remaining_weeks=1,
+                effects={"stress": 6, "energy": -5},
+            ),
+        ],
+    )
+
+    updated = apply_start_of_week_temporary_effects(state)
+
+    assert updated.player.stress == 100
+    assert updated.player.energy == 0
+
+
+def test_existing_effects_apply_before_new_effects_and_new_effects_do_not_expire_immediately() -> None:
+    state = _make_state(
+        stress=20,
+        temporary_effects=[
+            ActiveTemporaryEffect(
+                id="old_effect",
+                label="Old Effect",
+                remaining_weeks=1,
+                effects={"stress": 3},
+            )
+        ],
+    )
+
+    start_applied = apply_start_of_week_temporary_effects(state)
+    with_new_effect = add_temporary_effects(
+        start_applied,
+        [
+            TemporaryEffectDefinition(
+                id="new_effect",
+                label="New Effect",
+                duration_weeks=1,
+                effects={"stress": 5},
+            )
+        ],
+        "Test source",
+    )
+    decremented = decrement_temporary_effects(with_new_effect, active_effects_at_week_start=1)
+
+    assert start_applied.player.stress == 23
+    assert with_new_effect.player.stress == 23
+    assert len(decremented.temporary_effects) == 1
+    assert decremented.temporary_effects[0].id == "new_effect"
+    assert decremented.temporary_effects[0].remaining_weeks == 1
+
+
+def test_multiple_temporary_effects_expire_correctly() -> None:
+    state = _make_state(
+        temporary_effects=[
+            ActiveTemporaryEffect(
+                id="expire_a",
+                label="Expire A",
+                remaining_weeks=1,
+                effects={"stress": 1},
+            ),
+            ActiveTemporaryEffect(
+                id="expire_b",
+                label="Expire B",
+                remaining_weeks=1,
+                effects={"energy": -1},
+            ),
+        ]
+    )
+
+    updated = decrement_temporary_effects(state, active_effects_at_week_start=2)
+
+    assert updated.temporary_effects == []
+    assert sum(1 for message in updated.message_log if "Temporary effect expired:" in message) == 2
 
 
 def test_optional_expense_paid_adds_temporary_effect() -> None:
@@ -220,7 +306,13 @@ def test_game_over_logic_still_triggers_with_active_temporary_effects() -> None:
                     label="Panic Spike",
                     remaining_weeks=1,
                     effects={"stress": 6},
-                )
+                ),
+                ActiveTemporaryEffect(
+                    id="drain_wave",
+                    label="Drain Wave",
+                    remaining_weeks=1,
+                    effects={"energy": -12, "stress": 2},
+                ),
             ],
         }
     )

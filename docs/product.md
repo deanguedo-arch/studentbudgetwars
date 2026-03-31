@@ -39,3 +39,9 @@ Core design goals:
 - More meaningful use of locations and inventory.
 - Better balance across presets, jobs, and event pressure.
 - Broader content depth without changing the data-driven structure.
+
+## Simulation Support
+
+The project now includes a non-interactive simulation runner for balance auditing.
+It reuses the real weekly loop and policy-driven decisions to estimate survival rates, debt pressure, and scoring outcomes across presets and strategies.
+This is intended for evidence-guided tuning, not as an alternate gameplay mode.
