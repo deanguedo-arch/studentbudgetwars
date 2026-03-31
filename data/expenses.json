@@ -2,7 +2,7 @@
   {
     "id": "dorm_fee",
     "name": "Dorm Fee",
-    "amount": 175,
+    "amount": 125,
     "cadence": "weekly",
     "mandatory": true,
     "description": "Baseline weekly dorm housing cost."
@@ -10,7 +10,7 @@
   {
     "id": "phone_bill",
     "name": "Phone Bill",
-    "amount": 15,
+    "amount": 12,
     "cadence": "weekly",
     "mandatory": true,
     "description": "A simplified weekly share of a phone plan."
@@ -18,23 +18,31 @@
   {
     "id": "groceries",
     "name": "Groceries",
-    "amount": 42,
+    "amount": 32,
     "cadence": "weekly",
     "mandatory": true,
     "description": "Basic food costs if you are trying to stay afloat."
   },
   {
-    "id": "transit",
-    "name": "Transit",
-    "amount": 18,
+    "id": "transit_top_up",
+    "name": "Transit Top-Up",
+    "amount": 16,
     "cadence": "weekly",
-    "mandatory": true,
-    "description": "Bus fare and other transport costs."
+    "mandatory": false,
+    "description": "Keeps your transit pass active enough to avoid exhausting workarounds.",
+    "pay_effects": {
+      "stress": -1,
+      "energy": 2
+    },
+    "skip_effects": {
+      "stress": 2,
+      "energy": -4
+    }
   },
   {
     "id": "utilities_share",
     "name": "Utilities Share",
-    "amount": 20,
+    "amount": 16,
     "cadence": "weekly",
     "mandatory": true,
     "description": "Shared electricity, water, and campus service costs."
@@ -42,23 +50,53 @@
   {
     "id": "course_materials",
     "name": "Course Materials",
-    "amount": 24,
+    "amount": 14,
     "cadence": "weekly",
     "mandatory": true,
     "description": "A normalized weekly burn for class supplies and printing."
   },
   {
-    "id": "streaming_or_fun_budget",
-    "name": "Streaming / Fun Budget",
-    "amount": 9,
+    "id": "streaming_social_budget",
+    "name": "Streaming / Social Budget",
+    "amount": 12,
     "cadence": "weekly",
     "mandatory": false,
-    "description": "A small optional spend to keep morale from flatlining.",
+    "description": "A small social and entertainment spend to keep stress from compounding.",
+    "pay_effects": {
+      "stress": -3,
+      "energy": 1
+    },
+    "skip_effects": {
+      "stress": 3
+    }
+  },
+  {
+    "id": "laundry_upkeep",
+    "name": "Laundry Upkeep",
+    "amount": 10,
+    "cadence": "weekly",
+    "mandatory": false,
+    "description": "Basic weekly upkeep that prevents small life friction from piling up.",
     "pay_effects": {
       "stress": -1
     },
     "skip_effects": {
       "stress": 3,
+      "energy": -2
+    }
+  },
+  {
+    "id": "emergency_tech_buffer",
+    "name": "Emergency Tech Buffer",
+    "amount": 8,
+    "cadence": "weekly",
+    "mandatory": false,
+    "description": "A tiny reserve for cables, adapters, and small tech failures.",
+    "pay_effects": {
+      "stress": -1
+    },
+    "skip_effects": {
+      "stress": 2,
       "energy": -1
     }
   }

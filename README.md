@@ -18,6 +18,18 @@ pip install -e .[dev]
 budgetwars
 ```
 
+Windows quick launcher:
+
+```bash
+live_preview.bat
+```
+
+You can pass normal CLI flags through the launcher, for example:
+
+```bash
+live_preview.bat --preset commuter_student --difficulty hard
+```
+
 ## What Exists Now
 
 - Package scaffold for a modular terminal game

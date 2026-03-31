@@ -16,6 +16,9 @@
 9. Apply debt interest and any overdraft handling.
 10. Advance the week, autosave, and check for end-of-term success or failure.
 
+The optional-expense layer is intentionally a core pressure system now:
+paying helps keep stress/energy stable, while skipping preserves cash but compounds future risk.
+
 ## Current Failure Conditions
 
 - Stress reaches the configured maximum.

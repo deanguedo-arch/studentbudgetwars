@@ -2,43 +2,46 @@
   {
     "id": "campus_dorm",
     "name": "Campus Dorm",
-    "description": "Close to class, close to chaos, and expensive every single week.",
+    "description": "Reliable base close to class that supports recovery between rough weeks.",
     "modifiers": {
-      "stress": -2
+      "stress": -2,
+      "energy": 1
     }
   },
   {
     "id": "campus_library",
     "name": "Campus Library",
-    "description": "Quiet, useful, and slightly draining after long hours.",
+    "description": "Focused and calm, but long concentration blocks can be draining.",
     "modifiers": {
-      "energy": -1
+      "stress": -1,
+      "energy": -2
     }
   },
   {
     "id": "town_center",
     "name": "Town Center",
-    "description": "More jobs and errands, but more chances to spend money.",
+    "description": "Convenient for work and errands, but noisy and expensive week to week.",
     "modifiers": {
-      "cash": -4,
-      "stress": 1
+      "cash": -5,
+      "stress": 2
     }
   },
   {
     "id": "grocery_store",
     "name": "Grocery Store",
-    "description": "A practical stop that still chips away at your week.",
+    "description": "Practical, maintenance-focused routine with mild cost pressure.",
     "modifiers": {
-      "cash": -2
+      "cash": -2,
+      "stress": -1
     }
   },
   {
     "id": "part_time_job_zone",
     "name": "Part-Time Job Zone",
-    "description": "A generic stretch of shift work and commute fatigue.",
+    "description": "Shift-heavy area where fatigue accumulates quickly.",
     "modifiers": {
-      "energy": -2,
-      "stress": 1
+      "energy": -3,
+      "stress": 2
     }
   }
 ]

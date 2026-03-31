@@ -43,3 +43,14 @@ def test_validator_rejects_invalid_optional_expense_effect_key() -> None:
 
     with pytest.raises(ValueError, match="invalid effect keys"):
         validate_content_bundle(invalid_bundle)
+
+
+def test_validator_rejects_optional_expense_without_tradeoff_effects() -> None:
+    bundle = load_all_content()
+    target = next(expense for expense in bundle.expenses if not expense.mandatory)
+    broken = target.model_copy(update={"pay_effects": {}, "skip_effects": {}})
+    fixed_expenses = [broken if expense.id == target.id else expense for expense in bundle.expenses]
+    invalid_bundle = bundle.model_copy(update={"expenses": fixed_expenses})
+
+    with pytest.raises(ValueError, match="should define pay_effects or skip_effects"):
+        validate_content_bundle(invalid_bundle)

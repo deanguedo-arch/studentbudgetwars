@@ -16,11 +16,15 @@ Current valid effect keys: `cash`, `savings`, `debt`, `stress`, `energy`.
 Recurring or one-off expense definitions with ids, labels, amount, cadence, and whether the expense is mandatory.
 In the current prototype, weekly expenses are the main recurring financial pressure.
 Optional expenses can include `pay_effects` and `skip_effects` to support decision tradeoffs.
+Design expectation:
+- mandatory expenses represent baseline survival costs
+- optional expenses represent upkeep/lifestyle choices with real tradeoffs
 
 ## `jobs.json`
 
 Job definitions with ids, names, pay ranges, energy cost, stress impact, and eligibility rules.
 Jobs currently drive weekly income, energy loss, and stress gain when the player chooses to work.
+Balancing intent is distinct job profiles instead of minor numeric variations.
 
 ## `locations.json`
 
@@ -36,6 +40,7 @@ Each event should have at least one choice. Choice effects use the same valid ef
 
 Starting player archetypes containing initial cash, savings, debt, stress, energy, and default location/job references.
 Presets should be materially different enough to shape the early-term budget feel.
+Each preset should imply a different early-game survival strategy.
 
 ## `scoring.json`
 
