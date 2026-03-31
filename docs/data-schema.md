@@ -4,7 +4,11 @@
 
 Global runtime settings such as starting week, term length, seed defaults, and core bounds.
 This file also includes difficulty definitions and weekly engine thresholds such as event chance, energy fail windows, debt limits, and autosave naming.
-It also defines `job_switch_stress_penalty` for the switch-job tradeoff.
+It also defines tactical friction values:
+- `job_switch_stress_penalty`
+- `location_move_stress_penalty`
+- `offsite_work_energy_penalty`
+- `offsite_work_stress_penalty`
 
 ## `items.json`
 

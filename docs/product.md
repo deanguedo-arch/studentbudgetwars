@@ -15,21 +15,23 @@ Core design goals:
 
 - Start from a preset plus difficulty.
 - Resolve the term one week at a time in the terminal.
-- Choose to work, rest, buy an item, or switch jobs before ending the week.
+- Choose to work, rest, move location, switch jobs, buy an item, or save/quit.
 - Pay mandatory recurring expenses and make explicit decisions on optional upkeep/lifestyle expenses.
 - Optional expense decisions can now create short-lived carryover effects for upcoming weeks.
 - Gain job income when working.
 - Some jobs add small next-week carryover effects, creating stronger week-to-week identity.
 - Apply location modifiers once each week.
+- Working away from a job's home location adds explicit offsite strain, making location choice tactical.
 - Resolve one random event with a choice-based outcome.
 - Some events now create temporary consequences that persist into later weeks.
 - Lose from stress collapse, low-energy streaks, debt spiral, or repeated essential shortfalls.
+- The terminal layout now prioritizes a compact dashboard + recent activity instead of long rolling logs.
 
 ## Current Strategic Profiles
 
 - Optional expenses now represent meaningful quality-of-life tradeoffs instead of filler costs.
 - Jobs are tuned to distinct survival styles (sustainable, cashflow-heavy, high-strain, high-hourly/low-hours).
-- Locations nudge weekly outcomes toward different pressure patterns.
+- Locations now drive direct tactical decisions each week, not just passive flavor.
 - Presets are intended to feel like different opening problems, not cosmetic stat variants.
 - Temporary weekly modifiers let decisions echo forward without adding heavy simulation complexity.
 

@@ -66,6 +66,8 @@ Simulation limitations:
 
 - Package scaffold for a modular terminal game
 - First playable weekly terminal loop with work, rest, buying items, random events, autosave, and end scoring
+- Tactical action loop with work/rest resolution plus explicit location moves and job switching
+- Compact dashboard-style terminal screen with week outlook and recent-activity window (instead of log dump)
 - Typed Pydantic models for config, content, and save state
 - JSON loaders and cross-file validation helpers
 - Local JSON save/load support

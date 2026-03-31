@@ -85,3 +85,12 @@ def test_validator_rejects_invalid_temporary_effect_duration() -> None:
 
     with pytest.raises(ValueError, match="duration_weeks must be between 1 and 4"):
         validate_content_bundle(invalid_bundle)
+
+
+def test_validator_rejects_offsite_penalty_above_max_energy() -> None:
+    bundle = load_all_content()
+    invalid_config = bundle.config.model_copy(update={"offsite_work_energy_penalty": bundle.config.max_energy + 1})
+    invalid_bundle = bundle.model_copy(update={"config": invalid_config})
+
+    with pytest.raises(ValueError, match="offsite_work_energy_penalty exceeds config.max_energy"):
+        validate_content_bundle(invalid_bundle)

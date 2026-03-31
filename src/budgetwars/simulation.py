@@ -9,6 +9,7 @@ import json
 
 from .game import advance_week, check_game_over, start_new_game
 from .jobs import get_job, switch_job
+from .locations import move_location
 from .models import ContentBundle, EventDefinition, ExpenseDefinition, GameState, JobDefinition, StatEffects
 from .scoring import calculate_final_score
 from .utils import clamp
@@ -37,6 +38,7 @@ class SimulationRunResult:
 class SimulationPolicy:
     name: str
     description: str
+    choose_location: Callable[[GameState, ContentBundle], str | None]
     choose_weekly_action: Callable[[GameState, ContentBundle], str]
     should_pay_optional_expense: Callable[[GameState, ExpenseDefinition, ContentBundle], bool]
     choose_event_choice: Callable[[GameState, EventDefinition, ContentBundle], str | None]
@@ -133,6 +135,44 @@ def _choose_low_impact_job(jobs: list[JobDefinition]) -> JobDefinition:
 
 def _choose_high_income_job(jobs: list[JobDefinition]) -> JobDefinition:
     return max(jobs, key=lambda job: (_weekly_income(job), -_strain_score(job)))
+
+
+def _location_recovery_score(modifiers: dict[str, int]) -> float:
+    stress_relief = -modifiers.get("stress", 0)
+    energy_relief = modifiers.get("energy", 0)
+    cash_pressure = modifiers.get("cash", 0)
+    return float(stress_relief + energy_relief + (cash_pressure / 3.0))
+
+
+def _choose_recovery_location(bundle: ContentBundle) -> str:
+    return max(bundle.locations, key=lambda location: _location_recovery_score(location.modifiers)).id
+
+
+def _balanced_choose_location(state: GameState, bundle: ContentBundle) -> str | None:
+    current_job = get_job(bundle.jobs, state.player.job_id)
+    if current_job is None:
+        return None
+
+    if state.player.energy <= state.low_energy_threshold + 4 or state.player.stress >= state.max_stress - 10:
+        target_id = _choose_recovery_location(bundle)
+        return target_id if target_id != state.player.location_id else None
+
+    if (
+        state.player.debt >= int(state.debt_game_over_threshold * 0.70)
+        and state.player.energy >= state.low_energy_threshold + 9
+        and state.player.stress <= state.max_stress - 18
+        and state.player.location_id != current_job.location_id
+    ):
+        return current_job.location_id
+
+    if (
+        state.player.location_id != current_job.location_id
+        and (bundle.config.offsite_work_energy_penalty >= 3 or bundle.config.offsite_work_stress_penalty >= 2)
+        and state.player.energy <= state.low_energy_threshold + 10
+    ):
+        return current_job.location_id
+
+    return None
 
 
 def _balanced_choose_action(state: GameState, bundle: ContentBundle) -> str:
@@ -246,6 +286,21 @@ def _cash_hungry_choose_action(state: GameState, bundle: ContentBundle) -> str:
     return "work"
 
 
+def _cash_hungry_choose_location(state: GameState, bundle: ContentBundle) -> str | None:
+    current_job = get_job(bundle.jobs, state.player.job_id)
+    if current_job is None:
+        return None
+
+    if state.player.energy <= state.low_energy_threshold or state.player.stress >= state.max_stress - 6:
+        target_id = _choose_recovery_location(bundle)
+        return target_id if target_id != state.player.location_id else None
+
+    if state.player.location_id != current_job.location_id:
+        return current_job.location_id
+
+    return None
+
+
 def _cash_hungry_should_pay_optional_expense(
     state: GameState,
     expense: ExpenseDefinition,
@@ -350,6 +405,7 @@ POLICIES: dict[str, SimulationPolicy] = {
     "balanced": SimulationPolicy(
         name="balanced",
         description="Tries to stay solvent while avoiding collapse from stress and energy pressure.",
+        choose_location=_balanced_choose_location,
         choose_weekly_action=_balanced_choose_action,
         should_pay_optional_expense=_balanced_should_pay_optional_expense,
         choose_event_choice=_balanced_choose_event_choice,
@@ -358,6 +414,7 @@ POLICIES: dict[str, SimulationPolicy] = {
     "cash_hungry": SimulationPolicy(
         name="cash_hungry",
         description="Prioritizes cashflow and debt pressure, tolerating higher personal strain.",
+        choose_location=_cash_hungry_choose_location,
         choose_weekly_action=_cash_hungry_choose_action,
         should_pay_optional_expense=_cash_hungry_should_pay_optional_expense,
         choose_event_choice=_cash_hungry_choose_event_choice,
@@ -400,6 +457,15 @@ def simulate_term(
                 target_job_id,
                 stress_penalty=bundle.config.job_switch_stress_penalty,
                 sync_location_to_job=True,
+            )
+
+        target_location_id = policy.choose_location(state, bundle)
+        if target_location_id:
+            state = move_location(
+                state,
+                bundle.locations,
+                target_location_id,
+                stress_penalty=bundle.config.location_move_stress_penalty,
             )
 
         week_snapshot = state

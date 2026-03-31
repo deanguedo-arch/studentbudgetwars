@@ -64,6 +64,12 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
         raise ValueError("config.low_energy_threshold must be below config.max_energy")
     if bundle.config.job_switch_stress_penalty > bundle.config.max_stress:
         raise ValueError("config.job_switch_stress_penalty exceeds config.max_stress")
+    if bundle.config.location_move_stress_penalty > bundle.config.max_stress:
+        raise ValueError("config.location_move_stress_penalty exceeds config.max_stress")
+    if bundle.config.offsite_work_energy_penalty > bundle.config.max_energy:
+        raise ValueError("config.offsite_work_energy_penalty exceeds config.max_energy")
+    if bundle.config.offsite_work_stress_penalty > bundle.config.max_stress:
+        raise ValueError("config.offsite_work_stress_penalty exceeds config.max_stress")
 
     for event in bundle.events:
         _ensure_unique_ids(event.choices, f"event choice for {event.id}")

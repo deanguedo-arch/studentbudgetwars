@@ -72,6 +72,14 @@ def test_unknown_policy_name_is_rejected() -> None:
         get_policy("missing_policy")
 
 
+def test_policies_expose_location_decision_hook() -> None:
+    balanced = get_policy("balanced")
+    cash_hungry = get_policy("cash_hungry")
+
+    assert callable(balanced.choose_location)
+    assert callable(cash_hungry.choose_location)
+
+
 def test_presets_do_not_start_in_immediate_game_over_state() -> None:
     bundle = load_all_content()
     for preset in bundle.presets:

@@ -15,6 +15,9 @@
   "debt_interest_rate": 0.08,
   "overdraft_fee": 20,
   "job_switch_stress_penalty": 4,
+  "location_move_stress_penalty": 1,
+  "offsite_work_energy_penalty": 4,
+  "offsite_work_stress_penalty": 2,
   "autosave_name": "autosave.json",
   "difficulties": [
     {

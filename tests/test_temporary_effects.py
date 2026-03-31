@@ -259,7 +259,9 @@ def test_event_choice_can_add_temporary_effects() -> None:
 def test_work_week_adds_job_carryover_for_next_week_only() -> None:
     bundle = load_all_content()
     _, state = start_new_game(bundle=bundle, preset_id="default_student", seed=123)
-    state = state.model_copy(update={"player": state.player.model_copy(update={"stress": 30, "energy": 80})})
+    state = state.model_copy(
+        update={"player": state.player.model_copy(update={"stress": 30, "energy": 80, "location_id": "campus_library"})}
+    )
     quiet_bundle = bundle.model_copy(
         update={
             "expenses": [],

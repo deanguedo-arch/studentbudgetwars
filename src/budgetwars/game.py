@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Callable
 
@@ -7,6 +8,7 @@ from rich.console import Console
 
 from .budget import (
     add_temporary_effects,
+    apply_stat_effects,
     apply_start_of_week_temporary_effects,
     apply_interest_and_fees,
     decrement_temporary_effects,
@@ -19,7 +21,7 @@ from .economy import buy_item
 from .events import resolve_event_choice, roll_event
 from .jobs import get_job, switch_job
 from .loaders import load_all_content
-from .locations import apply_location_effects, get_location
+from .locations import apply_location_effects, get_location, move_location
 from .models import (
     ContentBundle,
     DifficultyDefinition,
@@ -32,13 +34,12 @@ from .models import (
 from .saves import load_game, save_game
 from .scoring import calculate_final_score
 from .ui import (
-    render_actions,
     render_event,
     render_final_summary,
+    render_game_screen,
     render_job_options,
     render_item_shop,
-    render_message_log,
-    render_summary,
+    render_location_options,
     render_title_screen,
 )
 from .utils import clamp, make_rng, trim_messages
@@ -136,6 +137,132 @@ def _make_week_rng(state: GameState):
     return make_rng((state.seed * 1000) + state.current_week)
 
 
+def _location_modifier_text(location_modifiers: dict[str, int]) -> str:
+    if not location_modifiers:
+        return "neutral"
+    return ", ".join(f"{stat} {delta:+d}" for stat, delta in location_modifiers.items())
+
+
+def build_week_outlook(state: GameState, bundle: ContentBundle) -> list[str]:
+    difficulty = _lookup_difficulty(bundle, state.difficulty_id)
+    lines: list[str] = []
+
+    location = get_location(bundle.locations, state.player.location_id)
+    if location is not None:
+        lines.append(f"Location pressure: {location.name} ({_location_modifier_text(location.modifiers)}).")
+    else:
+        lines.append("Location pressure: unknown location, effects may be skipped.")
+
+    current_job = get_job(bundle.jobs, state.player.job_id)
+    if current_job is not None:
+        weekly_pay = int(round(current_job.hourly_pay * current_job.hours_per_week * difficulty.income_multiplier))
+        strain = current_job.energy_cost + max(current_job.stress_delta, 0)
+        lines.append(f"Job reality: {current_job.name} pays about {weekly_pay}/week, strain {strain}.")
+        if state.player.location_id != current_job.location_id and state.player.energy <= state.low_energy_threshold + 10:
+            lines.append(
+                "Working offsite will increase strain this week. Move closer or rest if energy is tight."
+            )
+    else:
+        lines.append("Job reality: no active job income this week.")
+
+    if state.player.debt >= int(state.debt_game_over_threshold * 0.7):
+        lines.append("Debt pressure is high. Work income or lower-cost choices are urgent.")
+    elif state.player.debt >= int(state.debt_game_over_threshold * 0.5):
+        lines.append("Debt is climbing. Watch optional spending and missed essentials.")
+
+    if state.player.energy <= state.low_energy_threshold + 6:
+        lines.append("Energy is low. Resting or a lower-pressure location is safer.")
+    if state.player.stress >= state.max_stress - 15:
+        lines.append("Stress is near the red zone. Recovery choices should be prioritized.")
+
+    optional_expenses = [expense for expense in bundle.expenses if expense.cadence == "weekly" and not expense.mandatory]
+    if optional_expenses:
+        average_optional_cost = int(round(sum(expense.amount for expense in optional_expenses) / len(optional_expenses)))
+        lines.append(
+            f"Optional pressure: {len(optional_expenses)} choices this week (about {average_optional_cost} average each)."
+        )
+
+    if state.temporary_effects:
+        active_labels = ", ".join(effect.label for effect in state.temporary_effects[:3])
+        extra_count = max(0, len(state.temporary_effects) - 3)
+        suffix = f" (+{extra_count} more)" if extra_count else ""
+        lines.append(f"Carryover active: {active_labels}{suffix}.")
+
+    return lines[:6]
+
+
+def compress_week_messages(messages: list[str], start_index: int) -> list[str]:
+    if start_index >= len(messages):
+        return messages
+
+    prior_messages = messages[:start_index]
+    week_messages = messages[start_index:]
+
+    paid_count = 0
+    paid_total = 0
+    debt_backed_count = 0
+    optional_paid_count = 0
+    optional_skipped_count = 0
+    active_effect_count = 0
+    created_effect_count = 0
+    carryover_appended_count = 0
+    important_messages: list[str] = []
+
+    for message in week_messages:
+        if message.startswith("Resolving week "):
+            continue
+        if message.startswith("Paid "):
+            paid_count += 1
+            match = re.search(r"\(([-]?\d+)\)", message)
+            if match:
+                paid_total += int(match.group(1))
+            if "and debt" in message:
+                debt_backed_count += 1
+            continue
+        if message.startswith("Skipped optional expense:"):
+            optional_skipped_count += 1
+            continue
+        if message.startswith("Optional expense paid ("):
+            optional_paid_count += 1
+            continue
+        if message.startswith("Optional expense skipped ("):
+            optional_skipped_count += 1
+            continue
+        if message.startswith("Temporary effect active ("):
+            active_effect_count += 1
+            continue
+        if "created temporary effect" in message:
+            created_effect_count += 1
+            continue
+        if message.startswith("Job carryover ("):
+            carryover_appended_count += 1
+            continue
+        if message.startswith("Event effects ("):
+            continue
+        important_messages.append(message)
+
+    summary_messages: list[str] = []
+    if paid_count:
+        debt_text = f", debt-backed {debt_backed_count}" if debt_backed_count else ""
+        summary_messages.append(f"Weekly essentials: {paid_count} charge(s), total {paid_total}{debt_text}.")
+    if optional_paid_count or optional_skipped_count:
+        summary_messages.append(
+            f"Optional choices: paid {optional_paid_count}, skipped {optional_skipped_count}."
+        )
+    if active_effect_count:
+        summary_messages.append(f"Carryover effects applied this week: {active_effect_count}.")
+    if created_effect_count or carryover_appended_count:
+        summary_messages.append(
+            f"New carryover effects queued: {created_effect_count + carryover_appended_count}."
+        )
+
+    return [*prior_messages, *summary_messages, *important_messages]
+
+
+def _compress_state_messages_for_week(state: GameState, start_index: int) -> GameState:
+    return state.model_copy(update={"message_log": compress_week_messages(state.message_log, start_index)})
+
+
 def advance_week(
     state: GameState,
     bundle: ContentBundle,
@@ -144,6 +271,7 @@ def advance_week(
     choice_resolver: Callable[[EventDefinition], str | None] | None = None,
 ) -> GameState:
     difficulty = _lookup_difficulty(bundle, state.difficulty_id)
+    week_log_start_index = len(state.message_log)
     updated_state = state.model_copy(update={"message_log": [*state.message_log, f"Resolving week {state.current_week}."]})
     active_effects_at_week_start = len(updated_state.temporary_effects)
 
@@ -174,6 +302,18 @@ def advance_week(
             stress_multiplier=difficulty.stress_multiplier,
         )
         if current_job is not None:
+            if (
+                updated_state.player.location_id != current_job.location_id
+                and (bundle.config.offsite_work_energy_penalty > 0 or bundle.config.offsite_work_stress_penalty > 0)
+            ):
+                updated_state = apply_stat_effects(
+                    updated_state,
+                    {
+                        "energy": -bundle.config.offsite_work_energy_penalty,
+                        "stress": bundle.config.offsite_work_stress_penalty,
+                    },
+                    f"Offsite work strain ({current_job.name})",
+                )
             updated_state = add_temporary_effects(
                 updated_state,
                 current_job.work_temporary_effects,
@@ -198,6 +338,7 @@ def advance_week(
         overdraft_fee=bundle.config.overdraft_fee,
     )
     updated_state = decrement_temporary_effects(updated_state, active_effects_at_week_start=active_effects_at_week_start)
+    updated_state = _compress_state_messages_for_week(updated_state, week_log_start_index)
 
     updated_state = _update_failure_trackers(updated_state)
     updated_state = updated_state.model_copy(update={"current_week": state.current_week + 1})
@@ -268,6 +409,19 @@ def _prompt_job_switch(console: Console, bundle: ContentBundle, state: GameState
     )
 
 
+def _prompt_location_move(console: Console, bundle: ContentBundle, state: GameState) -> GameState:
+    render_location_options(console, bundle.locations, current_location_id=state.player.location_id)
+    choice = console.input("Enter a location id to move, or press Enter to cancel: ").strip()
+    if not choice:
+        return state
+    return move_location(
+        state,
+        bundle.locations,
+        choice,
+        stress_penalty=bundle.config.location_move_stress_penalty,
+    )
+
+
 def run_game_loop(
     state: GameState,
     bundle: ContentBundle | None = None,
@@ -279,9 +433,12 @@ def run_game_loop(
     render_title_screen(active_console, state.game_title)
 
     while not check_game_over(state):
-        render_summary(active_console, state)
-        render_message_log(active_console, state.message_log)
-        render_actions(active_console)
+        try:
+            active_console.clear()
+        except Exception:
+            pass
+
+        render_game_screen(active_console, state, outlook_lines=build_week_outlook(state, content), recent_log_limit=8)
         choice = active_console.input("Choose an action: ").strip().lower()
 
         if choice == "1":
@@ -303,12 +460,15 @@ def run_game_loop(
             )
             save_game(state, content.config.autosave_name, saves_dir=saves_dir)
         elif choice == "3":
-            state = _prompt_item_purchase(active_console, content, state)
+            state = _prompt_location_move(active_console, content, state)
             state = _finalize_state(state, content.config.message_log_limit)
         elif choice == "4":
             state = _prompt_job_switch(active_console, content, state)
             state = _finalize_state(state, content.config.message_log_limit)
         elif choice == "5":
+            state = _prompt_item_purchase(active_console, content, state)
+            state = _finalize_state(state, content.config.message_log_limit)
+        elif choice == "6":
             save_game(state, content.config.autosave_name, saves_dir=saves_dir)
             active_console.print("Game saved. Exiting.")
             return state

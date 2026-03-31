@@ -42,3 +42,25 @@ def apply_location_effects(state: GameState, location: LocationDefinition | None
             "message_log": [*state.message_log, f"Location effects ({location.name}): {effect_text}."],
         }
     )
+
+
+def move_location(
+    state: GameState,
+    locations: list[LocationDefinition],
+    new_location_id: str,
+    *,
+    stress_penalty: int = 0,
+) -> GameState:
+    target = get_location(locations, new_location_id)
+    if target is None:
+        return state.model_copy(update={"message_log": [*state.message_log, f"Invalid location selection: {new_location_id}."]})
+
+    if state.player.location_id == target.id:
+        return state.model_copy(update={"message_log": [*state.message_log, f"Already at {target.name}."]})
+
+    updated_stress = clamp(state.player.stress + max(stress_penalty, 0), 0, state.max_stress)
+    player = state.player.model_copy(update={"location_id": target.id, "stress": updated_stress})
+    move_text = f"Moved to {target.name}."
+    if stress_penalty > 0:
+        move_text += f" Travel strain +{stress_penalty} stress."
+    return state.model_copy(update={"player": player, "message_log": [*state.message_log, move_text]})

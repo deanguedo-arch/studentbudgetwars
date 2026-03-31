@@ -37,6 +37,9 @@ class GameConfig(BaseModel):
     debt_interest_rate: float = Field(ge=0)
     overdraft_fee: int = Field(ge=0)
     job_switch_stress_penalty: int = Field(ge=0)
+    location_move_stress_penalty: int = Field(ge=0, default=0)
+    offsite_work_energy_penalty: int = Field(ge=0, default=0)
+    offsite_work_stress_penalty: int = Field(ge=0, default=0)
     autosave_name: str
     difficulties: list[DifficultyDefinition]
 
