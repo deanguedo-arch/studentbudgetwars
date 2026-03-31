@@ -25,3 +25,12 @@ def test_validator_rejects_duplicate_event_choice_ids() -> None:
 
     with pytest.raises(ValueError, match="Duplicate event choice"):
         validate_content_bundle(invalid_bundle)
+
+
+def test_validator_rejects_broken_job_location_reference() -> None:
+    bundle = load_all_content()
+    broken_job = bundle.jobs[0].model_copy(update={"location_id": "missing_location"})
+    invalid_bundle = bundle.model_copy(update={"jobs": [broken_job, *bundle.jobs[1:]]})
+
+    with pytest.raises(ValueError, match="references unknown location"):
+        validate_content_bundle(invalid_bundle)

@@ -78,6 +78,16 @@ def apply_weekly_income(
     return _append_message(updated_state, f"Worked as {job.name} and earned {gross_income}.")
 
 
+def apply_rest_action(state: GameState) -> GameState:
+    player = state.player.model_copy(
+        update={
+            "energy": clamp(state.player.energy + 18, 0, state.max_energy),
+            "stress": clamp(state.player.stress - 10, 0, state.max_stress),
+        }
+    )
+    return state.model_copy(update={"player": player, "message_log": [*state.message_log, "Took a rest-focused week."]})
+
+
 def apply_interest_and_fees(
     state: GameState,
     interest_rate: float,

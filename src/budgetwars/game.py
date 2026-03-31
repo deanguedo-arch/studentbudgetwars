@@ -5,7 +5,7 @@ from typing import Callable
 
 from rich.console import Console
 
-from .budget import apply_interest_and_fees, apply_weekly_expenses, apply_weekly_income
+from .budget import apply_interest_and_fees, apply_rest_action, apply_weekly_expenses, apply_weekly_income
 from .economy import buy_item
 from .events import resolve_event_choice, roll_event
 from .loaders import load_all_content
@@ -92,16 +92,6 @@ def _lookup_item(bundle: ContentBundle, item_id: str) -> ItemDefinition | None:
     return next((item for item in bundle.items if item.id == item_id), None)
 
 
-def _apply_rest(state: GameState) -> GameState:
-    player = state.player.model_copy(
-        update={
-            "energy": clamp(state.player.energy + 18, 0, state.max_energy),
-            "stress": clamp(state.player.stress - 10, 0, state.max_stress),
-        }
-    )
-    return state.model_copy(update={"player": player, "message_log": [*state.message_log, "Took a rest-focused week."]})
-
-
 def _update_failure_trackers(state: GameState) -> GameState:
     low_energy_streak = state.consecutive_low_energy_weeks + 1 if state.player.energy <= state.low_energy_threshold else 0
     return state.model_copy(update={"consecutive_low_energy_weeks": low_energy_streak})
@@ -155,7 +145,7 @@ def advance_week(
             stress_multiplier=difficulty.stress_multiplier,
         )
     elif action == "rest":
-        updated_state = _apply_rest(updated_state)
+        updated_state = apply_rest_action(updated_state)
     else:
         raise ValueError(f"Unknown action: {action}")
 
