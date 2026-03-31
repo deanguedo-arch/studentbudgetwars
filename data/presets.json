@@ -1,38 +1,71 @@
 [
   {
-    "id": "default_student",
-    "name": "Default Student",
-    "description": "Steady baseline with moderate debt and room to pivot early.",
-    "starting_cash": 160,
-    "starting_savings": 60,
+    "id": "dorm_flipper",
+    "name": "Dorm Flipper",
+    "description": "Low debt, light cash, and strong space for moving cheap goods around campus.",
+    "starting_cash": 120,
+    "starting_debt": 140,
+    "starting_bank_balance": 20,
+    "starting_energy": 72,
+    "starting_stress": 24,
+    "starting_heat": 8,
+    "starting_gpa": 2.7,
+    "starting_backpack_capacity": 28,
+    "starting_district_id": "dorms",
+    "starting_item_ids": {
+      "instant_noodles_pack": 1
+    }
+  },
+  {
+    "id": "commuter_hustler",
+    "name": "Commuter Hustler",
+    "description": "Better starting cash and access, but more stress and less time to recover.",
+    "starting_cash": 170,
     "starting_debt": 180,
+    "starting_bank_balance": 40,
+    "starting_energy": 64,
+    "starting_stress": 32,
+    "starting_heat": 12,
+    "starting_gpa": 2.5,
+    "starting_backpack_capacity": 24,
+    "starting_district_id": "transit_hub",
+    "starting_item_ids": {
+      "energy_drink": 1
+    }
+  },
+  {
+    "id": "scholarship_grinder",
+    "name": "Scholarship Grinder",
+    "description": "Solid GPA and low heat, but cash is tight and your margin for mistakes is small.",
+    "starting_cash": 95,
+    "starting_debt": 120,
+    "starting_bank_balance": 10,
+    "starting_energy": 68,
     "starting_stress": 22,
-    "starting_energy": 75,
-    "starting_location_id": "campus_dorm",
-    "starting_job_id": "library_assistant"
+    "starting_heat": 4,
+    "starting_gpa": 3.4,
+    "starting_backpack_capacity": 22,
+    "starting_district_id": "library",
+    "starting_item_ids": {
+      "planner": 1
+    }
   },
   {
-    "id": "commuter_student",
-    "name": "Commuter Student",
-    "description": "Stronger cash buffer and lower debt, but higher weekly strain in town.",
-    "starting_cash": 165,
-    "starting_savings": 55,
-    "starting_debt": 145,
-    "starting_stress": 30,
-    "starting_energy": 62,
-    "starting_location_id": "town_center",
-    "starting_job_id": "barista"
-  },
-  {
-    "id": "financially_stretched_student",
-    "name": "Financially Stretched Student",
-    "description": "High debt and low cash with a punishing work setup from week one.",
-    "starting_cash": 100,
-    "starting_savings": 35,
-    "starting_debt": 230,
+    "id": "overdrawn_survivor",
+    "name": "Overdrawn Survivor",
+    "description": "Heavy debt, shaky academics, and just enough breathing room to try something clever.",
+    "starting_cash": 80,
+    "starting_debt": 320,
+    "starting_bank_balance": 0,
+    "starting_energy": 60,
     "starting_stress": 38,
-    "starting_energy": 62,
-    "starting_location_id": "part_time_job_zone",
-    "starting_job_id": "food_delivery"
+    "starting_heat": 18,
+    "starting_gpa": 2.1,
+    "starting_backpack_capacity": 24,
+    "starting_district_id": "part_time_job_zone",
+    "starting_item_ids": {
+      "energy_drink": 1,
+      "instant_noodles_pack": 1
+    }
   }
 ]

@@ -2,75 +2,129 @@
 
 ## `config.json`
 
-Global runtime settings such as starting week, term length, seed defaults, and core bounds.
-This file also includes difficulty definitions and weekly engine thresholds such as event chance, energy fail windows, debt limits, and autosave naming.
-It also defines tactical friction values:
-- `job_switch_stress_penalty`
-- `location_move_stress_penalty`
-- `offsite_work_energy_penalty`
-- `offsite_work_stress_penalty`
+Global runtime settings:
+- day/week/term length
+- stat bounds
+- survival thresholds
+- weekly cost totals
+- interest rates
+- event odds
+- study/rest values
+- autosave name
+
+## `districts.json`
+
+District definitions for the city/campus map.
+
+Each district includes:
+- travel cost
+- travel energy/stress impact
+- local risk
+- event tags
+- commodity biases
+- local services
+- local gigs
+
+## `commodities.json`
+
+Tradable market goods.
+
+Each commodity includes:
+- id / name / description
+- min/max price
+- typical range
+- volatility
+- backpack size
+- district biases
+- rare-event tags
+
+## `gigs.json`
+
+District-based hustle opportunities.
+
+Each gig includes:
+- availability districts
+- pay
+- energy cost
+- stress delta
+- heat delta
+- GPA gate
+- required item ids
 
 ## `items.json`
 
-Item definitions for future inventory or resource systems. Each item should include an id, display name, category, price, and a small effect payload.
-Current valid effect keys: `cash`, `savings`, `debt`, `stress`, `energy`.
+Support items the player can carry and use.
 
-## `expenses.json`
+Each item includes:
+- price
+- backpack size
+- allowed districts
+- use effects
 
-Recurring or one-off expense definitions with ids, labels, amount, cadence, and whether the expense is mandatory.
-In the current prototype, weekly expenses are the main recurring financial pressure.
-Optional expenses can include `pay_effects` and `skip_effects` to support decision tradeoffs.
-Optional expenses can also include `pay_temporary_effects` and `skip_temporary_effects`.
-Each temporary effect entry contains:
-- `id`
-- `label`
-- `duration_weeks`
-- `effects`
-Design expectation:
-- mandatory expenses represent baseline survival costs
-- optional expenses represent upkeep/lifestyle choices with real tradeoffs
+Valid effect keys:
+- `cash`
+- `debt`
+- `bank_balance`
+- `energy`
+- `stress`
+- `heat`
+- `gpa`
+- `study_points`
 
-## `jobs.json`
+## `services.json`
 
-Job definitions with ids, names, pay ranges, energy cost, stress impact, and eligibility rules.
-Jobs currently drive weekly income, energy loss, and stress gain when the player chooses to work.
-Jobs can define `work_temporary_effects` that are added after a work week and apply starting the following week.
-Balancing intent is distinct job profiles instead of minor numeric variations.
+Local district services.
 
-## `locations.json`
-
-Location definitions with ids, names, descriptions, and simple modifiers that may affect jobs, costs, or events.
-Location modifiers apply once per week during weekly resolution using the same effect-key set.
+Current service kinds:
+- `bank`
+- `supply_shop`
 
 ## `events.json`
 
-Random event definitions with ids, names, descriptions, probability weight, base effects, and optional structured choices.
-Each event should have at least one choice. Choice effects use the same valid effect keys as items.
-Events and event choices can also attach `temporary_effects` with the same temporary-effect shape.
-This enables short-lived consequences that carry into future weeks.
+Board-level and daily events.
+
+Each event includes:
+- trigger: `weekly`, `daily`, or `any`
+- weight
+- duration in days
+- event tags
+- market multipliers
+- optional district-specific market multipliers
+- immediate stat effects
+- log entry
 
 ## `presets.json`
 
-Starting player archetypes containing initial cash, savings, debt, stress, energy, and default location/job references.
-Presets should be materially different enough to shape the early-term budget feel.
-Each preset should imply a different early-game survival strategy.
+Starting archetypes.
 
-## `scoring.json`
+Each preset defines:
+- starting cash / debt / bank balance
+- starting energy / stress / heat / GPA
+- starting backpack capacity
+- starting district
+- starting support items
 
-Weights and thresholds for end-of-run scoring so the balance can evolve without changing scoring code.
+## `data/balance/difficulty_modifiers.json`
 
-## Effect Key Reference
+Difficulty-level multipliers and bonuses:
+- starting cash/debt shifts
+- rent multiplier
+- debt-interest multiplier
+- price-spread multiplier
+- study-requirement multiplier
+- energy-recovery multiplier
+- stress multiplier
 
-These keys are currently supported by the game logic and validator:
+## `data/balance/price_curves.json`
 
-- `cash`
-- `savings`
-- `debt`
-- `stress`
-- `energy`
+Global market-generation knobs:
+- base randomness
+- scarcity multiplier range
+- flood multiplier range
 
-## Temporary Effect Rules
+## `data/balance/exam_weeks.json`
 
-- Valid only on expense pay/skip temporary fields, job work temporary fields, and event/event-choice temporary fields.
-- `duration_weeks` must be positive and currently validated to a small sane range.
-- Temporary effects use the same effect key set as direct effects.
+Academic checkpoint definitions by week:
+- required study points
+- GPA penalty / reward
+- stress delta

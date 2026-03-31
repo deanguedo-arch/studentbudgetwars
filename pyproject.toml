@@ -5,12 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "student-budget-wars"
 version = "0.1.0"
-description = "Terminal-first student survival strategy game scaffold."
+description = "Retro desktop student-hustle trading game."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7,<3.0",
-  "rich>=13.7,<14.0",
 ]
 
 [project.optional-dependencies]

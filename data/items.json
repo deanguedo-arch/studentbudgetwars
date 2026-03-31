@@ -1,106 +1,48 @@
 [
   {
-    "id": "instant_noodles",
-    "name": "Instant Noodles",
-    "category": "food",
-    "price": 3,
-    "description": "Cheap meal that keeps a bad week moving.",
-    "effects": {
-      "energy": 2,
-      "stress": -1
-    }
-  },
-  {
-    "id": "coffee",
-    "name": "Coffee",
-    "category": "consumable",
-    "price": 4,
-    "description": "A quick caffeine fix before class or work.",
-    "effects": {
-      "energy": 6,
-      "stress": 1
+    "id": "energy_drink",
+    "name": "Energy Drink",
+    "description": "Quick energy boost with a little stress sting.",
+    "price": 7,
+    "size": 1,
+    "district_ids": ["dorms", "student_union", "town_center"],
+    "use_effects": {
+      "energy": 14,
+      "stress": 2
     }
   },
   {
     "id": "planner",
-    "name": "Weekly Planner",
-    "category": "study",
+    "name": "Planner",
+    "description": "Keeps your study rhythm tighter for one clutch day.",
     "price": 12,
-    "description": "Adds a little structure to a messy schedule.",
-    "effects": {
-      "stress": -4
+    "size": 1,
+    "district_ids": ["main_campus", "student_union"],
+    "use_effects": {
+      "study_points": 1,
+      "stress": -2
     }
   },
   {
-    "id": "meal_prep_container",
-    "name": "Meal Prep Container",
-    "category": "food",
-    "price": 9,
-    "description": "Makes it easier to stop scrambling for every meal.",
-    "effects": {
-      "energy": 3,
+    "id": "instant_noodles_pack",
+    "name": "Instant Noodles Pack",
+    "description": "Cheap recovery food when cash is thin.",
+    "price": 5,
+    "size": 1,
+    "district_ids": ["dorms", "student_union"],
+    "use_effects": {
+      "energy": 6,
       "stress": -1
     }
   },
   {
-    "id": "bus_pass_topup",
-    "name": "Bus Pass Top-Up",
-    "category": "transport",
-    "price": 18,
-    "description": "Keeps transit stress down for the week.",
-    "effects": {
-      "energy": 2,
-      "stress": -2
-    }
-  },
-  {
-    "id": "used_textbook",
-    "name": "Used Textbook",
-    "category": "study",
-    "price": 22,
-    "description": "Not pretty, but it gets the job done.",
-    "effects": {
-      "stress": -3
-    }
-  },
-  {
-    "id": "protein_bar_box",
-    "name": "Protein Bar Box",
-    "category": "food",
-    "price": 11,
-    "description": "Low-effort calories for packed days.",
-    "effects": {
-      "energy": 7
-    }
-  },
-  {
-    "id": "cheap_headphones",
-    "name": "Cheap Headphones",
-    "category": "comfort",
-    "price": 16,
-    "description": "A small upgrade that makes study spaces more tolerable.",
-    "effects": {
-      "stress": -3
-    }
-  },
-  {
-    "id": "laundry_card",
-    "name": "Laundry Card",
-    "category": "household",
-    "price": 10,
-    "description": "Clean clothes remove one more thing from the pile.",
-    "effects": {
-      "stress": -2
-    }
-  },
-  {
-    "id": "emergency_charger",
-    "name": "Emergency Charger",
-    "category": "tech",
-    "price": 14,
-    "description": "Stops one dead-phone crisis before it starts.",
-    "effects": {
-      "energy": 5,
+    "id": "portable_toolkit",
+    "name": "Portable Toolkit",
+    "description": "Unlocks small repair gigs in the electronics strip.",
+    "price": 28,
+    "size": 2,
+    "district_ids": ["electronics_strip"],
+    "use_effects": {
       "stress": -1
     }
   }

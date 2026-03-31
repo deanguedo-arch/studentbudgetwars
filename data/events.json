@@ -1,509 +1,240 @@
 [
   {
-    "id": "unexpected_textbook_cost",
-    "name": "Unexpected Textbook Cost",
-    "description": "A required course suddenly needs another book.",
-    "weight": 10,
-    "effects": {
-      "stress": 2
-    },
-    "choices": [
-      {
-        "id": "pay_now",
-        "label": "Buy it now",
-        "description": "Protect the class immediately and absorb the hit.",
-        "effects": {
-          "cash": -45,
-          "stress": 4
-        }
-      },
-      {
-        "id": "put_on_credit",
-        "label": "Put it on credit",
-        "description": "Preserve cash now, but deepen the debt problem.",
-        "effects": {
-          "debt": 55,
-          "stress": 8
-        }
-      }
-    ]
-  },
-  {
-    "id": "roommate_asks_for_help",
-    "name": "Roommate Asks For Help",
-    "description": "Your roommate is short on cash and asks you to cover a shared expense.",
-    "weight": 6,
-    "effects": {
-      "stress": 1
-    },
-    "choices": [
-      {
-        "id": "lend_cash",
-        "label": "Help out",
-        "description": "You take the short-term hit to keep the peace.",
-        "effects": {
-          "cash": -20,
-          "stress": -1
-        }
-      },
-      {
-        "id": "set_boundary",
-        "label": "Say no",
-        "description": "You protect your budget, but the apartment gets tense.",
-        "effects": {
-          "stress": 2
-        }
-      }
-    ]
-  },
-  {
-    "id": "extra_shift_available",
-    "name": "Extra Shift Available",
-    "description": "A coworker wants someone to take their shift.",
-    "weight": 7,
-    "effects": {
-      "stress": 1
-    },
-    "choices": [
-      {
-        "id": "take_shift",
-        "label": "Take the shift",
-        "description": "You need the money, even if the week gets harder.",
-        "effects": {
-          "cash": 35,
-          "energy": -8,
-          "stress": 2
-        }
-      },
-      {
-        "id": "skip_shift",
-        "label": "Protect your time",
-        "description": "You rest a little instead of chasing extra pay.",
-        "effects": {
-          "energy": 2
-        }
-      }
-    ]
-  },
-  {
-    "id": "laptop_charger_breaks",
-    "name": "Laptop Charger Breaks",
-    "description": "Your charger finally gives up during a busy week.",
-    "weight": 6,
-    "effects": {
-      "stress": 2
-    },
-    "choices": [
-      {
-        "id": "replace_now",
-        "label": "Replace it now",
-        "description": "Painful, but you keep working normally.",
-        "effects": {
-          "cash": -25
-        }
-      },
-      {
-        "id": "borrow_one",
-        "label": "Borrow one",
-        "description": "You save money, but lose time and flexibility.",
-        "effects": {
-          "energy": -5,
-          "stress": 3
-        }
-      }
-    ]
-  },
-  {
-    "id": "family_sends_groceries",
-    "name": "Family Sends Groceries",
-    "description": "A family member drops off food and a few essentials.",
-    "weight": 5,
-    "effects": {
-      "stress": -1
-    },
-    "choices": [
-        {
-          "id": "accept_box",
-          "label": "Accept it",
-          "description": "You take the help and breathe a little easier.",
-          "effects": {
-            "cash": 18,
-            "stress": -2
-          },
-          "temporary_effects": [
-            {
-              "id": "pantry_buffer",
-              "label": "Pantry Buffer",
-              "duration_weeks": 1,
-              "effects": {
-                "cash": 8,
-                "stress": -1
-              }
-            }
-          ]
-        },
-      {
-        "id": "decline_pride",
-        "label": "Decline politely",
-        "description": "You keep your independence, but the budget stays tight.",
-        "effects": {
-          "stress": 1
-        }
-      }
-    ]
-  },
-  {
-    "id": "transit_fine",
-    "name": "Transit Fine",
-    "description": "You get caught with a transit card issue on a rushed day.",
-    "weight": 5,
-    "effects": {
-      "stress": 2
-    },
-    "choices": [
-      {
-        "id": "pay_ticket",
-        "label": "Pay it",
-        "description": "You settle it quickly and move on.",
-        "effects": {
-          "cash": -30,
-          "stress": 1
-        }
-      },
-      {
-        "id": "contest_ticket",
-        "label": "Contest it",
-        "description": "You might save money, but it eats time and patience.",
-        "effects": {
-          "energy": -3,
-          "stress": 3
-        }
-      }
-    ]
-  },
-  {
-    "id": "class_project_week",
-    "name": "Class Project Week",
-    "description": "A group project suddenly demands more of your time than expected.",
+    "id": "exam_rush",
+    "name": "Exam Rush",
+    "description": "Students are scrambling for calculators and textbooks before a brutal exam wave.",
+    "trigger": "weekly",
     "weight": 8,
-    "effects": {
-      "stress": 2
+    "duration_days": 7,
+    "event_tags": ["academic"],
+    "commodity_multipliers": {
+      "graphing_calculators": 1.5,
+      "used_textbooks": 1.3
     },
-    "choices": [
-        {
-          "id": "grind_through",
-          "label": "Push through",
-          "description": "You keep everything on track by burning yourself down a bit.",
-          "effects": {
-            "energy": -7,
-            "stress": 4
-          },
-          "temporary_effects": [
-            {
-              "id": "burnout_tail",
-              "label": "Burnout Tail",
-              "duration_weeks": 1,
-              "effects": {
-                "energy": -4,
-                "stress": 2
-              }
-            }
-          ]
-        },
-        {
-          "id": "ask_for_help",
-          "label": "Ask for help",
-          "description": "You share the load, even if progress feels slower.",
-          "effects": {
-            "energy": -2,
-            "stress": -1
-          },
-          "temporary_effects": [
-            {
-              "id": "shared_momentum",
-              "label": "Shared Momentum",
-              "duration_weeks": 1,
-              "effects": {
-                "stress": -1
-              }
-            }
-          ]
-        }
-      ]
+    "district_commodity_multipliers": {
+      "main_campus": {
+        "graphing_calculators": 1.2,
+        "used_textbooks": 1.15
+      },
+      "library": {
+        "graphing_calculators": 1.15
+      }
     },
+    "stat_effects": {},
+    "log_entry": "Exam week is heating up. Academic gear is moving fast."
+  },
   {
-    "id": "friend_brings_dinner",
-    "name": "Friend Brings Dinner",
-    "description": "A friend covers dinner after a rough week.",
+    "id": "bookstore_dump",
+    "name": "Bookstore Dump",
+    "description": "A bookstore clearance floods the market with used books.",
+    "trigger": "weekly",
+    "weight": 5,
+    "duration_days": 7,
+    "event_tags": ["academic"],
+    "commodity_multipliers": {
+      "used_textbooks": 0.65
+    },
+    "district_commodity_multipliers": {
+      "dorms": {
+        "used_textbooks": 0.8
+      }
+    },
+    "stat_effects": {},
+    "log_entry": "Textbook prices just cratered after a bookstore dump."
+  },
+  {
+    "id": "sold_out_show",
+    "name": "Sold-Out Show",
+    "description": "A big act sells out and ticket demand goes feral overnight.",
+    "trigger": "weekly",
+    "weight": 5,
+    "duration_days": 7,
+    "event_tags": ["events"],
+    "commodity_multipliers": {
+      "concert_tickets": 1.7
+    },
+    "district_commodity_multipliers": {
+      "student_union": {
+        "concert_tickets": 1.15
+      },
+      "stadium_district": {
+        "concert_tickets": 1.25
+      }
+    },
+    "stat_effects": {
+      "heat": 4
+    },
+    "log_entry": "Ticket resale is scorching hot around the stadium."
+  },
+  {
+    "id": "transit_crackdown",
+    "name": "Transit Crackdown",
+    "description": "Inspectors flood the stations and everyone suddenly wants legit passes.",
+    "trigger": "weekly",
     "weight": 6,
-    "effects": {
+    "duration_days": 7,
+    "event_tags": ["transit", "inspectors"],
+    "commodity_multipliers": {
+      "transit_passes": 1.6
+    },
+    "district_commodity_multipliers": {
+      "transit_hub": {
+        "transit_passes": 1.25
+      }
+    },
+    "stat_effects": {
+      "heat": 6,
+      "stress": 4
+    },
+    "log_entry": "Transit inspectors are everywhere and pass demand is surging."
+  },
+  {
+    "id": "move_out_flood",
+    "name": "Move-Out Flood",
+    "description": "Dorm move-outs dump bulky goods into the market all at once.",
+    "trigger": "weekly",
+    "weight": 5,
+    "duration_days": 7,
+    "event_tags": ["move_outs"],
+    "commodity_multipliers": {
+      "mini_fridges": 0.7,
+      "thrift_jackets": 0.85
+    },
+    "district_commodity_multipliers": {
+      "dorms": {
+        "mini_fridges": 0.65
+      },
+      "thrift_district": {
+        "mini_fridges": 0.8
+      }
+    },
+    "stat_effects": {},
+    "log_entry": "Dorm move-outs are flooding the market with bulky junk and hidden gems."
+  },
+  {
+    "id": "battery_panic",
+    "name": "Battery Panic",
+    "description": "A campus-wide power mess sends students hunting for chargers and backup tech.",
+    "trigger": "weekly",
+    "weight": 4,
+    "duration_days": 7,
+    "event_tags": ["tech"],
+    "commodity_multipliers": {
+      "phone_chargers": 1.6,
+      "used_laptops": 1.25
+    },
+    "district_commodity_multipliers": {
+      "main_campus": {
+        "phone_chargers": 1.15
+      },
+      "electronics_strip": {
+        "phone_chargers": 0.9
+      }
+    },
+    "stat_effects": {},
+    "log_entry": "Everyone suddenly needs chargers and working tech."
+  },
+  {
+    "id": "roommate_covers_meal",
+    "name": "Roommate Covers Dinner",
+    "description": "A roommate quietly covers food after a rough day.",
+    "trigger": "daily",
+    "weight": 7,
+    "duration_days": 0,
+    "event_tags": ["roommates"],
+    "commodity_multipliers": {},
+    "district_commodity_multipliers": {},
+    "stat_effects": {
+      "cash": 10,
+      "stress": -4
+    },
+    "log_entry": "Roommate covered dinner. Small mercy."
+  },
+  {
+    "id": "inspection_scare",
+    "name": "Inspection Scare",
+    "description": "Uniforms on the platform put everyone on edge.",
+    "trigger": "daily",
+    "weight": 6,
+    "duration_days": 0,
+    "event_tags": ["inspectors"],
+    "commodity_multipliers": {},
+    "district_commodity_multipliers": {},
+    "stat_effects": {
+      "heat": 8,
+      "stress": 5
+    },
+    "log_entry": "Inspectors rattled the district today."
+  },
+  {
+    "id": "found_source_lead",
+    "name": "Found Source Lead",
+    "description": "A casual conversation gives you a better lead on cheap tech.",
+    "trigger": "daily",
+    "weight": 5,
+    "duration_days": 1,
+    "event_tags": ["tech", "lead"],
+    "commodity_multipliers": {
+      "phone_chargers": 0.85,
+      "headphones": 0.9
+    },
+    "district_commodity_multipliers": {
+      "electronics_strip": {
+        "phone_chargers": 0.8,
+        "used_laptops": 0.92
+      }
+    },
+    "stat_effects": {
       "stress": -2
     },
-    "choices": [
-      {
-        "id": "accept",
-        "label": "Accept the help",
-        "description": "You take the meal and recover a little.",
-        "effects": {
-          "cash": 12,
-          "stress": -3,
-          "energy": 4
-        }
-      },
-      {
-        "id": "decline_and_study",
-        "label": "Stay in and study",
-        "description": "You keep grinding, but miss the reset.",
-        "effects": {
-          "energy": -2,
-          "stress": 1
-        }
-      }
-    ]
+    "log_entry": "A cheap tech lead opened up for a day."
   },
   {
-    "id": "surprise_lab_fee",
-    "name": "Surprise Lab Fee",
-    "description": "A class admin page quietly adds a lab charge you did not plan for.",
-    "weight": 7,
-    "effects": {
-      "stress": 2
-    },
-    "choices": [
-      {
-        "id": "pay_from_cash",
-        "label": "Pay from cash",
-        "description": "You keep the course clean, but your buffer shrinks.",
-        "effects": {
-          "cash": -28,
-          "stress": 2
-        }
-      },
-      {
-        "id": "use_credit",
-        "label": "Use credit",
-        "description": "You protect liquidity now at the cost of later pain.",
-        "effects": {
-          "debt": 35,
-          "stress": 4
-        }
-      }
-    ]
-  },
-  {
-    "id": "free_campus_meal",
-    "name": "Free Campus Meal",
-    "description": "A campus event is giving out free hot food.",
-    "weight": 4,
-    "effects": {
-      "stress": -1
-    },
-    "choices": [
-        {
-          "id": "eat_here",
-          "label": "Go eat",
-          "description": "You save a little money and feel human again.",
-          "effects": {
-            "cash": 10,
-            "energy": 4
-          },
-          "temporary_effects": [
-            {
-              "id": "fed_for_week",
-              "label": "Fed For Week",
-              "duration_weeks": 1,
-              "effects": {
-                "energy": 2
-              }
-            }
-          ]
-        },
-      {
-        "id": "save_the_time",
-        "label": "Skip it",
-        "description": "You keep moving, but miss the break.",
-        "effects": {
-          "stress": 1
-        }
-      }
-    ]
-  },
-  {
-    "id": "phone_screen_crack",
-    "name": "Phone Screen Crack",
-    "description": "One drop too many and your phone screen gives way.",
-    "weight": 5,
-    "effects": {
-      "stress": 3
-    },
-    "choices": [
-      {
-        "id": "repair_it",
-        "label": "Repair it",
-        "description": "You take the cost and keep your day-to-day sane.",
-        "effects": {
-          "cash": -40,
-          "stress": 1
-        }
-      },
-        {
-          "id": "live_with_it",
-          "label": "Live with it",
-          "description": "You save money, but every day gets a little more annoying.",
-          "effects": {
-            "energy": -2,
-            "stress": 3
-          },
-          "temporary_effects": [
-            {
-              "id": "tech_annoyance",
-              "label": "Tech Annoyance",
-              "duration_weeks": 1,
-              "effects": {
-                "stress": 2
-              }
-            }
-          ]
-        }
-      ]
-    },
-  {
-    "id": "bursary_opportunity",
-    "name": "Bursary Opportunity",
-    "description": "A small bursary application window opens with almost no notice.",
-    "weight": 4,
-    "effects": {
-      "stress": 1
-    },
-    "choices": [
-      {
-        "id": "apply_now",
-        "label": "Apply now",
-        "description": "It costs time, but it could genuinely help.",
-        "effects": {
-          "energy": -3,
-          "stress": -1,
-          "savings": 35
-        }
-      },
-      {
-        "id": "ignore_it",
-        "label": "Ignore it",
-        "description": "You keep your week lighter, but leave money on the table.",
-        "effects": {
-          "energy": 1
-        }
-      }
-    ]
-  },
-  {
-    "id": "group_study_session",
-    "name": "Group Study Session",
-    "description": "Your classmates invite you to a focused study block.",
-    "weight": 5,
-    "effects": {
-      "stress": -1
-    },
-    "choices": [
-      {
-        "id": "join_session",
-        "label": "Join them",
-        "description": "You feel more prepared, even if it takes some energy.",
-        "effects": {
-          "stress": -3,
-          "energy": -2
-        }
-      },
-      {
-        "id": "study_solo",
-        "label": "Study solo",
-        "description": "You keep control of your time, but the pressure stays on you.",
-        "effects": {
-          "energy": 1,
-          "stress": 2
-        }
-      }
-    ]
-  },
-  {
-    "id": "sick_day",
-    "name": "Sick Day",
-    "description": "You wake up drained and clearly not at full capacity.",
+    "id": "rainy_commute",
+    "name": "Rainy Commute",
+    "description": "Everything takes longer and the whole city feels more annoying.",
+    "trigger": "daily",
     "weight": 6,
-    "effects": {
-      "stress": 2
-    },
-    "choices": [
-        {
-          "id": "rest_and_miss_shift",
-          "label": "Rest and miss work",
-          "description": "You recover a bit, but the missed money stings.",
-          "effects": {
-            "cash": -18,
-            "energy": 10,
-            "stress": -1
-          },
-          "temporary_effects": [
-            {
-              "id": "recovery_tail",
-              "label": "Recovery Tail",
-              "duration_weeks": 1,
-              "effects": {
-                "energy": 3
-              }
-            }
-          ]
-        },
-        {
-          "id": "push_through",
-          "label": "Push through it",
-          "description": "You force the week forward at a real cost.",
-          "effects": {
-            "energy": -8,
-            "stress": 6
-          },
-          "temporary_effects": [
-            {
-              "id": "lingering_fatigue",
-              "label": "Lingering Fatigue",
-              "duration_weeks": 1,
-              "effects": {
-                "energy": -5,
-                "stress": 1
-              }
-            }
-          ]
-        }
-      ]
-    },
-  {
-    "id": "tuition_payment_reminder",
-    "name": "Tuition Payment Reminder",
-    "description": "A payment reminder lands in your inbox at exactly the wrong moment.",
-    "weight": 7,
-    "effects": {
+    "duration_days": 0,
+    "event_tags": ["weather"],
+    "commodity_multipliers": {},
+    "district_commodity_multipliers": {},
+    "stat_effects": {
+      "energy": -5,
       "stress": 3
     },
-    "choices": [
-      {
-        "id": "make_small_payment",
-        "label": "Make a small payment",
-        "description": "It hurts now, but takes the edge off the debt pressure.",
-        "effects": {
-          "cash": -20,
-          "debt": -20,
-          "stress": -2
-        }
-      },
-      {
-        "id": "delay_again",
-        "label": "Delay it again",
-        "description": "You keep the cash for the week, but the problem grows.",
-        "effects": {
-          "debt": 25,
-          "stress": 4
-        }
-      }
-    ]
+    "log_entry": "Bad weather dragged your day down."
+  },
+  {
+    "id": "study_group_breakthrough",
+    "name": "Study Group Breakthrough",
+    "description": "A good study session lands harder than expected.",
+    "trigger": "daily",
+    "weight": 4,
+    "duration_days": 0,
+    "event_tags": ["study"],
+    "commodity_multipliers": {},
+    "district_commodity_multipliers": {},
+    "stat_effects": {
+      "gpa": 0.03,
+      "stress": -3
+    },
+    "log_entry": "A study group breakthrough steadied your semester."
+  },
+  {
+    "id": "backpack_theft",
+    "name": "Backpack Theft Scare",
+    "description": "You lose time and nerves dealing with a possible theft attempt.",
+    "trigger": "daily",
+    "weight": 3,
+    "duration_days": 0,
+    "event_tags": ["crowds", "risk"],
+    "commodity_multipliers": {},
+    "district_commodity_multipliers": {},
+    "stat_effects": {
+      "stress": 6,
+      "heat": 4
+    },
+    "log_entry": "Crowds got messy and you nearly lost your bag."
   }
 ]

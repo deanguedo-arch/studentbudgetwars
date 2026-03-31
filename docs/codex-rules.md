@@ -1,15 +1,13 @@
 # Codex Rules For Future Passes
 
-- Do not collapse core systems into one file.
-- Keep state mutation separate from terminal rendering.
-- Keep tunable content in `data/*.json`.
-- Validate JSON content at load time.
-- Prefer typed models over loose dictionaries.
-- Avoid hardcoded content-specific player attributes.
-- Keep randomness injectable or seedable for tests.
-- Add features in focused modules with clear ownership.
-- Keep carryover/temporary effects lightweight, typed, and validator-backed.
-- Reuse the non-interactive simulation tooling for balance checks before large tuning passes.
-- Do not add a database for v1.
-- Do not add a web frontend for v1.
-- Prefer small, safe extensions over speculative complexity.
+- Preserve the daily market loop. Do not drift back into a passive weekly life-manager spine.
+- Keep market, travel, gigs, study, events, inventory, scoring, and UI in separate modules.
+- Keep content JSON-driven.
+- Validate new JSON content on load.
+- Prefer typed models over ad hoc dictionaries.
+- Keep randomness deterministic when a seed is supplied.
+- Reuse the simulation tooling before large balance passes.
+- Treat Tkinter UI code as rendering/input only; keep rule logic in `engine/`.
+- Avoid giant UI rewrites unless the loop model changes.
+- Do not add a database or web frontend.
+- Expand the board with discipline: more opportunity, not more administrative chores.

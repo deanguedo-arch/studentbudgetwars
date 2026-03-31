@@ -1,8 +1,15 @@
-# Student Budget Wars
+# Student Budget Wars: City Hustle
 
-Student Budget Wars is a terminal-first Python game prototype about surviving a school term while managing cash, savings, debt, stress, energy, bills, and random life events.
+Student Budget Wars is now a retro desktop Python game about surviving a school term by moving across campus and the city, spotting temporary price swings, flipping student-life commodities, grinding gigs, keeping your GPA alive, and staying ahead of debt.
 
-The project is structured around small modules and JSON-driven content so future passes can extend systems surgically without turning the game into one large file. Core state, content loading, validation, save/load, UI, and gameplay flow are intentionally separated.
+The repo keeps the strong parts of the original scaffold:
+- JSON-driven content
+- typed Pydantic models
+- modular engine/UI/save/load layers
+- local save files
+- deterministic simulation tooling for balance work
+
+The old weekly “life manager” loop has been replaced by a daily market loop.
 
 ## Install
 
@@ -14,72 +21,111 @@ pip install -e .[dev]
 
 ## Run
 
+Desktop app:
+
 ```bash
 budgetwars
 ```
 
-Windows quick launcher:
+Windows launcher:
 
 ```bash
 live_preview.bat
 ```
 
-You can pass normal CLI flags through the launcher, for example:
+Example:
 
 ```bash
-live_preview.bat --preset commuter_student --difficulty hard
+live_preview.bat --preset dorm_flipper --difficulty hard
 ```
+
+## Current Game Shape
+
+- `1 turn = 1 day`
+- `7 days = 1 week`
+- `12 weeks = 84 turns`
+- Each day you take one main action:
+  - travel
+  - buy
+  - sell
+  - work gig
+  - rest
+  - study
+  - bank action
+  - use item
+- Each week:
+  - housing/utilities/phone hit
+  - debt interest hits
+  - bank interest applies
+  - heat decays
+  - academic checkpoint pressure can punish or reward you
+
+Core resources:
+- cash
+- debt
+- bank balance
+- energy
+- stress
+- heat
+- GPA
+- backpack space
+- days left
+
+## Current Content Base
+
+- 10 districts
+- 10 tradable commodities
+- 9 gigs
+- 4 supply/support items
+- 12 board and daily events
+- 4 starting presets
+- 3 difficulties
 
 ## Simulation And Balance Audit
 
-Run non-interactive simulations against the real weekly game loop:
+Run the non-interactive simulation tool against the real daily loop:
 
 ```bash
-python tools/simulate_runs.py --preset default_student --runs 100 --difficulty normal --policy balanced --seed 42
+C:\Users\dean.guedo\AppData\Local\Programs\Python\Python312\python.exe tools\simulate_runs.py --preset dorm_flipper --runs 50 --difficulty normal --policy balanced --seed 42
 ```
 
-Compare multiple presets in one run:
+Supported policies:
+- `balanced`
+- `cash_hungry`
+
+The tool reports:
+- run count
+- survivals / survival rate
+- average score
+- average ending cash / bank / debt / stress / energy / GPA
+- common game-over reasons
+- by-preset balance summary
+
+Optional report outputs:
 
 ```bash
-python tools/simulate_runs.py --preset default_student,commuter_student,financially_stretched_student --runs 50 --policy cash_hungry --seed 42
+tools\simulate_runs.py --preset all --runs 25 --output-json reports\audit.json --output-csv reports\runs.csv
 ```
 
-Optional report artifacts:
+## Architecture
 
-```bash
-python tools/simulate_runs.py --runs 25 --output-json reports/sim_audit.json --output-csv reports/sim_runs.csv
-```
+- `src/budgetwars/models/`: typed content + runtime state
+- `src/budgetwars/loaders/`: JSON loading + validation
+- `src/budgetwars/engine/`: market, travel, gigs, study, events, scoring, simulation
+- `src/budgetwars/ui/`: retro Tkinter shell
+- `src/budgetwars/saves/`: local save manager
 
-Available simulation policies:
-- `balanced`: prefers stability, avoids collapse, and only chases cash when debt pressure is high
-- `cash_hungry`: prioritizes income/debt pressure and accepts more stress and energy risk
+## What’s Still Early
 
-Reported metrics include runs, survivals, survival rate, average score, average ending resources/stats, common game-over reasons, and breakdowns by preset and starting job.
-Use these outputs to tune data values in `data/*.json` and verify whether one preset or strategy is dominating.
+- Balance is real but still rough
+- The Tkinter shell is functional, not finished-polished
+- The commodity board needs more event depth and more district-specific swing
+- Gigs and item interactions still have room to deepen
 
-Simulation limitations:
-- policy decisions are heuristic, not optimal play
-- audit outputs show directional balance signals, not perfect balance proofs
-- event outcomes remain seeded and deterministic per run seed
+## Best Next Pass
 
-## What Exists Now
-
-- Package scaffold for a modular terminal game
-- First playable weekly terminal loop with work, rest, buying items, random events, autosave, and end scoring
-- Tactical action loop with work/rest resolution plus explicit location moves and job switching
-- Compact dashboard-style terminal screen with week outlook and recent-activity window (instead of log dump)
-- Typed Pydantic models for config, content, and save state
-- JSON loaders and cross-file validation helpers
-- Local JSON save/load support
-- Rich-based UI for the playable loop
-- Minimal but functional game shell and CLI entry point
-- Initial pytest coverage for data loading and saves
-
-## What Comes Later
-
-- More weekly actions and decision depth
-- Richer budgeting and economy calculations
-- Expanded event library and tougher tradeoffs
-- More job, location, and item interactions
-- Scoring balance and progression tuning
-- More content and simulation tooling
+Use simulation output to tighten:
+- preset survivability spread
+- district opportunity identity
+- commodity volatility
+- academic pressure vs market pressure

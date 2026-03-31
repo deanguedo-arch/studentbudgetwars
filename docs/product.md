@@ -1,49 +1,51 @@
 # Product Overview
 
-Student Budget Wars is a turn-based terminal game about making it through a school term without collapsing financially or mentally.
+Student Budget Wars: City Hustle is a student-themed Dope Wars reinterpretation.
 
-The player manages a student character across weekly turns. Each week creates tradeoffs between earning money, covering bills, maintaining health and energy, and reacting to unpredictable life events.
+The player survives a fixed academic term by:
+- moving between city/campus districts
+- buying low and selling high on volatile student-life commodities
+- using gigs for emergency cash
+- managing debt, heat, stress, energy, GPA, and limited backpack space
+- reacting to board-level market events and district-specific pressure
 
-Core design goals:
+## Design Pillars
 
-- Easy to run locally
-- Strong replayability through random events and different starting presets
-- Data-driven content so balancing and writing can happen without rewriting core code
-- Modular systems that can be extended independently
+- Fast daily turns instead of slow weekly admin
+- Location-driven market opportunity
+- Tight inventory pressure
+- Student-themed hustle fantasy instead of abstract budgeting
+- Short-horizon tactical play inside a longer term-survival arc
+- Data-driven balancing and simulation support
 
-## Current Mechanics
+## Current Implemented Mechanics
 
-- Start from a preset plus difficulty.
-- Resolve the term one week at a time in the terminal.
-- Choose to work, rest, move location, switch jobs, buy an item, or save/quit.
-- Pay mandatory recurring expenses and make explicit decisions on optional upkeep/lifestyle expenses.
-- Optional expense decisions can now create short-lived carryover effects for upcoming weeks.
-- Gain job income when working.
-- Some jobs add small next-week carryover effects, creating stronger week-to-week identity.
-- Apply location modifiers once each week.
-- Working away from a job's home location adds explicit offsite strain, making location choice tactical.
-- Resolve one random event with a choice-based outcome.
-- Some events now create temporary consequences that persist into later weeks.
-- Lose from stress collapse, low-energy streaks, debt spiral, or repeated essential shortfalls.
-- The terminal layout now prioritizes a compact dashboard + recent activity instead of long rolling logs.
+- Daily market generation across all districts
+- District-based pricing biases
+- Weekly market events that reshape prices for several days
+- Daily events that can hit stats or create short-lived opportunities
+- Tradable commodities with volatility and backpack size
+- One main action per day
+- District-based gigs instead of fixed jobs
+- Study actions and exam-week academic checks
+- Weekly housing/utilities/phone + debt/bank interest
+- Local banking and item purchase/use
+- Save/load and deterministic simulation support
+- Retro Tkinter desktop shell
 
-## Current Strategic Profiles
+## Current Failure Conditions
 
-- Optional expenses now represent meaningful quality-of-life tradeoffs instead of filler costs.
-- Jobs are tuned to distinct survival styles (sustainable, cashflow-heavy, high-strain, high-hourly/low-hours).
-- Locations now drive direct tactical decisions each week, not just passive flavor.
-- Presets are intended to feel like different opening problems, not cosmetic stat variants.
-- Temporary weekly modifiers let decisions echo forward without adding heavy simulation complexity.
+- Debt reaches the threshold
+- Stress maxes out
+- Heat maxes out
+- Low-energy streak runs too long
+- GPA collapses too far
+- End of term arrives without meeting survival thresholds
 
-## Planned Mechanics
+## Planned Next-Level Depth
 
-- More weekly actions and stronger tradeoffs.
-- More meaningful use of locations and inventory.
-- Better balance across presets, jobs, and event pressure.
-- Broader content depth without changing the data-driven structure.
-
-## Simulation Support
-
-The project now includes a non-interactive simulation runner for balance auditing.
-It reuses the real weekly loop and policy-driven decisions to estimate survival rates, debt pressure, and scoring outcomes across presets and strategies.
-This is intended for evidence-guided tuning, not as an alternate gameplay mode.
+- More board-swing events
+- Better district identity and service differences
+- More tactical item usage
+- Stronger preset asymmetry
+- Commodity balance passes driven by simulation results

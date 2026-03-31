@@ -1,13 +1,12 @@
-"""Validate the JSON data files using the package loaders and validators."""
+"""Validate the JSON data files using the current content loader."""
 
-from budgetwars.loaders import load_all_content
-from budgetwars.validators import validate_content_bundle
+from budgetwars.loaders import load_all_content, validate_content_bundle
 
 
 def main() -> None:
     bundle = load_all_content()
     validate_content_bundle(bundle)
-    print("Data validation passed.")
+    print("Data validation passed for the daily market overhaul.")
 
 
 if __name__ == "__main__":
