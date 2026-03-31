@@ -4,7 +4,7 @@
     "name": "Instant Noodles",
     "category": "food",
     "price": 3,
-    "description": "Cheap meal that helps stretch a bad week.",
+    "description": "Cheap meal that keeps a bad week moving.",
     "effects": {
       "energy": 2,
       "stress": -1
@@ -15,7 +15,7 @@
     "name": "Coffee",
     "category": "consumable",
     "price": 4,
-    "description": "Small boost for an exhausting day.",
+    "description": "A quick caffeine fix before class or work.",
     "effects": {
       "energy": 6,
       "stress": 1
@@ -26,9 +26,82 @@
     "name": "Weekly Planner",
     "category": "study",
     "price": 12,
-    "description": "Helps bring some order to a chaotic term.",
+    "description": "Adds a little structure to a messy schedule.",
     "effects": {
       "stress": -4
+    }
+  },
+  {
+    "id": "meal_prep_container",
+    "name": "Meal Prep Container",
+    "category": "food",
+    "price": 9,
+    "description": "Makes it easier to stop scrambling for every meal.",
+    "effects": {
+      "energy": 3,
+      "stress": -1
+    }
+  },
+  {
+    "id": "bus_pass_topup",
+    "name": "Bus Pass Top-Up",
+    "category": "transport",
+    "price": 18,
+    "description": "Keeps transit stress down for the week.",
+    "effects": {
+      "energy": 2,
+      "stress": -2
+    }
+  },
+  {
+    "id": "used_textbook",
+    "name": "Used Textbook",
+    "category": "study",
+    "price": 22,
+    "description": "Not pretty, but it gets the job done.",
+    "effects": {
+      "stress": -3
+    }
+  },
+  {
+    "id": "protein_bar_box",
+    "name": "Protein Bar Box",
+    "category": "food",
+    "price": 11,
+    "description": "Low-effort calories for packed days.",
+    "effects": {
+      "energy": 7
+    }
+  },
+  {
+    "id": "cheap_headphones",
+    "name": "Cheap Headphones",
+    "category": "comfort",
+    "price": 16,
+    "description": "A small upgrade that makes study spaces more tolerable.",
+    "effects": {
+      "stress": -3
+    }
+  },
+  {
+    "id": "laundry_card",
+    "name": "Laundry Card",
+    "category": "household",
+    "price": 10,
+    "description": "Clean clothes remove one more thing from the pile.",
+    "effects": {
+      "stress": -2
+    }
+  },
+  {
+    "id": "emergency_charger",
+    "name": "Emergency Charger",
+    "category": "tech",
+    "price": 14,
+    "description": "Stops one dead-phone crisis before it starts.",
+    "effects": {
+      "energy": 5,
+      "stress": -1
     }
   }
 ]

@@ -14,12 +14,12 @@ def test_individual_loaders_parse_expected_shapes() -> None:
     config = load_config()
     assert config.term_weeks > 0
     assert config.difficulties
-    assert len(load_items()) >= 1
-    assert len(load_expenses()) >= 1
-    assert len(load_jobs()) >= 1
-    assert len(load_locations()) >= 1
+    assert len(load_items()) >= 10
+    assert len(load_expenses()) >= 7
+    assert len(load_jobs()) >= 5
+    assert len(load_locations()) >= 5
     events = load_events()
-    assert len(events) >= 1
+    assert len(events) >= 15
     assert events[0].choices
-    assert len(load_presets()) >= 1
+    assert len(load_presets()) >= 3
     assert load_scoring().survival_bonus >= 0

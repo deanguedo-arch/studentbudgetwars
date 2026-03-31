@@ -1,6 +1,6 @@
 [
   {
-    "id": "rent_dorm",
+    "id": "dorm_fee",
     "name": "Dorm Fee",
     "amount": 175,
     "cadence": "weekly",
@@ -13,6 +13,46 @@
     "amount": 15,
     "cadence": "weekly",
     "mandatory": true,
-    "description": "A simplified weekly share of a monthly phone plan."
+    "description": "A simplified weekly share of a phone plan."
+  },
+  {
+    "id": "groceries",
+    "name": "Groceries",
+    "amount": 42,
+    "cadence": "weekly",
+    "mandatory": true,
+    "description": "Basic food costs if you are trying to stay afloat."
+  },
+  {
+    "id": "transit",
+    "name": "Transit",
+    "amount": 18,
+    "cadence": "weekly",
+    "mandatory": true,
+    "description": "Bus fare and other transport costs."
+  },
+  {
+    "id": "utilities_share",
+    "name": "Utilities Share",
+    "amount": 20,
+    "cadence": "weekly",
+    "mandatory": true,
+    "description": "Shared electricity, water, and campus service costs."
+  },
+  {
+    "id": "course_materials",
+    "name": "Course Materials",
+    "amount": 24,
+    "cadence": "weekly",
+    "mandatory": true,
+    "description": "A normalized weekly burn for class supplies and printing."
+  },
+  {
+    "id": "streaming_or_fun_budget",
+    "name": "Streaming / Fun Budget",
+    "amount": 9,
+    "cadence": "weekly",
+    "mandatory": false,
+    "description": "A small optional spend to keep morale from flatlining."
   }
 ]

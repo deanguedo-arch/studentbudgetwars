@@ -10,5 +10,29 @@
     "starting_energy": 75,
     "starting_location_id": "campus_dorm",
     "starting_job_id": "library_assistant"
+  },
+  {
+    "id": "commuter_student",
+    "name": "Commuter Student",
+    "description": "A little more savings, but more week-to-week friction and travel strain.",
+    "starting_cash": 95,
+    "starting_savings": 70,
+    "starting_debt": 180,
+    "starting_stress": 28,
+    "starting_energy": 68,
+    "starting_location_id": "town_center",
+    "starting_job_id": "barista"
+  },
+  {
+    "id": "financially_stretched_student",
+    "name": "Financially Stretched Student",
+    "description": "Tighter liquidity, heavier debt, and less room for mistakes.",
+    "starting_cash": 55,
+    "starting_savings": 10,
+    "starting_debt": 380,
+    "starting_stress": 35,
+    "starting_energy": 62,
+    "starting_location_id": "campus_dorm",
+    "starting_job_id": "food_delivery"
   }
 ]

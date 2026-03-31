@@ -7,16 +7,46 @@
     "energy_cost": 12,
     "stress_delta": 2,
     "location_id": "campus_library",
-    "description": "Predictable on-campus job with modest pay."
+    "description": "Predictable on-campus work with modest pay."
+  },
+  {
+    "id": "campus_rec_attendant",
+    "name": "Campus Rec Attendant",
+    "hourly_pay": 14,
+    "hours_per_week": 12,
+    "energy_cost": 11,
+    "stress_delta": 1,
+    "location_id": "part_time_job_zone",
+    "description": "Steady campus hours with manageable stress."
+  },
+  {
+    "id": "barista",
+    "name": "Barista",
+    "hourly_pay": 17,
+    "hours_per_week": 10,
+    "energy_cost": 15,
+    "stress_delta": 4,
+    "location_id": "town_center",
+    "description": "Decent pay, but rushes and customers wear you down."
   },
   {
     "id": "food_delivery",
     "name": "Food Delivery",
-    "hourly_pay": 18,
+    "hourly_pay": 19,
     "hours_per_week": 8,
     "energy_cost": 18,
     "stress_delta": 5,
     "location_id": "town_center",
-    "description": "Flexible off-campus work with higher strain."
+    "description": "Flexible shifts with higher strain and unstable nights."
+  },
+  {
+    "id": "tutoring",
+    "name": "Tutoring",
+    "hourly_pay": 20,
+    "hours_per_week": 6,
+    "energy_cost": 8,
+    "stress_delta": 2,
+    "location_id": "campus_library",
+    "description": "Good pay per hour if you can stay sharp enough to teach."
   }
 ]

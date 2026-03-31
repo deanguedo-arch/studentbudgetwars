@@ -7,9 +7,9 @@ def test_data_files_load_and_validate() -> None:
     validate_content_bundle(bundle)
 
     assert bundle.config.game_title
-    assert bundle.items
-    assert bundle.expenses
-    assert bundle.jobs
-    assert bundle.locations
-    assert bundle.events
-    assert bundle.presets
+    assert len(bundle.items) >= 10
+    assert len(bundle.expenses) >= 7
+    assert len(bundle.jobs) >= 5
+    assert len(bundle.locations) >= 5
+    assert len(bundle.events) >= 15
+    assert len(bundle.presets) >= 3

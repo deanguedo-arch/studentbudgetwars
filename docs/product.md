@@ -10,3 +10,20 @@ Core design goals:
 - Strong replayability through random events and different starting presets
 - Data-driven content so balancing and writing can happen without rewriting core code
 - Modular systems that can be extended independently
+
+## Current Mechanics
+
+- Start from a preset plus difficulty.
+- Resolve the term one week at a time in the terminal.
+- Choose to work, rest, or buy an item before ending the week.
+- Pay recurring expenses every week.
+- Gain job income when working.
+- Resolve one random event with a choice-based outcome.
+- Lose from stress collapse, low-energy streaks, debt spiral, or repeated essential shortfalls.
+
+## Planned Mechanics
+
+- More weekly actions and stronger tradeoffs.
+- More meaningful use of locations and inventory.
+- Better balance across presets, jobs, and event pressure.
+- Broader content depth without changing the data-driven structure.

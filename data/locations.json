@@ -2,7 +2,7 @@
   {
     "id": "campus_dorm",
     "name": "Campus Dorm",
-    "description": "Close to classes and campus jobs.",
+    "description": "Close to class, close to chaos, and expensive every single week.",
     "modifiers": {
       "stress": -2
     }
@@ -10,7 +10,7 @@
   {
     "id": "campus_library",
     "name": "Campus Library",
-    "description": "Quiet study and work space.",
+    "description": "Quiet, useful, and slightly draining after long hours.",
     "modifiers": {
       "energy": -1
     }
@@ -18,9 +18,27 @@
   {
     "id": "town_center",
     "name": "Town Center",
-    "description": "Higher opportunity, higher spending risk.",
+    "description": "More jobs and errands, but more chances to spend money.",
     "modifiers": {
-      "cash": -5
+      "cash": -4,
+      "stress": 1
+    }
+  },
+  {
+    "id": "grocery_store",
+    "name": "Grocery Store",
+    "description": "A practical stop that still chips away at your week.",
+    "modifiers": {
+      "cash": -2
+    }
+  },
+  {
+    "id": "part_time_job_zone",
+    "name": "Part-Time Job Zone",
+    "description": "A generic stretch of shift work and commute fatigue.",
+    "modifiers": {
+      "energy": -2,
+      "stress": 1
     }
   }
 ]

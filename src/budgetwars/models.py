@@ -44,7 +44,7 @@ class ItemDefinition(BaseModel):
     id: str
     name: str
     category: str
-    price: int = Field(ge=0)
+    price: int = Field(gt=0)
     description: str
     effects: StatEffects = Field(default_factory=dict)
 
@@ -52,7 +52,7 @@ class ItemDefinition(BaseModel):
 class ExpenseDefinition(BaseModel):
     id: str
     name: str
-    amount: int = Field(ge=0)
+    amount: int = Field(gt=0)
     cadence: ExpenseCadence
     mandatory: bool
     description: str
@@ -61,7 +61,7 @@ class ExpenseDefinition(BaseModel):
 class JobDefinition(BaseModel):
     id: str
     name: str
-    hourly_pay: int = Field(ge=0)
+    hourly_pay: int = Field(gt=0)
     hours_per_week: int = Field(ge=0)
     energy_cost: int = Field(ge=0)
     stress_delta: int
@@ -76,15 +76,6 @@ class LocationDefinition(BaseModel):
     modifiers: StatEffects = Field(default_factory=dict)
 
 
-class EventDefinition(BaseModel):
-    id: str
-    name: str
-    description: str
-    weight: int = Field(gt=0)
-    effects: StatEffects = Field(default_factory=dict)
-    choices: list["EventChoiceDefinition"] = Field(default_factory=list)
-
-
 class EventChoiceDefinition(BaseModel):
     id: str
     label: str
@@ -92,15 +83,24 @@ class EventChoiceDefinition(BaseModel):
     effects: StatEffects = Field(default_factory=dict)
 
 
+class EventDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    weight: int = Field(gt=0)
+    effects: StatEffects = Field(default_factory=dict)
+    choices: list[EventChoiceDefinition] = Field(default_factory=list)
+
+
 class PresetDefinition(BaseModel):
     id: str
     name: str
     description: str
-    starting_cash: int
-    starting_savings: int
-    starting_debt: int
+    starting_cash: int = Field(ge=0)
+    starting_savings: int = Field(ge=0)
+    starting_debt: int = Field(ge=0)
     starting_stress: int = Field(ge=0)
-    starting_energy: int = Field(ge=0)
+    starting_energy: int = Field(gt=0)
     starting_location_id: str
     starting_job_id: str
 
