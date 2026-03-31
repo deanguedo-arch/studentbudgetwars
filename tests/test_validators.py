@@ -34,3 +34,12 @@ def test_validator_rejects_broken_job_location_reference() -> None:
 
     with pytest.raises(ValueError, match="references unknown location"):
         validate_content_bundle(invalid_bundle)
+
+
+def test_validator_rejects_invalid_optional_expense_effect_key() -> None:
+    bundle = load_all_content()
+    broken_expense = bundle.expenses[-1].model_copy(update={"skip_effects": {"happiness": 3}})
+    invalid_bundle = bundle.model_copy(update={"expenses": [*bundle.expenses[:-1], broken_expense]})
+
+    with pytest.raises(ValueError, match="invalid effect keys"):
+        validate_content_bundle(invalid_bundle)

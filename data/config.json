@@ -14,6 +14,7 @@
   "max_missed_essential_weeks": 3,
   "debt_interest_rate": 0.08,
   "overdraft_fee": 20,
+  "job_switch_stress_penalty": 4,
   "autosave_name": "autosave.json",
   "difficulties": [
     {

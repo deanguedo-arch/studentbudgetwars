@@ -15,9 +15,10 @@ Core design goals:
 
 - Start from a preset plus difficulty.
 - Resolve the term one week at a time in the terminal.
-- Choose to work, rest, or buy an item before ending the week.
-- Pay recurring expenses every week.
+- Choose to work, rest, buy an item, or switch jobs before ending the week.
+- Pay mandatory recurring expenses and make decisions on optional expenses.
 - Gain job income when working.
+- Apply location modifiers once each week.
 - Resolve one random event with a choice-based outcome.
 - Lose from stress collapse, low-energy streaks, debt spiral, or repeated essential shortfalls.
 

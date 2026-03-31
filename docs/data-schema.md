@@ -4,6 +4,7 @@
 
 Global runtime settings such as starting week, term length, seed defaults, and core bounds.
 This file also includes difficulty definitions and weekly engine thresholds such as event chance, energy fail windows, debt limits, and autosave naming.
+It also defines `job_switch_stress_penalty` for the switch-job tradeoff.
 
 ## `items.json`
 
@@ -14,6 +15,7 @@ Current valid effect keys: `cash`, `savings`, `debt`, `stress`, `energy`.
 
 Recurring or one-off expense definitions with ids, labels, amount, cadence, and whether the expense is mandatory.
 In the current prototype, weekly expenses are the main recurring financial pressure.
+Optional expenses can include `pay_effects` and `skip_effects` to support decision tradeoffs.
 
 ## `jobs.json`
 
@@ -23,7 +25,7 @@ Jobs currently drive weekly income, energy loss, and stress gain when the player
 ## `locations.json`
 
 Location definitions with ids, names, descriptions, and simple modifiers that may affect jobs, costs, or events.
-Location modifiers currently validate against the same effect-key set, even though the loop does not fully apply them yet.
+Location modifiers apply once per week during weekly resolution using the same effect-key set.
 
 ## `events.json`
 

@@ -4,7 +4,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from .models import EventDefinition, FinalScoreSummary, GameState, ItemDefinition
+from .models import EventDefinition, FinalScoreSummary, GameState, ItemDefinition, JobDefinition
 
 
 def render_title_screen(console: Console, title: str) -> None:
@@ -41,7 +41,7 @@ def render_message_log(console: Console, messages: list[str]) -> None:
 def render_actions(console: Console) -> None:
     console.print(
         Panel(
-            "1. Work week\n2. Rest week\n3. Buy item\n4. Save and quit",
+            "1. Work week\n2. Rest week\n3. Buy item\n4. Switch job\n5. Save and quit",
             title="Actions",
             border_style="green",
         )
@@ -57,6 +57,29 @@ def render_item_shop(console: Console, items: list[ItemDefinition]) -> None:
     for item in items:
         effect_text = ", ".join(f"{key} {value:+d}" for key, value in item.effects.items()) or "None"
         table.add_row(item.id, item.name, str(item.price), effect_text)
+    console.print(table)
+
+
+def render_job_options(console: Console, jobs: list[JobDefinition], current_job_id: str | None) -> None:
+    table = Table(title="Switch Job")
+    table.add_column("Id")
+    table.add_column("Name")
+    table.add_column("Pay", justify="right")
+    table.add_column("Hours", justify="right")
+    table.add_column("Energy", justify="right")
+    table.add_column("Stress", justify="right")
+    table.add_column("Location")
+    for job in jobs:
+        marker = " (current)" if job.id == current_job_id else ""
+        table.add_row(
+            job.id,
+            f"{job.name}{marker}",
+            str(job.hourly_pay),
+            str(job.hours_per_week),
+            str(job.energy_cost),
+            str(job.stress_delta),
+            job.location_id,
+        )
     console.print(table)
 
 

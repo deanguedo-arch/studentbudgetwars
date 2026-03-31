@@ -53,6 +53,8 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
         raise ValueError("config.starting_week cannot be greater than config.term_weeks")
     if bundle.config.low_energy_threshold >= bundle.config.max_energy:
         raise ValueError("config.low_energy_threshold must be below config.max_energy")
+    if bundle.config.job_switch_stress_penalty > bundle.config.max_stress:
+        raise ValueError("config.job_switch_stress_penalty exceeds config.max_stress")
 
     for event in bundle.events:
         _ensure_unique_ids(event.choices, f"event choice for {event.id}")
@@ -75,6 +77,10 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     for expense in bundle.expenses:
         if expense.amount > 500:
             raise ValueError(f"Expense '{expense.id}' amount is implausibly high")
+        _validate_effect_mapping(expense.pay_effects, f"Expense '{expense.id}' pay_effects")
+        _validate_effect_mapping(expense.skip_effects, f"Expense '{expense.id}' skip_effects")
+        if not expense.mandatory and not expense.pay_effects and not expense.skip_effects:
+            raise ValueError(f"Optional expense '{expense.id}' should define pay_effects or skip_effects")
 
     for job in bundle.jobs:
         if job.location_id not in location_ids:

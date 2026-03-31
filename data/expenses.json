@@ -53,6 +53,13 @@
     "amount": 9,
     "cadence": "weekly",
     "mandatory": false,
-    "description": "A small optional spend to keep morale from flatlining."
+    "description": "A small optional spend to keep morale from flatlining.",
+    "pay_effects": {
+      "stress": -1
+    },
+    "skip_effects": {
+      "stress": 3,
+      "energy": -1
+    }
   }
 ]

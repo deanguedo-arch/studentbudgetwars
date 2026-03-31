@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .models import ExpenseDefinition, GameState, JobDefinition
+from .models import ExpenseDefinition, GameState, JobDefinition, StatEffects
 from .utils import clamp
 
 
@@ -24,7 +24,54 @@ def _withdraw_liquid_funds(state: GameState, amount: int) -> tuple[GameState, in
     return state.model_copy(update={"player": player}), remaining
 
 
-def apply_weekly_expenses(
+def _apply_effects(state: GameState, effects: StatEffects, source_label: str) -> GameState:
+    if not effects:
+        return state
+
+    updated_values = {
+        "cash": state.player.cash,
+        "savings": state.player.savings,
+        "debt": state.player.debt,
+        "stress": state.player.stress,
+        "energy": state.player.energy,
+    }
+    for stat, delta in effects.items():
+        if stat in {"cash", "savings", "debt"}:
+            updated_values[stat] += delta
+        elif stat == "stress":
+            updated_values["stress"] = clamp(updated_values["stress"] + delta, 0, state.max_stress)
+        elif stat == "energy":
+            updated_values["energy"] = clamp(updated_values["energy"] + delta, 0, state.max_energy)
+
+    player = state.player.model_copy(update=updated_values)
+    effect_text = ", ".join(f"{key} {value:+d}" for key, value in effects.items())
+    return state.model_copy(
+        update={"player": player, "message_log": [*state.message_log, f"{source_label}: {effect_text}."]}
+    )
+
+
+def _apply_expense_charge(
+    state: GameState,
+    expense: ExpenseDefinition,
+    cost: int,
+) -> tuple[GameState, bool]:
+    updated_state, uncovered = _withdraw_liquid_funds(state, cost)
+    used_debt_for_essential = False
+
+    if uncovered > 0:
+        used_debt_for_essential = expense.mandatory
+        player = updated_state.player.model_copy(update={"debt": updated_state.player.debt + uncovered})
+        updated_state = updated_state.model_copy(update={"player": player})
+
+    payment_source = "cash/savings" if uncovered == 0 else "cash/savings and debt"
+    updated_state = _append_message(
+        updated_state,
+        f"Paid {expense.name} ({cost}) using {payment_source}.",
+    )
+    return updated_state, used_debt_for_essential
+
+
+def apply_mandatory_weekly_expenses(
     state: GameState,
     expenses: list[ExpenseDefinition],
     expense_multiplier: float = 1.0,
@@ -33,25 +80,58 @@ def apply_weekly_expenses(
     used_debt_for_essentials = False
 
     for expense in expenses:
-        if expense.cadence != "weekly":
+        if expense.cadence != "weekly" or not expense.mandatory:
             continue
-
         cost = int(round(expense.amount * expense_multiplier))
-        updated_state, uncovered = _withdraw_liquid_funds(updated_state, cost)
-
-        if uncovered > 0:
-            used_debt_for_essentials = used_debt_for_essentials or expense.mandatory
-            player = updated_state.player.model_copy(update={"debt": updated_state.player.debt + uncovered})
-            updated_state = updated_state.model_copy(update={"player": player})
-
-        payment_source = "cash/savings" if uncovered == 0 else "cash/savings and debt"
-        updated_state = _append_message(
-            updated_state,
-            f"Paid {expense.name} ({cost}) using {payment_source}.",
-        )
+        updated_state, used_debt = _apply_expense_charge(updated_state, expense, cost)
+        used_debt_for_essentials = used_debt_for_essentials or used_debt
 
     missed_essentials = updated_state.missed_essential_weeks + (1 if used_debt_for_essentials else 0)
     return updated_state.model_copy(update={"missed_essential_weeks": missed_essentials})
+
+
+def apply_optional_weekly_expenses(
+    state: GameState,
+    expenses: list[ExpenseDefinition],
+    decisions: dict[str, bool] | None = None,
+    expense_multiplier: float = 1.0,
+) -> GameState:
+    updated_state = state
+    resolved_decisions = decisions or {}
+
+    for expense in expenses:
+        if expense.cadence != "weekly" or expense.mandatory:
+            continue
+
+        should_pay = resolved_decisions.get(expense.id, True)
+        if should_pay:
+            cost = int(round(expense.amount * expense_multiplier))
+            updated_state, _ = _apply_expense_charge(updated_state, expense, cost)
+            updated_state = _apply_effects(updated_state, expense.pay_effects, f"Optional expense paid ({expense.name})")
+        else:
+            updated_state = _append_message(updated_state, f"Skipped optional expense: {expense.name}.")
+            updated_state = _apply_effects(updated_state, expense.skip_effects, f"Optional expense skipped ({expense.name})")
+
+    return updated_state
+
+
+def apply_weekly_expenses(
+    state: GameState,
+    expenses: list[ExpenseDefinition],
+    expense_multiplier: float = 1.0,
+) -> GameState:
+    updated_state = apply_mandatory_weekly_expenses(state, expenses, expense_multiplier=expense_multiplier)
+    default_pay_all_optional = {
+        expense.id: True
+        for expense in expenses
+        if expense.cadence == "weekly" and not expense.mandatory
+    }
+    return apply_optional_weekly_expenses(
+        updated_state,
+        expenses,
+        decisions=default_pay_all_optional,
+        expense_multiplier=expense_multiplier,
+    )
 
 
 def apply_weekly_income(

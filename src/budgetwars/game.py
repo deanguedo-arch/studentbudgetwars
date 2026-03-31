@@ -5,17 +5,34 @@ from typing import Callable
 
 from rich.console import Console
 
-from .budget import apply_interest_and_fees, apply_rest_action, apply_weekly_expenses, apply_weekly_income
+from .budget import (
+    apply_interest_and_fees,
+    apply_mandatory_weekly_expenses,
+    apply_optional_weekly_expenses,
+    apply_rest_action,
+    apply_weekly_income,
+)
 from .economy import buy_item
 from .events import resolve_event_choice, roll_event
+from .jobs import get_job, switch_job
 from .loaders import load_all_content
-from .models import ContentBundle, DifficultyDefinition, EventDefinition, GameState, ItemDefinition, PlayerState
+from .locations import apply_location_effects, get_location
+from .models import (
+    ContentBundle,
+    DifficultyDefinition,
+    EventDefinition,
+    ExpenseDefinition,
+    GameState,
+    ItemDefinition,
+    PlayerState,
+)
 from .saves import load_game, save_game
 from .scoring import calculate_final_score
 from .ui import (
     render_actions,
     render_event,
     render_final_summary,
+    render_job_options,
     render_item_shop,
     render_message_log,
     render_summary,
@@ -82,12 +99,6 @@ def _lookup_difficulty(bundle: ContentBundle, difficulty_id: str) -> DifficultyD
     return difficulty
 
 
-def _lookup_job(bundle: ContentBundle, job_id: str | None):
-    if job_id is None:
-        return None
-    return next((job for job in bundle.jobs if job.id == job_id), None)
-
-
 def _lookup_item(bundle: ContentBundle, item_id: str) -> ItemDefinition | None:
     return next((item for item in bundle.items if item.id == item_id), None)
 
@@ -126,21 +137,32 @@ def advance_week(
     state: GameState,
     bundle: ContentBundle,
     action: str,
+    optional_expense_resolver: Callable[[ExpenseDefinition], bool] | None = None,
     choice_resolver: Callable[[EventDefinition], str | None] | None = None,
 ) -> GameState:
     difficulty = _lookup_difficulty(bundle, state.difficulty_id)
     updated_state = state.model_copy(update={"message_log": [*state.message_log, f"Resolving week {state.current_week}."]})
 
-    updated_state = apply_weekly_expenses(
+    updated_state = apply_mandatory_weekly_expenses(
         updated_state,
         bundle.expenses,
+        expense_multiplier=difficulty.expense_multiplier,
+    )
+    optional_decisions = {}
+    for expense in bundle.expenses:
+        if expense.cadence == "weekly" and not expense.mandatory:
+            optional_decisions[expense.id] = optional_expense_resolver(expense) if optional_expense_resolver else True
+    updated_state = apply_optional_weekly_expenses(
+        updated_state,
+        bundle.expenses,
+        decisions=optional_decisions,
         expense_multiplier=difficulty.expense_multiplier,
     )
 
     if action == "work":
         updated_state = apply_weekly_income(
             updated_state,
-            _lookup_job(bundle, updated_state.player.job_id),
+            get_job(bundle.jobs, updated_state.player.job_id),
             income_multiplier=difficulty.income_multiplier,
             stress_multiplier=difficulty.stress_multiplier,
         )
@@ -148,6 +170,9 @@ def advance_week(
         updated_state = apply_rest_action(updated_state)
     else:
         raise ValueError(f"Unknown action: {action}")
+
+    location = get_location(bundle.locations, updated_state.player.location_id)
+    updated_state = apply_location_effects(updated_state, location)
 
     event = roll_event(_make_week_rng(state), bundle.events, bundle.config.weekly_event_chance)
     if event is not None:
@@ -208,6 +233,27 @@ def _prompt_event_choice(console: Console, event: EventDefinition) -> str | None
     return _default_choice_id(event)
 
 
+def _prompt_optional_expense_decision(console: Console, expense: ExpenseDefinition) -> bool:
+    raw = console.input(
+        f"Optional expense '{expense.name}' ({expense.amount}) - pay or skip? [p/s, default p]: "
+    ).strip().lower()
+    return raw not in {"s", "skip"}
+
+
+def _prompt_job_switch(console: Console, bundle: ContentBundle, state: GameState) -> GameState:
+    render_job_options(console, bundle.jobs, current_job_id=state.player.job_id)
+    choice = console.input("Enter a job id to switch, or press Enter to cancel: ").strip()
+    if not choice:
+        return state
+    return switch_job(
+        state,
+        bundle.jobs,
+        choice,
+        stress_penalty=bundle.config.job_switch_stress_penalty,
+        sync_location_to_job=True,
+    )
+
+
 def run_game_loop(
     state: GameState,
     bundle: ContentBundle | None = None,
@@ -229,6 +275,7 @@ def run_game_loop(
                 state,
                 content,
                 action="work",
+                optional_expense_resolver=lambda expense: _prompt_optional_expense_decision(active_console, expense),
                 choice_resolver=lambda event: _prompt_event_choice(active_console, event),
             )
             save_game(state, content.config.autosave_name, saves_dir=saves_dir)
@@ -237,6 +284,7 @@ def run_game_loop(
                 state,
                 content,
                 action="rest",
+                optional_expense_resolver=lambda expense: _prompt_optional_expense_decision(active_console, expense),
                 choice_resolver=lambda event: _prompt_event_choice(active_console, event),
             )
             save_game(state, content.config.autosave_name, saves_dir=saves_dir)
@@ -244,6 +292,9 @@ def run_game_loop(
             state = _prompt_item_purchase(active_console, content, state)
             state = _finalize_state(state, content.config.message_log_limit)
         elif choice == "4":
+            state = _prompt_job_switch(active_console, content, state)
+            state = _finalize_state(state, content.config.message_log_limit)
+        elif choice == "5":
             save_game(state, content.config.autosave_name, saves_dir=saves_dir)
             active_console.print("Game saved. Exiting.")
             return state

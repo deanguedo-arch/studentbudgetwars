@@ -36,6 +36,7 @@ class GameConfig(BaseModel):
     max_missed_essential_weeks: int = Field(gt=0)
     debt_interest_rate: float = Field(ge=0)
     overdraft_fee: int = Field(ge=0)
+    job_switch_stress_penalty: int = Field(ge=0)
     autosave_name: str
     difficulties: list[DifficultyDefinition]
 
@@ -56,6 +57,8 @@ class ExpenseDefinition(BaseModel):
     cadence: ExpenseCadence
     mandatory: bool
     description: str
+    pay_effects: StatEffects = Field(default_factory=dict)
+    skip_effects: StatEffects = Field(default_factory=dict)
 
 
 class JobDefinition(BaseModel):
