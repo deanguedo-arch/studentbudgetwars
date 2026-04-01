@@ -12,6 +12,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--preset", help="Preset id for a new game.")
     parser.add_argument("--difficulty", help="Difficulty id for a new game.")
     parser.add_argument("--city", help="City archetype id for a new game.")
+    parser.add_argument("--academics", help="Academic level id for a new game.")
+    parser.add_argument("--family-support", dest="family_support", help="Family support level id for a new game.")
+    parser.add_argument("--savings-band", dest="savings_band", help="Starting savings band id for a new game.")
     parser.add_argument("--path", dest="opening_path", help="Opening path id for a new game.")
     parser.add_argument("--seed", type=int, help="Optional deterministic seed.")
     return parser
@@ -24,6 +27,9 @@ def main() -> None:
         preset_id=args.preset,
         difficulty_id=args.difficulty,
         city_id=args.city,
+        academic_level_id=args.academics,
+        family_support_level_id=args.family_support,
+        savings_band_id=args.savings_band,
         opening_path_id=args.opening_path,
         seed=args.seed,
         load_name=args.load,

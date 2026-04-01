@@ -54,7 +54,14 @@ def make_debt_payment(state: GameState, amount: int) -> int:
 
 def living_cost(bundle: ContentBundle, state: GameState, *, modifier_delta: int = 0) -> int:
     city = get_city(bundle, state.player.current_city_id)
-    return max(0, int(round(bundle.config.base_living_cost * city.living_cost_multiplier + modifier_delta)))
+    total = (
+        bundle.config.living_cost_food
+        + bundle.config.living_cost_phone
+        + bundle.config.living_cost_utilities
+        + bundle.config.living_cost_insurance
+        + bundle.config.living_cost_misc_essentials
+    )
+    return max(0, int(round((total * city.living_cost_multiplier) + modifier_delta)))
 
 
 def debt_payment_due(bundle: ContentBundle, state: GameState) -> int:
@@ -73,7 +80,9 @@ def discretionary_spending(bundle: ContentBundle, state: GameState) -> int:
 def apply_budget_stance(bundle: ContentBundle, state: GameState, available_cash_before_savings: int) -> int:
     stance = get_budget_stance(bundle, state.player.budget_stance_id)
     state.player.stress += stance.stress_delta
+    state.player.energy += stance.energy_delta
     state.player.life_satisfaction += stance.life_satisfaction_delta
+    state.player.social_stability += stance.social_stability_delta
     contribution = max(0, int(round(max(0, available_cash_before_savings) * stance.savings_contribution_rate)))
     contribution = min(contribution, state.player.cash)
     if contribution:

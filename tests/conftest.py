@@ -22,7 +22,10 @@ def controller_factory(bundle):
         *,
         preset_id: str = "supported_student",
         difficulty_id: str = "normal",
-        city_id: str = "hometown",
+        city_id: str = "hometown_low_cost",
+        academic_level_id: str = "average",
+        family_support_level_id: str = "medium",
+        savings_band_id: str = "some",
         opening_path_id: str = "full_time_work",
         seed: int = 42,
     ) -> GameController:
@@ -32,6 +35,9 @@ def controller_factory(bundle):
             preset_id=preset_id,
             difficulty_id=difficulty_id,
             city_id=city_id,
+            academic_level_id=academic_level_id,
+            family_support_level_id=family_support_level_id,
+            savings_band_id=savings_band_id,
             opening_path_id=opening_path_id,
             seed=seed,
         )

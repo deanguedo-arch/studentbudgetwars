@@ -5,8 +5,9 @@ from random import Random
 from budgetwars.models import ContentBundle, FinalScoreSummary, GameState
 
 from .budgeting import pay_named_cost
-from .effects import append_log, clamp_player_state, trim_logs
+from .careers import can_enter_career
 from .education import can_switch_education
+from .effects import append_log, trim_logs
 from .events import eligible_events
 from .housing import can_switch_housing
 from .lookups import (
@@ -14,19 +15,15 @@ from .lookups import (
     get_career_track,
     get_city,
     get_current_career_tier,
-    get_difficulty,
     get_education_program,
     get_focus_action,
     get_housing_option,
-    get_opening_path,
-    get_preset,
     get_transport_option,
 )
 from .month_resolution import resolve_month
 from .scoring import calculate_final_score
 from .setup import build_new_game_state
 from .transport import can_switch_transport
-from .careers import can_enter_career
 
 
 class GameController:
@@ -43,12 +40,26 @@ class GameController:
         preset_id: str | None = None,
         difficulty_id: str = "normal",
         seed: int | None = None,
-        city_id: str = "hometown",
+        city_id: str = "hometown_low_cost",
         opening_path_id: str = "full_time_work",
+        academic_level_id: str = "average",
+        family_support_level_id: str = "medium",
+        savings_band_id: str = "some",
     ) -> GameController:
         chosen_preset = preset_id or bundle.presets[0].id
         chosen_seed = seed if seed is not None else bundle.config.default_seed
-        state = build_new_game_state(bundle, player_name, chosen_preset, difficulty_id, city_id, opening_path_id, chosen_seed)
+        state = build_new_game_state(
+            bundle,
+            player_name,
+            chosen_preset,
+            difficulty_id,
+            city_id,
+            opening_path_id,
+            academic_level_id,
+            family_support_level_id,
+            savings_band_id,
+            chosen_seed,
+        )
         return cls(bundle, state)
 
     def final_score_summary(self) -> FinalScoreSummary:
@@ -88,6 +99,7 @@ class GameController:
         self.state.player.career.tier_index = 0
         self.state.player.career.months_in_track = 0
         self.state.player.career.promotion_progress = 0
+        self.state.player.career.layoff_pressure = 0
         append_log(self.state, f"Career pivot: {get_career_track(self.bundle, career_id).name}")
         trim_logs(self.bundle, self.state)
 
@@ -96,32 +108,49 @@ class GameController:
         if not allowed:
             raise ValueError(reason)
         program = get_education_program(self.bundle, program_id)
-        self.state.player.education.program_id = program_id
-        self.state.player.education.is_active = program_id != "none"
-        self.state.player.education.months_completed = 0 if program_id != "none" else self.state.player.education.months_completed
-        self.state.player.education.standing = max(40, min(100, 55 + ((self.state.player.academic_strength - 50) // 2)))
-        if program_id == "college":
-            self.state.player.education.college_gpa = max(
-                1.8,
-                min(4.0, round(2.2 + ((self.state.player.academic_strength - 50) * 0.03), 2)),
-            )
+        education = self.state.player.education
+        if program_id == education.program_id:
+            education.is_active = not education.is_active if program.can_pause else education.is_active
+            education.is_paused = not education.is_active
+            append_log(self.state, f"Education {'resumed' if education.is_active else 'paused'}: {program.name}")
+            trim_logs(self.bundle, self.state)
+            return
+        education.program_id = program_id
+        education.is_active = program_id != "none"
+        education.is_paused = False
+        education.months_completed = 0 if program_id != "none" else education.months_completed
+        education.failure_streak = 0
+        education.standing = max(40, min(100, 55 + ((self.state.player.academic_strength - 50) // 2)))
+        if program.uses_gpa:
+            education.college_gpa = max(1.8, min(4.0, round(2.2 + ((self.state.player.academic_strength - 50) * 0.03), 2)))
         append_log(self.state, f"Education plan changed: {program.name}")
         trim_logs(self.bundle, self.state)
+
+    def current_housing_move_discount(self) -> int:
+        discount = 0
+        if self.state.player.selected_focus_action_id == "move_prep":
+            discount += 160
+        return discount
 
     def change_housing(self, housing_id: str) -> None:
         allowed, reason = can_switch_housing(self.bundle, self.state, housing_id)
         if not allowed:
             raise ValueError(reason)
         housing = get_housing_option(self.bundle, housing_id)
-        if housing.move_in_cost:
-            pay_named_cost(self.state, housing.move_in_cost, f"Move to {housing.name}")
-        self.state.player.housing_id = housing_id
-        self.state.missed_housing_payments = 0
+        move_cost = max(0, housing.move_in_cost - self.current_housing_move_discount())
+        if move_cost:
+            pay_named_cost(self.state, move_cost, f"Move to {housing.name}")
+        self.state.player.housing.option_id = housing_id
+        self.state.player.housing.months_in_place = 0
+        self.state.player.housing.missed_payment_streak = 0
         append_log(self.state, f"Housing changed: {housing.name}")
         trim_logs(self.bundle, self.state)
 
     def current_transport_switch_discount(self) -> int:
-        return sum(modifier.transport_switch_discount for modifier in self.state.active_modifiers)
+        discount = sum(modifier.transport_switch_discount for modifier in self.state.active_modifiers)
+        if self.state.player.selected_focus_action_id == "move_prep":
+            discount += 120
+        return discount
 
     def change_transport(self, transport_id: str) -> None:
         allowed, reason = can_switch_transport(self.bundle, self.state, transport_id)
@@ -131,7 +160,8 @@ class GameController:
         upfront = max(0, transport.upfront_cost - self.current_transport_switch_discount())
         if upfront:
             pay_named_cost(self.state, upfront, f"Switch to {transport.name}")
-        self.state.player.transport_id = transport_id
+        self.state.player.transport.option_id = transport_id
+        self.state.player.transport.months_owned = 0
         append_log(self.state, f"Transport changed: {transport.name}")
         trim_logs(self.bundle, self.state)
 
@@ -151,6 +181,21 @@ class GameController:
         append_log(self.state, f"Monthly focus selected: {focus.name}")
         trim_logs(self.bundle, self.state)
 
+    def build_crisis_warnings(self) -> list[str]:
+        player = self.state.player
+        warnings: list[str] = []
+        if player.debt >= self.state.debt_game_over_threshold * self.bundle.config.crisis_warning_debt_ratio:
+            warnings.append("Debt is getting close to collections.")
+        if player.stress >= self.bundle.config.crisis_warning_stress:
+            warnings.append("Stress is getting close to burnout territory.")
+        if player.energy <= self.bundle.config.crisis_warning_energy:
+            warnings.append("Energy is dangerously low.")
+        if player.housing.missed_payment_streak >= self.bundle.config.crisis_warning_housing_streak:
+            warnings.append("Housing stability is wobbling.")
+        if player.education.failure_streak >= max(1, self.state.academic_failure_streak_limit - 1):
+            warnings.append("School pressure is close to a hard setback.")
+        return warnings
+
     def build_month_outlook(self) -> list[str]:
         player = self.state.player
         city = get_city(self.bundle, self.state.player.current_city_id)
@@ -163,35 +208,24 @@ class GameController:
             f"Pressure: {city.pressure_text}",
             f"Current lane: {tier.label} in {track.name}.",
         ]
-        if player.debt > self.state.debt_game_over_threshold * 0.45:
-            outlook.append("Debt pressure is starting to dominate your monthly choices.")
-        if player.stress >= self.state.burnout_stress_threshold - 10:
-            outlook.append("Stress is close to burnout territory. A recovery month may be smarter than another push.")
-        elif player.stress >= 60:
-            outlook.append("Fastest stress relief right now: Recover, calmer housing, and lighter transport.")
-        if player.energy <= self.state.burnout_energy_threshold + 10:
-            outlook.append("Energy is running low enough to threaten the next few months.")
-        if housing.id == "parents" and self.state.player.family_support <= self.state.minimum_parent_fallback_support + 10:
-            outlook.append("Staying at home is financially strong, but the family buffer is thinning.")
+        outlook.extend(f"Warning: {warning}" for warning in self.build_crisis_warnings())
+        if housing.id == "parents" and player.family_support <= self.state.minimum_parent_fallback_support + 10:
+            outlook.append("Staying home is still powerful money-wise, but the family buffer is thinning.")
         if housing.id == "roommates":
-            outlook.append("Roommates save money, but they are still adding steady stress pressure.")
+            outlook.append("Roommates keep costs down but can still crack the month sideways.")
         if transport.id in {"beater_car", "financed_car"}:
-            outlook.append("Your transport is costing calm every month. Transit or walking would ease strain if you can afford the tradeoff.")
+            outlook.append("Your transport is buying access, but it is also putting monthly pressure on you.")
         if transport.access_level < track.minimum_transport_access:
             outlook.append("Transport is limiting your current career ceiling.")
-        if player.education.is_active and player.education.program_id == "college" and player.education.college_gpa < 2.7:
-            outlook.append("Your GPA is below the office-job cutoff right now.")
+        if player.education.is_active and player.education.college_gpa < 2.7 and player.education.program_id in {"part_time_college", "full_time_university"}:
+            outlook.append("Your GPA is below the stronger office/professional thresholds right now.")
         if player.education.is_active and player.education.standing < 55:
             outlook.append("School is slipping and could slow your long-term upside.")
-        if player.career.tier_index < len(track.tiers) - 1:
-            next_tier = track.tiers[player.career.tier_index + 1]
-            if next_tier.required_minimum_gpa is not None and player.education.college_gpa < next_tier.required_minimum_gpa:
-                outlook.append(f"{next_tier.label} needs a {next_tier.required_minimum_gpa:.1f} GPA.")
         if self.state.active_modifiers:
             outlook.append("Active pressure: " + ", ".join(modifier.label for modifier in self.state.active_modifiers))
         if not self.state.active_modifiers and not eligible_events(self.bundle, self.state):
             outlook.append("Quiet month. Your own choices will shape most of the pressure.")
-        return outlook[:6]
+        return outlook[:8]
 
     def is_finished(self) -> bool:
         return self.state.game_over_reason is not None or self.state.current_month > self.state.total_months

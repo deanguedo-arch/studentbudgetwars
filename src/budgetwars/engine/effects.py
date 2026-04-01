@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from budgetwars.models import ActiveMonthlyModifier, ContentBundle, GameState, ModifierTemplate
+from budgetwars.models import ActiveMonthlyModifier, AnnualMilestoneSummary, ContentBundle, GameState, ModifierTemplate
 
 
 NUMERIC_PLAYER_KEYS = {
@@ -13,6 +13,7 @@ NUMERIC_PLAYER_KEYS = {
     "energy",
     "life_satisfaction",
     "family_support",
+    "social_stability",
 }
 PROGRESSION_KEYS = {"promotion_progress", "education_progress"}
 
@@ -40,14 +41,24 @@ def clamp_player_state(state: GameState) -> None:
     player.energy = max(0, min(state.max_energy, player.energy))
     player.life_satisfaction = max(0, min(state.max_life_satisfaction, player.life_satisfaction))
     player.family_support = max(0, min(state.max_family_support, player.family_support))
+    player.social_stability = max(0, min(state.max_social_stability, player.social_stability))
     player.cash = int(round(player.cash))
     player.savings = int(round(player.savings))
     player.debt = max(0, int(round(player.debt)))
+    player.monthly_income = int(round(player.monthly_income))
+    player.monthly_expenses = int(round(player.monthly_expenses))
     player.monthly_surplus = int(round(player.monthly_surplus))
     player.career.promotion_progress = max(0, int(round(player.career.promotion_progress)))
+    player.career.layoff_pressure = max(0, int(round(player.career.layoff_pressure)))
     player.education.months_completed = max(0, int(round(player.education.months_completed)))
+    player.education.failure_streak = max(0, int(round(player.education.failure_streak)))
     player.education.standing = max(0, min(100, int(round(player.education.standing))))
     player.education.college_gpa = max(0.0, min(4.0, round(player.education.college_gpa, 2)))
+    player.housing.months_in_place = max(0, int(round(player.housing.months_in_place)))
+    player.housing.missed_payment_streak = max(0, int(round(player.housing.missed_payment_streak)))
+    player.housing.move_pressure = max(0, int(round(player.housing.move_pressure)))
+    player.transport.months_owned = max(0, int(round(player.transport.months_owned)))
+    player.transport.breakdown_pressure = max(0, int(round(player.transport.breakdown_pressure)))
 
 
 def _apply_cash_delta(state: GameState, delta: float) -> None:
@@ -84,6 +95,8 @@ def apply_stat_effects(state: GameState, effects: dict[str, float]) -> None:
             player.life_satisfaction += value
         elif key == "family_support":
             player.family_support += value
+        elif key == "social_stability":
+            player.social_stability += value
         elif key == "promotion_progress":
             player.career.promotion_progress = max(0, player.career.promotion_progress + value)
         elif key == "education_progress":
@@ -110,3 +123,26 @@ def create_modifier(template: ModifierTemplate) -> ActiveMonthlyModifier:
 
 def net_worth(state: GameState) -> int:
     return state.player.cash + state.player.savings - state.player.debt
+
+
+def summarize_milestone(
+    state: GameState,
+    *,
+    career_tier_label: str,
+) -> AnnualMilestoneSummary:
+    return AnnualMilestoneSummary(
+        year=state.current_year,
+        age=state.current_age + 1,
+        net_worth=net_worth(state),
+        monthly_income=state.player.monthly_income,
+        monthly_expenses=state.player.monthly_expenses,
+        monthly_surplus=state.player.monthly_surplus,
+        debt=state.player.debt,
+        housing_id=state.player.housing_id,
+        career_track_id=state.player.career.track_id,
+        career_tier_label=career_tier_label,
+        education_program_id=state.player.education.program_id,
+        stress=state.player.stress,
+        life_satisfaction=state.player.life_satisfaction,
+        summary_lines=[],
+    )

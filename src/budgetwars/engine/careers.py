@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from budgetwars.models import CareerTrackDefinition, ContentBundle, GameState
+from random import Random
+
+from budgetwars.models import ContentBundle, GameState
+from budgetwars.utils.rng import derive_seed
 
 from .effects import append_log
 from .lookups import get_career_track, get_city, get_current_career_tier, get_transport_option
@@ -13,7 +16,7 @@ def can_enter_career(bundle: ContentBundle, state: GameState, career_id: str) ->
     if career_id == player.career.track_id:
         return False, "You are already on that career track."
     if player.opening_path_id not in track.entry_path_ids:
-        return False, "That track does not fit your starting path in this version."
+        return False, "That track is not available from your current life lane."
     if transport.access_level < track.minimum_transport_access:
         return False, "Your current transport setup cannot support that work."
     if track.entry_requires_active_education and (
@@ -22,38 +25,59 @@ def can_enter_career(bundle: ContentBundle, state: GameState, career_id: str) ->
         return False, "You need the matching active training program first."
     if track.entry_minimum_gpa is not None and player.education.college_gpa < track.entry_minimum_gpa:
         return False, f"You need at least a {track.entry_minimum_gpa:.1f} GPA for that track."
+    if track.entry_requires_pass_state and not player.education.training_passed:
+        return False, "You need to pass training before that lane opens."
     missing = [credential for credential in track.entry_required_credential_ids if credential not in player.education.earned_credential_ids]
     if missing:
         return False, "You do not have the credential needed for that track yet."
     return True, ""
 
 
+def _income_variance_factor(state: GameState, variance: float) -> float:
+    if variance <= 0:
+        return 1.0
+    rng = Random(derive_seed(state.seed, state.current_month, state.player.career.track_id, "income"))
+    return 1.0 + rng.uniform(-variance, variance)
+
+
 def current_income(bundle: ContentBundle, state: GameState, income_multiplier: float) -> int:
     city = get_city(bundle, state.player.current_city_id)
     tier = get_current_career_tier(bundle, state)
+    track = get_career_track(bundle, state.player.career.track_id)
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
     career_bias = city.career_income_biases.get(state.player.career.track_id, 1.0)
-    income = tier.monthly_income * career_bias * difficulty.income_multiplier * income_multiplier
+    social_bonus = 1.0 + (track.social_income_factor * max(0, state.player.social_stability - 50))
+    variance = _income_variance_factor(state, track.income_variance)
+    income = tier.monthly_income * career_bias * difficulty.income_multiplier * income_multiplier * social_bonus * variance
     return max(0, int(round(income)))
 
 
 def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
     tier = get_current_career_tier(bundle, state)
+    track = get_career_track(bundle, state.player.career.track_id)
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
     state.player.energy += tier.energy_delta
     state.player.stress += int(round(tier.stress_delta * difficulty.stress_multiplier))
     state.player.life_satisfaction += tier.life_satisfaction_delta
+    state.player.social_stability += tier.social_stability_delta
     state.player.career.months_in_track += 1
+    if track.layoff_weight > 1.0:
+        state.player.career.layoff_pressure += 1
+    elif state.player.career.layoff_pressure > 0:
+        state.player.career.layoff_pressure -= 1
 
 
 def add_promotion_progress(bundle: ContentBundle, state: GameState, bonus: int) -> None:
+    track = get_career_track(bundle, state.player.career.track_id)
     progress_gain = 1 + max(0, bonus)
     if state.player.energy >= 55:
         progress_gain += 1
     if state.player.stress >= 80:
         progress_gain -= 1
+    if state.player.social_stability >= 60 and track.social_income_factor > 0:
+        progress_gain += 1
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
-    progress_gain = max(0, int(round(progress_gain * difficulty.progress_multiplier)))
+    progress_gain = max(0, int(round(progress_gain * difficulty.progress_multiplier * track.promotion_weight)))
     state.player.career.promotion_progress += progress_gain
 
 
@@ -69,6 +93,8 @@ def maybe_promote(bundle: ContentBundle, state: GameState) -> None:
     if missing:
         return
     if next_tier.required_minimum_gpa is not None and state.player.education.college_gpa < next_tier.required_minimum_gpa:
+        return
+    if next_tier.required_pass_state and not state.player.education.training_passed:
         return
     state.player.career.tier_index += 1
     state.player.career.promotion_progress = 0

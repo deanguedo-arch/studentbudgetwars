@@ -15,6 +15,7 @@ class CityDefinition(BaseModel):
     housing_cost_multiplier: float = Field(gt=0)
     living_cost_multiplier: float = Field(gt=0)
     transport_cost_multiplier: float = Field(gt=0)
+    education_cost_multiplier: float = Field(gt=0, default=1.0)
     family_support_bonus: int = 0
     opportunity_text: str
     pressure_text: str
@@ -27,9 +28,11 @@ class CareerTierDefinition(BaseModel):
     energy_delta: int
     stress_delta: int
     life_satisfaction_delta: int = 0
+    social_stability_delta: int = 0
     promotion_target: int = Field(gt=0)
     required_credential_ids: list[str] = Field(default_factory=list)
     required_minimum_gpa: float | None = Field(default=None, ge=0.0, le=4.0)
+    required_pass_state: bool = False
 
 
 class CareerTrackDefinition(BaseModel):
@@ -37,11 +40,16 @@ class CareerTrackDefinition(BaseModel):
     name: str
     description: str
     entry_path_ids: list[str] = Field(default_factory=list)
-    minimum_transport_access: int = Field(ge=1)
+    minimum_transport_access: int = Field(ge=0)
     entry_required_credential_ids: list[str] = Field(default_factory=list)
     entry_required_education_program_id: str | None = None
     entry_requires_active_education: bool = False
     entry_minimum_gpa: float | None = Field(default=None, ge=0.0, le=4.0)
+    entry_requires_pass_state: bool = False
+    income_variance: float = Field(ge=0, le=0.5, default=0.0)
+    social_income_factor: float = Field(ge=0, le=0.05, default=0.0)
+    layoff_weight: float = Field(ge=0.1, default=1.0)
+    promotion_weight: float = Field(ge=0.1, default=1.0)
     tiers: list[CareerTierDefinition]
 
 
@@ -57,6 +65,10 @@ class EducationProgramDefinition(BaseModel):
     entry_path_ids: list[str] = Field(default_factory=list)
     completion_life_satisfaction_bonus: int = 0
     applicable_career_ids: list[str] = Field(default_factory=list)
+    uses_gpa: bool = False
+    pass_state_program: bool = False
+    can_pause: bool = True
+    minimum_academic_strength: int = Field(ge=0, le=100, default=0)
 
 
 class HousingOptionDefinition(BaseModel):
@@ -67,21 +79,28 @@ class HousingOptionDefinition(BaseModel):
     move_in_cost: int = Field(ge=0)
     stress_delta: int = 0
     life_satisfaction_delta: int = 0
+    social_stability_delta: int = 0
     roommate_event_weight: float = Field(ge=0)
     quality_score: int = Field(ge=0, le=100)
+    flexibility_score: int = Field(ge=0, le=100, default=50)
     requires_hometown: bool = False
     minimum_family_support: int = Field(ge=0, default=0)
+    student_only: bool = False
 
 
 class TransportOptionDefinition(BaseModel):
     id: str
     name: str
     description: str
-    monthly_cost: int = Field(ge=0)
     upfront_cost: int = Field(ge=0)
-    stress_delta: int = 0
-    access_level: int = Field(ge=1)
+    monthly_payment: int = Field(ge=0)
+    insurance_cost: int = Field(ge=0)
+    fuel_maintenance_cost: int = Field(ge=0)
+    commute_stress_delta: int = 0
+    commute_time_modifier: int = 0
+    access_level: int = Field(ge=0)
     reliability: float = Field(ge=0, le=1)
+    breakdown_risk: float = Field(ge=0, le=1, default=0.0)
     repair_event_weight: float = Field(ge=0)
     quality_score: int = Field(ge=0, le=100)
 
@@ -96,6 +115,8 @@ class FocusActionDefinition(BaseModel):
     stress_delta: int = 0
     energy_delta: int = 0
     life_satisfaction_delta: int = 0
+    social_stability_delta: int = 0
+    stat_effects: StatEffects = Field(default_factory=dict)
 
 
 class ModifierTemplate(BaseModel):
@@ -124,8 +145,10 @@ class EventDefinition(BaseModel):
     eligible_transport_ids: list[str] = Field(default_factory=list)
     eligible_career_ids: list[str] = Field(default_factory=list)
     eligible_education_ids: list[str] = Field(default_factory=list)
+    eligible_opening_path_ids: list[str] = Field(default_factory=list)
     minimum_stress: int | None = Field(default=None, ge=0)
     minimum_debt: int | None = Field(default=None, ge=0)
+    maximum_life_satisfaction: int | None = Field(default=None, ge=0, le=100)
     immediate_effects: StatEffects = Field(default_factory=dict)
     modifier: ModifierTemplate | None = None
     log_entry: str | None = None
@@ -142,6 +165,7 @@ class PresetDefinition(BaseModel):
     starting_energy: int = Field(gt=0)
     starting_life_satisfaction: int = Field(ge=0)
     starting_family_support: int = Field(ge=0)
+    starting_social_stability: int = Field(ge=0, le=100, default=50)
     academic_strength: int = Field(ge=0, le=100)
 
 

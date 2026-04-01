@@ -1,39 +1,38 @@
 # Active Handoff
 
 ## Current State
-- Branch: `after-grad-life-sim`
-- Status: the repo has been rebuilt from the daily city-hustle prototype into the monthly after-grad life sim.
-- Validation status: `tools/validate_data.py` targets the new content bundle.
-- Test status: `17 passed`.
+- Branch: `after-grad-life-sim-v2`
+- Status: the repo now runs on the expanded monthly after-grad life-sim branch built from current `main`, not from the old market prototype.
+- Validation status: `tools/validate_data.py` targets the v2 content bundle.
+- Test status: `25 passed`.
 
 ## What Landed In This Pass
-- New monthly engine:
-  - graduation setup
-  - 120-month life loop
-  - housing / transport / budget pressure
-  - career progression
-  - light education progression with GPA / pass-state gating
-  - concrete monthly events
-  - end-of-run Life Position scoring
-- New content schema and JSON pack:
-  - `cities.json`
-  - `careers.json`
-  - `education.json`
-  - `housing.json`
-  - `transport.json`
-  - `focus_actions.json`
-  - `events.json`
-  - `presets.json`
-  - `data/balance/*.json`
-- Tkinter shell rebuilt around the new monthly state:
-  - status strip
-  - current setup panel
+- Expanded setup flow:
+  - preset
+  - city archetype
+  - academics level
+  - family support level
+  - starting savings band
+  - opening path
+  - difficulty
+- Broader monthly engine:
+  - explicit monthly income, expenses, and surplus
+  - nested housing and transport runtime state
+  - broader career roster with distinct logic
+  - broader education roster with GPA or pass-state gating
+  - broader budget stances and focus actions
+  - contextual event roster with carryover modifiers
+  - annual milestone summaries
+  - crisis warning generation
+  - expanded ending labels and scoring
+- Tkinter shell widened to support the fuller state:
+  - setup modals for all startup steps
+  - life setup panel
   - month outlook panel
-  - finances/progress panel
-  - compact recent log
-  - monthly action buttons
-- Simulation tooling now runs the real monthly life loop instead of the retired commodity loop.
-- Old market-hustle runtime modules and tests were removed.
+  - finances/progress/pressure panel
+  - milestone dialog
+  - clearer end-state dialog
+- Simulation tooling widened to support the broader setup variables.
 
 ## Key Runtime Shape
 - `1 turn = 1 month`
@@ -44,13 +43,16 @@
   - housing
   - transport
   - budget stance
-- Monthly focus action:
-  - `Stack Cash`
-  - `Push Forward`
-  - `Recover`
-- College now tracks a real GPA.
-- Office/professional entry and higher office tiers can be blocked by low GPA.
-- Trades progression stays on the apprenticeship credential/pass lane.
+- Monthly focus actions:
+  - `overtime`
+  - `side_gig`
+  - `promotion_hunt`
+  - `study_push`
+  - `recovery_month`
+  - `social_maintenance`
+  - `move_prep`
+- GPA gates stronger college/professional lanes.
+- Trades and certificates use pass-state and credentials instead of GPA.
 
 ## Most Important Files
 - Engine:
@@ -59,6 +61,7 @@
   - `src/budgetwars/engine/careers.py`
   - `src/budgetwars/engine/education.py`
   - `src/budgetwars/engine/events.py`
+  - `src/budgetwars/engine/scoring.py`
   - `src/budgetwars/engine/simulation.py`
 - UI:
   - `src/budgetwars/ui/main_window.py`
@@ -76,18 +79,18 @@
   - `data/focus_actions.json`
   - `data/events.json`
   - `data/presets.json`
+  - `data/balance/*.json`
 
 ## Known Limits
-- Balance is early, not finished.
-- City identity is currently archetype-level, not deep content-level.
-- Education is intentionally lightweight in v1.
-- There is no city-move system yet.
-- The shell is readable and functional, but still a first playable rather than a finished desktop sim.
+- Balance is broader, but not finished.
+- Setup is now fuller and more expressive, but it needs feel-testing for speed.
+- The monthly loop is stronger, but event writing and distinct city personality can still sharpen a lot.
+- Social stability is intentionally lightweight and should stay that way unless a future pass can make it genuinely matter.
 
 ## Recommended Next Pass
-- Do a focused balance and feel pass on the new monthly loop:
-  - tune survivability bands across presets and paths
-  - deepen city identity without adding huge scope
-  - sharpen housing and transport event pressure
-  - improve career-track identity text and event flavor
-  - add a small annual-summary presentation pass
+- Do a balance-and-feel pass, not another scope expansion:
+  - tighten early-game pressure across presets and opening paths
+  - sharpen city identity in the first 12 months
+  - improve crisis presentation tone and visibility
+  - tune transport trap severity, especially financed car and beater paths
+  - use simulation to find clearly dominant or dead-end setups

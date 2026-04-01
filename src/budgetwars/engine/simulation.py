@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import asdict, dataclass
 from statistics import mean
 
@@ -8,7 +8,6 @@ from budgetwars.models import ContentBundle
 from budgetwars.utils.rng import derive_seed
 
 from .game_loop import GameController
-from .lookups import get_career_track, get_transport_option
 
 
 @dataclass(slots=True)
@@ -17,6 +16,9 @@ class SimulationRunResult:
     difficulty_id: str
     city_id: str
     opening_path_id: str
+    academic_level_id: str
+    family_support_level_id: str
+    savings_band_id: str
     policy_name: str
     seed: int
     survived: bool
@@ -34,105 +36,93 @@ class SimulationRunResult:
     final_transport_id: str
 
 
-def _career_income_now(bundle: ContentBundle, controller: GameController, career_id: str) -> int:
-    track = get_career_track(bundle, career_id)
-    city = next(city for city in bundle.cities if city.id == controller.state.player.current_city_id)
-    difficulty = next(item for item in bundle.difficulties if item.id == controller.state.difficulty_id)
-    return int(round(track.tiers[0].monthly_income * city.career_income_biases.get(career_id, 1.0) * difficulty.income_multiplier))
-
-
-def conservative_policy(controller: GameController) -> None:
+def cautious_policy(controller: GameController) -> None:
     state = controller.state
-    bundle = controller.bundle
-
-    if state.player.stress >= 60 or state.player.energy <= 40:
-        if state.player.selected_focus_action_id != "recover":
-            controller.change_focus_action("recover")
-    elif state.player.education.is_active or state.player.career.track_id in {"trades_apprenticeship", "office_professional"}:
-        if state.player.selected_focus_action_id != "push_forward":
-            controller.change_focus_action("push_forward")
+    if state.player.stress >= 70 or state.player.energy <= 30:
+        if state.player.selected_focus_action_id != "recovery_month":
+            controller.change_focus_action("recovery_month")
+    elif state.player.education.is_active:
+        if state.player.selected_focus_action_id != "study_push":
+            controller.change_focus_action("study_push")
     else:
-        if state.player.selected_focus_action_id != "stack_cash":
-            controller.change_focus_action("stack_cash")
+        if state.player.selected_focus_action_id != "promotion_hunt":
+            controller.change_focus_action("promotion_hunt")
 
-    if state.player.debt > 12000 or state.player.cash < 180:
-        if state.player.budget_stance_id != "bare_minimum":
-            controller.change_budget_stance("bare_minimum")
-    elif state.player.debt > 4500 or state.player.savings < 500:
-        if state.player.budget_stance_id != "future_focused":
-            controller.change_budget_stance("future_focused")
+    if state.player.debt > 14000:
+        if state.player.budget_stance_id != "aggressive_debt_payoff":
+            controller.change_budget_stance("aggressive_debt_payoff")
+    elif state.player.cash < 300:
+        if state.player.budget_stance_id != "survival":
+            controller.change_budget_stance("survival")
     elif state.player.budget_stance_id != "balanced":
         controller.change_budget_stance("balanced")
 
     if (
-        state.player.current_city_id == "hometown"
+        state.player.current_city_id == "hometown_low_cost"
         and state.player.family_support >= state.minimum_parent_fallback_support + 5
         and state.player.housing_id != "parents"
-        and (state.player.debt > 6000 or state.player.cash < 120)
+        and (state.player.debt > 12000 or state.player.cash < 150)
     ):
         try:
             controller.change_housing("parents")
         except ValueError:
             pass
 
-    if state.player.transport_id == "walk_bike" and state.player.cash + state.player.savings > 1700:
+    if state.player.transport_id == "none" and state.player.cash + state.player.savings > 500:
+        try:
+            controller.change_transport("bike")
+        except ValueError:
+            pass
+    elif state.player.transport_id == "bike" and state.player.cash + state.player.savings > 1100:
         try:
             controller.change_transport("transit")
         except ValueError:
             pass
 
-    if "college_credential" in state.player.education.earned_credential_ids and state.player.career.track_id != "office_professional":
+    if "support_certificate" in state.player.education.earned_credential_ids and state.player.career.track_id != "healthcare_support":
         try:
-            controller.change_career("office_professional")
+            controller.change_career("healthcare_support")
         except ValueError:
             pass
-    elif state.player.debt > 5000 and state.player.career.track_id == "service_retail":
-        for target in ("warehouse_logistics", "trades_apprenticeship"):
-            try:
-                controller.change_career(target)
-                break
-            except ValueError:
-                continue
 
 
 def ambitious_policy(controller: GameController) -> None:
     state = controller.state
-    if state.player.stress >= 75 or state.player.energy <= 25:
-        if state.player.selected_focus_action_id != "recover":
-            controller.change_focus_action("recover")
+    if state.player.stress >= 82 or state.player.energy <= 20:
+        if state.player.selected_focus_action_id != "recovery_month":
+            controller.change_focus_action("recovery_month")
+    elif state.player.education.is_active and state.player.education.program_id in {"part_time_college", "full_time_university"}:
+        if state.player.selected_focus_action_id != "study_push":
+            controller.change_focus_action("study_push")
     else:
-        if state.player.selected_focus_action_id != "stack_cash":
-            controller.change_focus_action("stack_cash")
+        if state.player.selected_focus_action_id != "overtime":
+            controller.change_focus_action("overtime")
 
-    if state.player.debt > 8000:
-        if state.player.budget_stance_id != "bare_minimum":
-            controller.change_budget_stance("bare_minimum")
-    elif state.player.budget_stance_id != "future_focused":
-        controller.change_budget_stance("future_focused")
+    if state.player.debt > 22000:
+        if state.player.budget_stance_id != "survival":
+            controller.change_budget_stance("survival")
+    elif state.player.monthly_surplus < 0:
+        if state.player.budget_stance_id != "aggressive_debt_payoff":
+            controller.change_budget_stance("aggressive_debt_payoff")
+    elif state.player.budget_stance_id != "quality_of_life":
+        controller.change_budget_stance("quality_of_life")
 
-    if state.player.transport_id in {"walk_bike", "transit"} and state.player.cash + state.player.savings > 1400:
-        desired = "beater_car" if state.player.transport_id == "transit" else "transit"
+    if state.player.transport_id in {"none", "bike"} and state.player.cash + state.player.savings > 1500:
+        desired = "transit" if state.player.transport_id == "none" else "beater_car"
         try:
             controller.change_transport(desired)
         except ValueError:
             pass
 
-    current_income = _career_income_now(controller.bundle, controller, state.player.career.track_id)
-    better_tracks = []
-    for track in controller.bundle.careers:
-        if track.id == state.player.career.track_id:
-            continue
+    for target in ("sales", "warehouse_logistics", "office_admin", "degree_gated_professional"):
         try:
-            controller.change_career(track.id)
-            better_tracks.append(track.id)
+            controller.change_career(target)
             break
         except ValueError:
             continue
-    if better_tracks:
-        return
 
-    if current_income < 2400 and state.player.education.program_id == "none":
-        for program_id in ("apprenticeship_training", "college"):
+    if state.player.education.program_id == "none" and state.player.academic_strength >= 60 and state.player.cash < 800:
+        for program_id in ("part_time_college", "certificate", "upgrading"):
             try:
                 controller.change_education(program_id)
                 break
@@ -141,9 +131,8 @@ def ambitious_policy(controller: GameController) -> None:
 
 
 POLICIES = {
-    "conservative": conservative_policy,
+    "cautious": cautious_policy,
     "ambitious": ambitious_policy,
-    "balanced": conservative_policy,
 }
 
 
@@ -162,6 +151,9 @@ def run_single_simulation(
     difficulty_id: str,
     city_id: str,
     opening_path_id: str,
+    academic_level_id: str,
+    family_support_level_id: str,
+    savings_band_id: str,
     policy_name: str,
     seed: int,
 ) -> SimulationRunResult:
@@ -173,6 +165,9 @@ def run_single_simulation(
         seed=seed,
         city_id=city_id,
         opening_path_id=opening_path_id,
+        academic_level_id=academic_level_id,
+        family_support_level_id=family_support_level_id,
+        savings_band_id=savings_band_id,
     )
     while not controller.is_finished():
         apply_policy_action(controller, policy_name)
@@ -183,6 +178,9 @@ def run_single_simulation(
         difficulty_id=difficulty_id,
         city_id=city_id,
         opening_path_id=opening_path_id,
+        academic_level_id=academic_level_id,
+        family_support_level_id=family_support_level_id,
+        savings_band_id=savings_band_id,
         policy_name=policy_name,
         seed=seed,
         survived=summary.survived_to_28,
@@ -206,9 +204,12 @@ def run_simulation(
     *,
     preset_id: str = "all",
     difficulty_id: str = "normal",
-    city_id: str = "hometown",
+    city_id: str = "mid_size_city",
     opening_path_id: str = "full_time_work",
-    policy_name: str = "conservative",
+    academic_level_id: str = "average",
+    family_support_level_id: str = "medium",
+    savings_band_id: str = "some",
+    policy_name: str = "cautious",
     runs: int = 20,
     seed: int = 42,
 ) -> list[SimulationRunResult]:
@@ -216,7 +217,18 @@ def run_simulation(
     results: list[SimulationRunResult] = []
     for chosen_preset in preset_ids:
         for run_index in range(runs):
-            run_seed = derive_seed(seed, chosen_preset, difficulty_id, city_id, opening_path_id, policy_name, run_index)
+            run_seed = derive_seed(
+                seed,
+                chosen_preset,
+                difficulty_id,
+                city_id,
+                opening_path_id,
+                academic_level_id,
+                family_support_level_id,
+                savings_band_id,
+                policy_name,
+                run_index,
+            )
             results.append(
                 run_single_simulation(
                     bundle,
@@ -225,6 +237,9 @@ def run_simulation(
                     difficulty_id=difficulty_id,
                     city_id=city_id,
                     opening_path_id=opening_path_id,
+                    academic_level_id=academic_level_id,
+                    family_support_level_id=family_support_level_id,
+                    savings_band_id=savings_band_id,
                     policy_name=policy_name,
                     seed=run_seed,
                 )

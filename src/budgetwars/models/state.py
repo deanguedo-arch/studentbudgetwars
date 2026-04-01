@@ -8,19 +8,36 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 StatEffects = dict[str, float]
 
 
+class HousingState(BaseModel):
+    option_id: str
+    months_in_place: int = Field(ge=0, default=0)
+    missed_payment_streak: int = Field(ge=0, default=0)
+    move_pressure: int = Field(ge=0, default=0)
+
+
+class TransportState(BaseModel):
+    option_id: str
+    months_owned: int = Field(ge=0, default=0)
+    breakdown_pressure: int = Field(ge=0, default=0)
+
+
 class CareerState(BaseModel):
     track_id: str
     tier_index: int = Field(ge=0, default=0)
     months_in_track: int = Field(ge=0, default=0)
     promotion_progress: int = Field(ge=0, default=0)
+    layoff_pressure: int = Field(ge=0, default=0)
 
 
 class EducationState(BaseModel):
     program_id: str
     is_active: bool = False
+    is_paused: bool = False
     months_completed: int = Field(ge=0, default=0)
     standing: int = Field(ge=0, le=100, default=70)
     college_gpa: float = Field(ge=0.0, le=4.0, default=2.5)
+    training_passed: bool = False
+    failure_streak: int = Field(ge=0, default=0)
     completed_program_ids: list[str] = Field(default_factory=list)
     earned_credential_ids: list[str] = Field(default_factory=list)
 
@@ -40,25 +57,61 @@ class ActiveMonthlyModifier(BaseModel):
     transport_switch_discount: int = 0
 
 
+class AnnualMilestoneSummary(BaseModel):
+    year: int = Field(gt=0)
+    age: int = Field(gt=0)
+    net_worth: int
+    monthly_income: int
+    monthly_expenses: int
+    monthly_surplus: int
+    debt: int = Field(ge=0)
+    housing_id: str
+    career_track_id: str
+    career_tier_label: str
+    education_program_id: str
+    stress: int = Field(ge=0)
+    life_satisfaction: int = Field(ge=0)
+    summary_lines: list[str] = Field(default_factory=list)
+
+
 class PlayerState(BaseModel):
     name: str
     cash: int
     savings: int
     debt: int
+    monthly_income: int = 0
+    monthly_expenses: int = 0
     monthly_surplus: int = 0
     stress: int = Field(ge=0)
     energy: int = Field(ge=0)
     life_satisfaction: int = Field(ge=0)
     family_support: int = Field(ge=0)
+    social_stability: int = Field(ge=0)
     academic_strength: int = Field(ge=0, le=100)
     current_city_id: str
-    housing_id: str
-    transport_id: str
     budget_stance_id: str
     opening_path_id: str
     selected_focus_action_id: str
     career: CareerState
     education: EducationState
+    housing: HousingState
+    transport: TransportState
+
+    @property
+    def housing_id(self) -> str:
+        return self.housing.option_id
+
+    @housing_id.setter
+    def housing_id(self, value: str) -> None:
+        self.housing.option_id = value
+
+    @property
+    def transport_id(self) -> str:
+        return self.transport.option_id
+
+    @transport_id.setter
+    def transport_id(self, value: str) -> None:
+        self.transport.option_id = value
 
 
 class GameState(BaseModel):
@@ -73,18 +126,20 @@ class GameState(BaseModel):
     max_energy: int = Field(gt=0)
     max_life_satisfaction: int = Field(gt=0)
     max_family_support: int = Field(gt=0)
+    max_social_stability: int = Field(gt=0)
     debt_game_over_threshold: int = Field(gt=0)
     burnout_stress_threshold: int = Field(gt=0)
     burnout_energy_threshold: int = Field(ge=0)
     burnout_streak_limit: int = Field(gt=0)
     housing_miss_limit: int = Field(gt=0)
     minimum_parent_fallback_support: int = Field(ge=0)
+    academic_failure_streak_limit: int = Field(gt=0)
     player: PlayerState
     active_modifiers: list[ActiveMonthlyModifier] = Field(default_factory=list)
-    missed_housing_payments: int = Field(ge=0, default=0)
     burnout_streak: int = Field(ge=0, default=0)
     log_messages: list[str] = Field(default_factory=list)
     recent_summary: list[str] = Field(default_factory=list)
+    annual_milestones: list[AnnualMilestoneSummary] = Field(default_factory=list)
     game_over_reason: str | None = None
 
     @computed_field
@@ -117,7 +172,7 @@ class FinalScoreSummary(BaseModel):
 
 
 class SaveGamePayload(BaseModel):
-    version: int = 4
+    version: int = 5
     state: GameState
 
 

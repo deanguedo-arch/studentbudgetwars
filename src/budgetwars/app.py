@@ -11,6 +11,9 @@ def run_app(
     preset_id: str | None = None,
     difficulty_id: str | None = None,
     city_id: str | None = None,
+    academic_level_id: str | None = None,
+    family_support_level_id: str | None = None,
+    savings_band_id: str | None = None,
     opening_path_id: str | None = None,
     seed: int | None = None,
     load_name: str | None = None,
@@ -27,13 +30,16 @@ def run_app(
         controller = GameController(bundle, state)
     else:
         controller = None
-        if preset_id and difficulty_id and city_id and opening_path_id:
+        if preset_id and difficulty_id and city_id and opening_path_id and academic_level_id and family_support_level_id and savings_band_id:
             controller = GameController.new_game(
                 bundle,
                 player_name=player_name,
                 preset_id=preset_id,
                 difficulty_id=difficulty_id,
                 city_id=city_id,
+                academic_level_id=academic_level_id,
+                family_support_level_id=family_support_level_id,
+                savings_band_id=savings_band_id,
                 opening_path_id=opening_path_id,
                 seed=seed,
             )
@@ -44,6 +50,9 @@ def run_app(
         preset_id=preset_id,
         difficulty_id=difficulty_id,
         city_id=city_id,
+        academic_level_id=academic_level_id,
+        family_support_level_id=family_support_level_id,
+        savings_band_id=savings_band_id,
         opening_path_id=opening_path_id,
         seed=seed,
     ).run()

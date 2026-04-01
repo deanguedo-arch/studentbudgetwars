@@ -1,7 +1,10 @@
 {
-  "financial_position": 0.35,
-  "career_and_credentials": 0.3,
-  "housing_stability": 0.15,
-  "debt_burden": 0.1,
-  "wellbeing": 0.1
+  "net_worth": 0.22,
+  "monthly_surplus": 0.12,
+  "debt_ratio": 0.12,
+  "career_tier": 0.16,
+  "credentials_education": 0.14,
+  "housing_stability": 0.1,
+  "life_satisfaction": 0.08,
+  "stress_burnout": 0.06
 }
