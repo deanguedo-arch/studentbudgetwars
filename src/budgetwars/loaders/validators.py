@@ -5,7 +5,17 @@ from collections.abc import Iterable
 from budgetwars.models import ContentBundle
 
 
-VALID_EFFECT_KEYS = {"cash", "debt", "bank_balance", "energy", "stress", "heat", "gpa", "study_points"}
+VALID_STAT_EFFECT_KEYS = {
+    "cash",
+    "savings",
+    "debt",
+    "stress",
+    "energy",
+    "life_satisfaction",
+    "family_support",
+    "promotion_progress",
+    "education_progress",
+}
 
 
 def _ensure_unique_ids(records: Iterable[object], label: str) -> None:
@@ -17,125 +27,137 @@ def _ensure_unique_ids(records: Iterable[object], label: str) -> None:
             duplicates.add(record_id)
         seen.add(record_id)
     if duplicates:
-        joined = ", ".join(sorted(duplicates))
-        raise ValueError(f"Duplicate {label} ids found: {joined}")
+        raise ValueError(f"Duplicate {label} ids found: {', '.join(sorted(duplicates))}")
 
 
 def _validate_effects(effects: dict[str, float], label: str) -> None:
-    invalid = sorted(set(effects) - VALID_EFFECT_KEYS)
+    invalid = sorted(set(effects) - VALID_STAT_EFFECT_KEYS)
     if invalid:
         raise ValueError(f"{label} has invalid effect keys: {', '.join(invalid)}")
 
 
 def validate_content_bundle(bundle: ContentBundle) -> None:
+    _ensure_unique_ids(bundle.config.budget_stances, "budget stance")
+    _ensure_unique_ids(bundle.config.opening_paths, "opening path")
     _ensure_unique_ids(bundle.difficulties, "difficulty")
-    _ensure_unique_ids(bundle.districts, "district")
-    _ensure_unique_ids(bundle.commodities, "commodity")
-    _ensure_unique_ids(bundle.gigs, "gig")
+    _ensure_unique_ids(bundle.cities, "city")
+    _ensure_unique_ids(bundle.careers, "career")
+    _ensure_unique_ids(bundle.education_programs, "education program")
+    _ensure_unique_ids(bundle.housing_options, "housing")
+    _ensure_unique_ids(bundle.transport_options, "transport")
+    _ensure_unique_ids(bundle.focus_actions, "focus action")
     _ensure_unique_ids(bundle.events, "event")
-    _ensure_unique_ids(bundle.items, "item")
-    _ensure_unique_ids(bundle.services, "service")
     _ensure_unique_ids(bundle.presets, "preset")
-    exam_weeks_seen: set[int] = set()
-    for exam_week in bundle.exam_weeks:
-        if exam_week.week in exam_weeks_seen:
-            raise ValueError(f"Duplicate exam week found for week {exam_week.week}")
-        exam_weeks_seen.add(exam_week.week)
 
-    district_ids = {district.id for district in bundle.districts}
-    commodity_ids = {commodity.id for commodity in bundle.commodities}
-    gig_ids = {gig.id for gig in bundle.gigs}
-    item_ids = {item.id for item in bundle.items}
-    service_ids = {service.id for service in bundle.services}
+    if bundle.config.primary_event_chance < bundle.config.secondary_event_chance:
+        raise ValueError("primary_event_chance should be greater than or equal to secondary_event_chance")
+    if bundle.config.minimum_parent_fallback_support > bundle.config.max_family_support:
+        raise ValueError("minimum_parent_fallback_support cannot exceed max_family_support")
 
-    if bundle.config.low_energy_threshold >= bundle.config.max_energy:
-        raise ValueError("config.low_energy_threshold must be below config.max_energy")
-    if bundle.config.minimum_survival_gpa > 4.0:
-        raise ValueError("config.minimum_survival_gpa cannot exceed 4.0")
-    if bundle.config.debt_interest_rate > 0.25:
-        raise ValueError("config.debt_interest_rate is implausibly high")
-    if bundle.config.bank_interest_rate > 0.1:
-        raise ValueError("config.bank_interest_rate is implausibly high")
-    if bundle.config.weekly_market_event_count > 3:
-        raise ValueError("config.weekly_market_event_count is too high for the current market model")
+    career_ids = {career.id for career in bundle.careers}
+    education_ids = {program.id for program in bundle.education_programs}
+    housing_ids = {housing.id for housing in bundle.housing_options}
+    transport_ids = {transport.id for transport in bundle.transport_options}
+    city_ids = {city.id for city in bundle.cities}
+    opening_path_ids = {path.id for path in bundle.config.opening_paths}
+    budget_stance_ids = {stance.id for stance in bundle.config.budget_stances}
+    focus_action_ids = {focus.id for focus in bundle.focus_actions}
+    credential_ids = {program.credential_id for program in bundle.education_programs if program.credential_id}
 
-    for district in bundle.districts:
-        unknown_services = sorted(set(district.service_ids) - service_ids)
-        if unknown_services:
-            raise ValueError(f"District '{district.id}' references unknown services: {', '.join(unknown_services)}")
-        unknown_gigs = sorted(set(district.gig_ids) - gig_ids)
-        if unknown_gigs:
-            raise ValueError(f"District '{district.id}' references unknown gigs: {', '.join(unknown_gigs)}")
-        unknown_biases = sorted(set(district.commodity_biases) - commodity_ids)
-        if unknown_biases:
-            raise ValueError(f"District '{district.id}' references unknown commodity biases: {', '.join(unknown_biases)}")
+    if sum(bundle.scoring_weights.model_dump().values()) != 1.0:
+        raise ValueError("Scoring weights must sum exactly to 1.0")
 
-    for commodity in bundle.commodities:
-        if not commodity.min_price < commodity.max_price:
-            raise ValueError(f"Commodity '{commodity.id}' must have min_price below max_price")
-        if not commodity.typical_low <= commodity.typical_high:
-            raise ValueError(f"Commodity '{commodity.id}' must have typical_low <= typical_high")
-        if not commodity.min_price <= commodity.typical_low <= commodity.max_price:
-            raise ValueError(f"Commodity '{commodity.id}' has a typical_low outside its min/max range")
-        if not commodity.min_price <= commodity.typical_high <= commodity.max_price:
-            raise ValueError(f"Commodity '{commodity.id}' has a typical_high outside its min/max range")
-        unknown_districts = sorted(set(commodity.district_biases) - district_ids)
-        if unknown_districts:
+    for city in bundle.cities:
+        unknown_careers = sorted(set(city.career_income_biases) - career_ids)
+        if unknown_careers:
+            raise ValueError(f"City '{city.id}' references unknown careers: {', '.join(unknown_careers)}")
+
+    for career in bundle.careers:
+        unknown_paths = sorted(set(career.entry_path_ids) - opening_path_ids)
+        if unknown_paths:
+            raise ValueError(f"Career '{career.id}' references unknown opening paths: {', '.join(unknown_paths)}")
+        unknown_credentials = sorted(set(career.entry_required_credential_ids) - credential_ids)
+        if unknown_credentials:
+            raise ValueError(f"Career '{career.id}' references unknown credentials: {', '.join(unknown_credentials)}")
+        if career.entry_required_education_program_id and career.entry_required_education_program_id not in education_ids:
             raise ValueError(
-                f"Commodity '{commodity.id}' references unknown district biases: {', '.join(unknown_districts)}"
+                f"Career '{career.id}' references unknown education program '{career.entry_required_education_program_id}'"
             )
-
-    for gig in bundle.gigs:
-        unknown_districts = sorted(set(gig.district_ids) - district_ids)
-        if unknown_districts:
-            raise ValueError(f"Gig '{gig.id}' references unknown districts: {', '.join(unknown_districts)}")
-        unknown_items = sorted(set(gig.required_item_ids) - item_ids)
-        if unknown_items:
-            raise ValueError(f"Gig '{gig.id}' references unknown required items: {', '.join(unknown_items)}")
-
-    for event in bundle.events:
-        _validate_effects(event.stat_effects, f"Event '{event.id}'")
-        unknown_commodities = sorted(set(event.commodity_multipliers) - commodity_ids)
-        if unknown_commodities:
-            raise ValueError(f"Event '{event.id}' references unknown commodities: {', '.join(unknown_commodities)}")
-        unknown_district_maps = sorted(set(event.district_commodity_multipliers) - district_ids)
-        if unknown_district_maps:
-            raise ValueError(
-                f"Event '{event.id}' references unknown district modifiers: {', '.join(unknown_district_maps)}"
-            )
-        for district_id, local_map in event.district_commodity_multipliers.items():
-            unknown_local = sorted(set(local_map) - commodity_ids)
-            if unknown_local:
+        if len(career.tiers) < 2:
+            raise ValueError(f"Career '{career.id}' must define at least two tiers")
+        for tier in career.tiers:
+            unknown_tier_credentials = sorted(set(tier.required_credential_ids) - credential_ids)
+            if unknown_tier_credentials:
                 raise ValueError(
-                    f"Event '{event.id}' references unknown commodities for district '{district_id}': "
-                    f"{', '.join(unknown_local)}"
+                    f"Career '{career.id}' tier '{tier.label}' references unknown credentials: "
+                    f"{', '.join(unknown_tier_credentials)}"
                 )
 
-    for item in bundle.items:
-        _validate_effects(item.use_effects, f"Item '{item.id}'")
-        unknown_districts = sorted(set(item.district_ids) - district_ids)
-        if unknown_districts:
-            raise ValueError(f"Item '{item.id}' references unknown districts: {', '.join(unknown_districts)}")
+    for program in bundle.education_programs:
+        unknown_paths = sorted(set(program.entry_path_ids) - opening_path_ids)
+        if unknown_paths:
+            raise ValueError(f"Education program '{program.id}' references unknown opening paths: {', '.join(unknown_paths)}")
+        unknown_careers = sorted(set(program.applicable_career_ids) - career_ids)
+        if unknown_careers:
+            raise ValueError(
+                f"Education program '{program.id}' references unknown careers: {', '.join(unknown_careers)}"
+            )
 
-    for service in bundle.services:
-        unknown_districts = sorted(set(service.district_ids) - district_ids)
-        if unknown_districts:
-            raise ValueError(f"Service '{service.id}' references unknown districts: {', '.join(unknown_districts)}")
-        unknown_items = sorted(set(service.item_ids) - item_ids)
-        if unknown_items:
-            raise ValueError(f"Service '{service.id}' references unknown items: {', '.join(unknown_items)}")
+    for housing in bundle.housing_options:
+        if housing.requires_hometown and housing.id != "parents":
+            raise ValueError("Only parents housing may require the hometown city in v1")
+
+    for opening_path in bundle.config.opening_paths:
+        if opening_path.starting_career_track_id not in career_ids:
+            raise ValueError(
+                f"Opening path '{opening_path.id}' references unknown career '{opening_path.starting_career_track_id}'"
+            )
+        if opening_path.starting_education_program_id not in education_ids:
+            raise ValueError(
+                f"Opening path '{opening_path.id}' references unknown education '{opening_path.starting_education_program_id}'"
+            )
+        if opening_path.starting_housing_id not in housing_ids:
+            raise ValueError(
+                f"Opening path '{opening_path.id}' references unknown housing '{opening_path.starting_housing_id}'"
+            )
+        if opening_path.starting_transport_id not in transport_ids:
+            raise ValueError(
+                f"Opening path '{opening_path.id}' references unknown transport '{opening_path.starting_transport_id}'"
+            )
+        if opening_path.starting_budget_stance_id not in budget_stance_ids:
+            raise ValueError(
+                f"Opening path '{opening_path.id}' references unknown budget stance '{opening_path.starting_budget_stance_id}'"
+            )
+
+    for event in bundle.events:
+        _validate_effects(event.immediate_effects, f"Event '{event.id}'")
+        if event.min_month > bundle.config.total_months:
+            raise ValueError(f"Event '{event.id}' starts after the game ends")
+        if sorted(set(event.eligible_city_ids) - city_ids):
+            raise ValueError(f"Event '{event.id}' references unknown cities")
+        if sorted(set(event.eligible_housing_ids) - housing_ids):
+            raise ValueError(f"Event '{event.id}' references unknown housing ids")
+        if sorted(set(event.eligible_transport_ids) - transport_ids):
+            raise ValueError(f"Event '{event.id}' references unknown transport ids")
+        if sorted(set(event.eligible_career_ids) - career_ids):
+            raise ValueError(f"Event '{event.id}' references unknown career ids")
+        if sorted(set(event.eligible_education_ids) - education_ids):
+            raise ValueError(f"Event '{event.id}' references unknown education ids")
+        if event.modifier:
+            _validate_effects(event.modifier.stat_effects, f"Event modifier '{event.modifier.id}'")
+            if event.modifier.duration_months > 12:
+                raise ValueError(f"Event modifier '{event.modifier.id}' lasts too long for v1")
 
     for preset in bundle.presets:
-        if preset.starting_district_id not in district_ids:
-            raise ValueError(f"Preset '{preset.id}' references unknown district '{preset.starting_district_id}'")
-        unknown_items = sorted(set(preset.starting_item_ids) - item_ids)
-        if unknown_items:
-            raise ValueError(f"Preset '{preset.id}' references unknown items: {', '.join(unknown_items)}")
-        if preset.starting_gpa < bundle.config.minimum_survival_gpa / 2:
-            raise ValueError(f"Preset '{preset.id}' starts with implausibly low GPA")
+        if preset.starting_energy > bundle.config.max_energy:
+            raise ValueError(f"Preset '{preset.id}' starts with too much energy")
+        if preset.starting_stress > bundle.config.max_stress:
+            raise ValueError(f"Preset '{preset.id}' starts with too much stress")
+        if preset.starting_life_satisfaction > bundle.config.max_life_satisfaction:
+            raise ValueError(f"Preset '{preset.id}' starts with too much life satisfaction")
+        if preset.starting_family_support > bundle.config.max_family_support:
+            raise ValueError(f"Preset '{preset.id}' starts with too much family support")
 
-    for exam_week in bundle.exam_weeks:
-        if exam_week.week > bundle.config.term_weeks:
-            raise ValueError(f"Exam week '{exam_week.label}' falls outside the configured term")
-        if exam_week.required_study_points > 14:
-            raise ValueError(f"Exam week '{exam_week.label}' asks for an implausible amount of study")
+    for focus_action in bundle.focus_actions:
+        if focus_action.id not in focus_action_ids:
+            raise ValueError("Invalid focus action configuration")

@@ -17,15 +17,23 @@ def bundle():
 
 
 @pytest.fixture
-def quiet_bundle(bundle):
-    quiet = bundle.model_copy(deep=True)
-    quiet.config = quiet.config.model_copy(update={"daily_event_chance": 0.0, "weekly_market_event_count": 0})
-    return quiet
-
-
-@pytest.fixture
-def controller_factory():
-    def _make(bundle, *, preset_id: str = "dorm_flipper", difficulty_id: str = "normal", seed: int = 123):
-        return GameController.new_game(bundle, "Tester", preset_id, difficulty_id, seed)
+def controller_factory(bundle):
+    def _make(
+        *,
+        preset_id: str = "supported_student",
+        difficulty_id: str = "normal",
+        city_id: str = "hometown",
+        opening_path_id: str = "full_time_work",
+        seed: int = 42,
+    ) -> GameController:
+        return GameController.new_game(
+            bundle,
+            "Tester",
+            preset_id=preset_id,
+            difficulty_id=difficulty_id,
+            city_id=city_id,
+            opening_path_id=opening_path_id,
+            seed=seed,
+        )
 
     return _make

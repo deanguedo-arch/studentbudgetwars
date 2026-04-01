@@ -1,13 +1,13 @@
 # Codex Rules For Future Passes
 
-- Preserve the daily market loop. Do not drift back into a passive weekly life-manager spine.
-- Keep market, travel, gigs, study, events, inventory, scoring, and UI in separate modules.
-- Keep content JSON-driven.
-- Validate new JSON content on load.
-- Prefer typed models over ad hoc dictionaries.
-- Keep randomness deterministic when a seed is supplied.
-- Reuse the simulation tooling before large balance passes.
-- Treat Tkinter UI code as rendering/input only; keep rule logic in `engine/`.
-- Avoid giant UI rewrites unless the loop model changes.
+- Preserve the monthly after-grad life-sim spine. Do not drift back toward the old daily commodity-hustle loop.
+- Keep core rules in `engine/`, not in the Tkinter UI.
+- Keep all tunable content in JSON.
+- Preserve typed models and cross-file validation.
+- Keep save/load local and JSON-based.
+- Reuse simulation tooling before major balance passes.
+- Favor concrete consequences over abstract morale systems.
+- Keep housing and transport central to early-game tension.
+- Keep career tracks mechanically distinct, not just different pay numbers.
 - Do not add a database or web frontend.
-- Expand the board with discipline: more opportunity, not more administrative chores.
+- Do not bloat v1 with edge-case systems that the current content cannot support.

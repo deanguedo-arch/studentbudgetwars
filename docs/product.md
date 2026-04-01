@@ -1,51 +1,55 @@
 # Product Overview
 
-Student Budget Wars: City Hustle is a student-themed Dope Wars reinterpretation.
+After Grad: The First 10 Years is a retro desktop life-strategy game about building adulthood from age 18 to 28.
 
-The player survives a fixed academic term by:
-- moving between city/campus districts
-- buying low and selling high on volatile student-life commodities
-- using gigs for emergency cash
-- managing debt, heat, stress, energy, GPA, and limited backpack space
-- reacting to board-level market events and district-specific pressure
+The fantasy is not:
+- flip commodities around town
+- optimize a spreadsheet
+- min-max one stat
 
-## Design Pillars
+The fantasy is:
 
-- Fast daily turns instead of slow weekly admin
-- Location-driven market opportunity
-- Tight inventory pressure
-- Student-themed hustle fantasy instead of abstract budgeting
-- Short-horizon tactical play inside a longer term-survival arc
-- Data-driven balancing and simulation support
+**What kind of twenties are you building, and what are you willing to sacrifice to get there?**
 
-## Current Implemented Mechanics
+## Player Goal
 
-- Daily market generation across all districts
-- District-based pricing biases
-- Weekly market events that reshape prices for several days
-- Daily events that can hit stats or create short-lived opportunities
-- Tradable commodities with volatility and backpack size
-- One main action per day
-- District-based gigs instead of fixed jobs
-- Study actions and exam-week academic checks
-- Weekly housing/utilities/phone + debt/bank interest
-- Local banking and item purchase/use
-- Save/load and deterministic simulation support
-- Retro Tkinter desktop shell
+Reach age 28 in the strongest overall position possible.
 
-## Current Failure Conditions
+Money matters, but the final result also weighs:
+- career and credentials
+- housing stability
+- debt burden
+- wellbeing
 
-- Debt reaches the threshold
-- Stress maxes out
-- Heat maxes out
-- Low-energy streak runs too long
-- GPA collapses too far
-- End of term arrives without meeting survival thresholds
+## V1 Pillars
 
-## Planned Next-Level Depth
+- Graduation start with a few meaningful setup choices
+- Monthly turns instead of daily micromanagement
+- Housing pressure as a central early-game system
+- Transport pressure as a real access/cost tradeoff
+- Distinct career tracks instead of flat jobs
+- Minimal but meaningful education choices
+- College GPA as a real gate on cleaner white-collar upside
+- A few strong monthly events instead of constant noise
+- Concrete failure states
 
-- More board-swing events
-- Better district identity and service differences
-- More tactical item usage
-- Stronger preset asymmetry
-- Commodity balance passes driven by simulation results
+## Current V1 Scope
+
+- 4 presets
+- 3 city archetypes
+- 4 opening paths
+- 3 housing options
+- 4 transport options
+- 4 career tracks
+- 3 education/focus lanes
+- 10 monthly events
+- one retro Tkinter desktop shell
+
+## Explicitly Deferred
+
+- partner systems
+- deep relationship simulation
+- fine-grained realism categories
+- large social systems
+- edge-case-heavy school transitions
+- broad city-specific content trees

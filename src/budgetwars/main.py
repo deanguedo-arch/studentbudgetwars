@@ -6,11 +6,13 @@ from .app import run_app
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Student Budget Wars: City Hustle")
+    parser = argparse.ArgumentParser(description="After Grad: The First 10 Years")
     parser.add_argument("--load", help="Load a save file from the saves directory.")
     parser.add_argument("--name", default="Player", help="Player name for a new game.")
     parser.add_argument("--preset", help="Preset id for a new game.")
-    parser.add_argument("--difficulty", default="normal", help="Difficulty id for a new game.")
+    parser.add_argument("--difficulty", help="Difficulty id for a new game.")
+    parser.add_argument("--city", help="City archetype id for a new game.")
+    parser.add_argument("--path", dest="opening_path", help="Opening path id for a new game.")
     parser.add_argument("--seed", type=int, help="Optional deterministic seed.")
     return parser
 
@@ -21,6 +23,8 @@ def main() -> None:
         player_name=args.name,
         preset_id=args.preset,
         difficulty_id=args.difficulty,
+        city_id=args.city,
+        opening_path_id=args.opening_path,
         seed=args.seed,
         load_name=args.load,
     )

@@ -1,83 +1,91 @@
 from __future__ import annotations
 
-import random
+from random import Random
 
-from budgetwars.models import ActiveWorldEvent, ContentBundle, EventDefinition, GameState
-from budgetwars.utils import derive_seed
+from budgetwars.models import ContentBundle, EventDefinition, GameState
 
-from .effects import append_log, apply_state_effects
-from .lookups import get_district
-
-
-def _weighted_choice(events: list[EventDefinition], weights: list[float], rng: random.Random) -> EventDefinition:
-    total = sum(weights)
-    roll = rng.uniform(0, total)
-    cursor = 0.0
-    for event, weight in zip(events, weights, strict=True):
-        cursor += weight
-        if roll <= cursor:
-            return event
-    return events[-1]
+from .effects import append_log, apply_stat_effects, create_modifier
+from .lookups import get_city, get_housing_option, get_transport_option
 
 
-def _event_weight(state: GameState, bundle: ContentBundle, event: EventDefinition) -> float:
-    district = get_district(bundle, state.player.current_district_id)
-    overlap = len(set(event.event_tags) & set(district.event_tags))
-    heat_bias = 1.15 if "inspectors" in event.event_tags and state.player.heat > 35 else 1.0
-    return event.weight * (1 + (0.35 * overlap)) * heat_bias
+def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefinition) -> bool:
+    player = state.player
+    if state.current_month < event.min_month:
+        return False
+    if event.eligible_city_ids and player.current_city_id not in event.eligible_city_ids:
+        return False
+    if event.eligible_housing_ids and player.housing_id not in event.eligible_housing_ids:
+        return False
+    if event.eligible_transport_ids and player.transport_id not in event.eligible_transport_ids:
+        return False
+    if event.eligible_career_ids and player.career.track_id not in event.eligible_career_ids:
+        return False
+    if event.eligible_education_ids and player.education.program_id not in event.eligible_education_ids:
+        return False
+    if event.minimum_stress is not None and player.stress < event.minimum_stress:
+        return False
+    if event.minimum_debt is not None and player.debt < event.minimum_debt:
+        return False
+    return True
 
 
-def activate_event(state: GameState, bundle: ContentBundle, event: EventDefinition, start_day: int) -> GameState:
-    if event.log_entry:
-        state = append_log(state, event.log_entry)
-    if event.stat_effects:
-        state = apply_state_effects(state, bundle, event.stat_effects, event.name)
-    if event.duration_days > 0:
-        active_event = ActiveWorldEvent(
-            event_id=event.id,
-            name=event.name,
-            description=event.description,
-            expires_on_day=start_day + event.duration_days - 1,
-            commodity_multipliers=event.commodity_multipliers,
-            district_commodity_multipliers=event.district_commodity_multipliers,
-            stat_effects=event.stat_effects,
-            log_entry=event.log_entry,
-        )
-        state = state.model_copy(update={"active_events": [*state.active_events, active_event]})
-    return state
+def eligible_events(bundle: ContentBundle, state: GameState) -> list[EventDefinition]:
+    return [event for event in bundle.events if _event_is_eligible(bundle, state, event)]
 
 
-def prune_expired_events(state: GameState) -> GameState:
-    active = [event for event in state.active_events if event.expires_on_day >= state.current_day]
-    return state.model_copy(update={"active_events": active})
+def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition) -> float:
+    weight = float(event.weight)
+    housing = get_housing_option(bundle, state.player.housing_id)
+    transport = get_transport_option(bundle, state.player.transport_id)
+    if event.id == "roommate_conflict":
+        weight *= max(0.05, housing.roommate_event_weight)
+    if event.id == "car_repair":
+        weight *= max(0.05, transport.repair_event_weight)
+    if event.id == "used_car_deal" and transport.access_level >= 3:
+        weight *= 0.2
+    if event.id == "scholarship_boost":
+        if not state.player.education.is_active:
+            weight *= 0.2
+        elif state.player.education.program_id == "college":
+            if state.player.education.college_gpa >= 3.2:
+                weight *= 1.4
+            elif state.player.education.college_gpa < 2.4:
+                weight *= 0.6
+    if event.id == "rent_increase" and housing.id == "solo_rental":
+        weight *= 1.15
+    if event.id == "family_emergency" and get_city(bundle, state.player.current_city_id).id == "hometown":
+        weight *= 1.1
+    return max(0.05, weight)
 
 
-def roll_weekly_events(state: GameState, bundle: ContentBundle) -> GameState:
-    weekly_events = [event for event in bundle.events if event.trigger in {"weekly", "any"}]
-    if not weekly_events:
-        return state
-    rng = random.Random(derive_seed(state.seed, "weekly-events", state.current_week))
-    picked_ids: set[str] = set()
-    count = min(bundle.config.weekly_market_event_count, len(weekly_events))
-    for _ in range(count):
-        candidates = [event for event in weekly_events if event.id not in picked_ids]
-        if not candidates:
-            break
-        weights = [_event_weight(state, bundle, event) for event in candidates]
-        chosen = _weighted_choice(candidates, weights, rng)
-        picked_ids.add(chosen.id)
-        state = activate_event(state, bundle, chosen, state.current_day)
-    return state
+def pick_event(bundle: ContentBundle, state: GameState, rng: Random, excluded_ids: set[str] | None = None) -> EventDefinition | None:
+    candidates = [event for event in eligible_events(bundle, state) if not excluded_ids or event.id not in excluded_ids]
+    if not candidates:
+        return None
+    weights = [event_weight(bundle, state, event) for event in candidates]
+    return rng.choices(candidates, weights=weights, k=1)[0]
 
 
-def roll_daily_event(state: GameState, bundle: ContentBundle) -> GameState:
-    rng = random.Random(derive_seed(state.seed, "daily-event-roll", state.current_day, state.player.current_district_id))
-    if rng.random() > bundle.config.daily_event_chance:
-        return state
-    daily_events = [event for event in bundle.events if event.trigger in {"daily", "any"}]
-    if not daily_events:
-        return state
-    weights = [_event_weight(state, bundle, event) for event in daily_events]
-    chosen = _weighted_choice(daily_events, weights, rng)
-    start_day = state.current_day + 1 if chosen.duration_days > 0 else state.current_day
-    return activate_event(state, bundle, chosen, start_day)
+def resolve_event(bundle: ContentBundle, state: GameState, event: EventDefinition) -> None:
+    apply_stat_effects(state, event.immediate_effects)
+    if event.modifier is not None:
+        state.active_modifiers.append(create_modifier(event.modifier))
+        append_log(state, f"Modifier gained: {event.modifier.label} ({event.modifier.duration_months} months)")
+    append_log(state, event.log_entry or event.name)
+
+
+def roll_month_events(bundle: ContentBundle, state: GameState, rng: Random) -> list[EventDefinition]:
+    rolled: list[EventDefinition] = []
+    excluded: set[str] = set()
+    if rng.random() < bundle.config.primary_event_chance:
+        event = pick_event(bundle, state, rng, excluded)
+        if event:
+            resolve_event(bundle, state, event)
+            rolled.append(event)
+            excluded.add(event.id)
+    if rng.random() < bundle.config.secondary_event_chance:
+        event = pick_event(bundle, state, rng, excluded)
+        if event:
+            resolve_event(bundle, state, event)
+            rolled.append(event)
+    return rolled

@@ -21,5 +21,5 @@ if errorlevel 1 (
 )
 
 :run_game
-echo Launching Student Budget Wars preview...
-"%PYTHON_EXE%" -m budgetwars.main --name PreviewPlayer --difficulty normal %*
+echo Launching After Grad preview...
+"%PYTHON_EXE%" -m budgetwars.main --name PreviewPlayer %*

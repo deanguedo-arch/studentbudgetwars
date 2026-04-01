@@ -1,87 +1,133 @@
 from __future__ import annotations
 
-from typing import Literal
-
 from pydantic import BaseModel, Field
 
-from .core import AppConfig, DifficultyModifier, ExamWeekDefinition, PriceCurveConfig
+from .core import AppConfig, DifficultyModifier, ScoringWeights
 
 
-PlayerEffectMap = dict[str, float]
+StatEffects = dict[str, float]
 
 
-class CommodityDefinition(BaseModel):
+class CityDefinition(BaseModel):
     id: str
     name: str
     description: str
-    min_price: int = Field(gt=0)
-    max_price: int = Field(gt=0)
-    typical_low: int = Field(gt=0)
-    typical_high: int = Field(gt=0)
-    volatility: float = Field(gt=0)
-    size: int = Field(gt=0)
-    district_biases: dict[str, float] = Field(default_factory=dict)
-    rare_event_tags: list[str] = Field(default_factory=list)
+    housing_cost_multiplier: float = Field(gt=0)
+    living_cost_multiplier: float = Field(gt=0)
+    transport_cost_multiplier: float = Field(gt=0)
+    family_support_bonus: int = 0
+    opportunity_text: str
+    pressure_text: str
+    career_income_biases: dict[str, float] = Field(default_factory=dict)
 
 
-class DistrictDefinition(BaseModel):
+class CareerTierDefinition(BaseModel):
+    label: str
+    monthly_income: int = Field(gt=0)
+    energy_delta: int
+    stress_delta: int
+    life_satisfaction_delta: int = 0
+    promotion_target: int = Field(gt=0)
+    required_credential_ids: list[str] = Field(default_factory=list)
+    required_minimum_gpa: float | None = Field(default=None, ge=0.0, le=4.0)
+
+
+class CareerTrackDefinition(BaseModel):
     id: str
     name: str
     description: str
-    travel_cost: int = Field(ge=0)
-    travel_energy_cost: int = Field(ge=0)
-    travel_stress_delta: int = 0
-    local_risk: int = Field(ge=0)
-    event_tags: list[str] = Field(default_factory=list)
-    commodity_biases: dict[str, float] = Field(default_factory=dict)
-    service_ids: list[str] = Field(default_factory=list)
-    gig_ids: list[str] = Field(default_factory=list)
+    entry_path_ids: list[str] = Field(default_factory=list)
+    minimum_transport_access: int = Field(ge=1)
+    entry_required_credential_ids: list[str] = Field(default_factory=list)
+    entry_required_education_program_id: str | None = None
+    entry_requires_active_education: bool = False
+    entry_minimum_gpa: float | None = Field(default=None, ge=0.0, le=4.0)
+    tiers: list[CareerTierDefinition]
 
 
-class GigDefinition(BaseModel):
+class EducationProgramDefinition(BaseModel):
     id: str
     name: str
     description: str
-    district_ids: list[str]
-    pay: int = Field(gt=0)
-    energy_cost: int = Field(ge=0)
+    monthly_cost: int = Field(ge=0)
+    monthly_stress: int = 0
+    monthly_energy_delta: int = 0
+    duration_months: int = Field(ge=0)
+    credential_id: str | None = None
+    entry_path_ids: list[str] = Field(default_factory=list)
+    completion_life_satisfaction_bonus: int = 0
+    applicable_career_ids: list[str] = Field(default_factory=list)
+
+
+class HousingOptionDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    base_monthly_cost: int = Field(ge=0)
+    move_in_cost: int = Field(ge=0)
     stress_delta: int = 0
-    heat_delta: int = 0
-    min_gpa: float = Field(ge=0, le=4.0, default=0)
-    required_item_ids: list[str] = Field(default_factory=list)
-    weight: int = Field(gt=0, default=1)
+    life_satisfaction_delta: int = 0
+    roommate_event_weight: float = Field(ge=0)
+    quality_score: int = Field(ge=0, le=100)
+    requires_hometown: bool = False
+    minimum_family_support: int = Field(ge=0, default=0)
 
 
-class ServiceDefinition(BaseModel):
-    id: str
-    name: str
-    kind: Literal["bank", "supply_shop"]
-    district_ids: list[str]
-    item_ids: list[str] = Field(default_factory=list)
-    loan_available: bool = False
-
-
-class ItemDefinition(BaseModel):
+class TransportOptionDefinition(BaseModel):
     id: str
     name: str
     description: str
-    price: int = Field(gt=0)
-    size: int = Field(gt=0, default=1)
-    district_ids: list[str] = Field(default_factory=list)
-    use_effects: PlayerEffectMap = Field(default_factory=dict)
+    monthly_cost: int = Field(ge=0)
+    upfront_cost: int = Field(ge=0)
+    stress_delta: int = 0
+    access_level: int = Field(ge=1)
+    reliability: float = Field(ge=0, le=1)
+    repair_event_weight: float = Field(ge=0)
+    quality_score: int = Field(ge=0, le=100)
+
+
+class FocusActionDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    income_multiplier: float = Field(gt=0)
+    promotion_progress_bonus: int = 0
+    education_progress_bonus: int = 0
+    stress_delta: int = 0
+    energy_delta: int = 0
+    life_satisfaction_delta: int = 0
+
+
+class ModifierTemplate(BaseModel):
+    id: str
+    label: str
+    duration_months: int = Field(gt=0)
+    stat_effects: StatEffects = Field(default_factory=dict)
+    income_multiplier: float = Field(gt=0, default=1.0)
+    housing_cost_delta: int = 0
+    living_cost_delta: int = 0
+    transport_cost_delta: int = 0
+    education_cost_delta: int = 0
+    promotion_progress_delta: int = 0
+    education_progress_delta: int = 0
+    transport_switch_discount: int = 0
 
 
 class EventDefinition(BaseModel):
     id: str
     name: str
     description: str
-    trigger: Literal["weekly", "daily", "any"]
     weight: int = Field(gt=0)
-    duration_days: int = Field(ge=0, default=0)
-    event_tags: list[str] = Field(default_factory=list)
-    commodity_multipliers: dict[str, float] = Field(default_factory=dict)
-    district_commodity_multipliers: dict[str, dict[str, float]] = Field(default_factory=dict)
-    stat_effects: PlayerEffectMap = Field(default_factory=dict)
+    min_month: int = Field(ge=1, default=1)
+    eligible_city_ids: list[str] = Field(default_factory=list)
+    eligible_housing_ids: list[str] = Field(default_factory=list)
+    eligible_transport_ids: list[str] = Field(default_factory=list)
+    eligible_career_ids: list[str] = Field(default_factory=list)
+    eligible_education_ids: list[str] = Field(default_factory=list)
+    minimum_stress: int | None = Field(default=None, ge=0)
+    minimum_debt: int | None = Field(default=None, ge=0)
+    immediate_effects: StatEffects = Field(default_factory=dict)
+    modifier: ModifierTemplate | None = None
     log_entry: str | None = None
 
 
@@ -90,26 +136,24 @@ class PresetDefinition(BaseModel):
     name: str
     description: str
     starting_cash: int = Field(ge=0)
+    starting_savings: int = Field(ge=0)
     starting_debt: int = Field(ge=0)
-    starting_bank_balance: int = Field(ge=0)
-    starting_energy: int = Field(gt=0)
     starting_stress: int = Field(ge=0)
-    starting_heat: int = Field(ge=0)
-    starting_gpa: float = Field(ge=0, le=4.0)
-    starting_backpack_capacity: int = Field(gt=0)
-    starting_district_id: str
-    starting_item_ids: dict[str, int] = Field(default_factory=dict)
+    starting_energy: int = Field(gt=0)
+    starting_life_satisfaction: int = Field(ge=0)
+    starting_family_support: int = Field(ge=0)
+    academic_strength: int = Field(ge=0, le=100)
 
 
 class ContentBundle(BaseModel):
     config: AppConfig
     difficulties: list[DifficultyModifier]
-    price_curves: PriceCurveConfig
-    exam_weeks: list[ExamWeekDefinition]
-    districts: list[DistrictDefinition]
-    commodities: list[CommodityDefinition]
-    gigs: list[GigDefinition]
+    scoring_weights: ScoringWeights
+    cities: list[CityDefinition]
+    careers: list[CareerTrackDefinition]
+    education_programs: list[EducationProgramDefinition]
+    housing_options: list[HousingOptionDefinition]
+    transport_options: list[TransportOptionDefinition]
+    focus_actions: list[FocusActionDefinition]
     events: list[EventDefinition]
-    items: list[ItemDefinition]
-    services: list[ServiceDefinition]
     presets: list[PresetDefinition]

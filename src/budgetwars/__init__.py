@@ -1,4 +1,4 @@
-"""Student Budget Wars package."""
+"""After Grad: The First 10 Years package."""
 
 __all__ = ["__version__"]
 

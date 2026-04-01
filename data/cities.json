@@ -1,0 +1,53 @@
+[
+  {
+    "id": "hometown",
+    "name": "Hometown",
+    "description": "Cheap enough to breathe, familiar enough to feel stuck, and full of fallback options if family stays on your side.",
+    "housing_cost_multiplier": 0.72,
+    "living_cost_multiplier": 0.9,
+    "transport_cost_multiplier": 0.92,
+    "family_support_bonus": 12,
+    "opportunity_text": "Cheap housing and family fallback make it easier to stabilize early.",
+    "pressure_text": "Ceilings arrive sooner, and staying too long can start to feel like drifting.",
+    "career_income_biases": {
+      "service_retail": 0.95,
+      "warehouse_logistics": 1.0,
+      "trades_apprenticeship": 1.05,
+      "office_professional": 0.88
+    }
+  },
+  {
+    "id": "mid_size_city",
+    "name": "Mid-Size City",
+    "description": "A balanced place to build. Costs are manageable, options are steady, and nothing comes easy for free.",
+    "housing_cost_multiplier": 1.0,
+    "living_cost_multiplier": 1.0,
+    "transport_cost_multiplier": 1.0,
+    "family_support_bonus": 4,
+    "opportunity_text": "Steady jobs and moderate rents make this the most forgiving long-game city.",
+    "pressure_text": "You can survive here without a plan, but you will not surge forward by accident.",
+    "career_income_biases": {
+      "service_retail": 1.02,
+      "warehouse_logistics": 1.0,
+      "trades_apprenticeship": 1.0,
+      "office_professional": 1.02
+    }
+  },
+  {
+    "id": "big_metro",
+    "name": "Big Metro",
+    "description": "Higher ceilings, harsher costs, and a lifestyle that rewards momentum but punishes sloppy money.",
+    "housing_cost_multiplier": 1.25,
+    "living_cost_multiplier": 1.18,
+    "transport_cost_multiplier": 1.12,
+    "family_support_bonus": -10,
+    "opportunity_text": "The biggest upside is here if you can survive the rent, debt, and pace.",
+    "pressure_text": "Everything costs more, and weak plans unravel fast.",
+    "career_income_biases": {
+      "service_retail": 1.06,
+      "warehouse_logistics": 1.08,
+      "trades_apprenticeship": 1.0,
+      "office_professional": 1.18
+    }
+  }
+]

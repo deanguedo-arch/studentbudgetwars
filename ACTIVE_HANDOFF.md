@@ -1,66 +1,63 @@
 # Active Handoff
 
 ## Current State
-- Branch: `retro-market-overhaul`
-- Status: the repo has been converted from the weekly survival-manager loop into the new daily market-hustle architecture.
-- Validation status: `tools/validate_data.py` passes.
-- Test status: `16 passed`.
+- Branch: `after-grad-life-sim`
+- Status: the repo has been rebuilt from the daily city-hustle prototype into the monthly after-grad life sim.
+- Validation status: `tools/validate_data.py` targets the new content bundle.
+- Test status: `17 passed`.
 
 ## What Landed In This Pass
-- New daily-turn engine:
-  - districts
-  - commodities
-  - gigs
-  - backpack capacity
-  - board events
-  - study / weekly academic checks
-  - bank actions
-  - weekly housing/interest tick
-- New retro desktop shell in Tkinter:
-  - menu bar
-  - status strip
-  - goods panel
-  - inventory panel
-  - action buttons
-  - log pane
+- New monthly engine:
+  - graduation setup
+  - 120-month life loop
+  - housing / transport / budget pressure
+  - career progression
+  - light education progression with GPA / pass-state gating
+  - concrete monthly events
+  - end-of-run Life Position scoring
 - New content schema and JSON pack:
-  - `commodities.json`
-  - `districts.json`
-  - `gigs.json`
-  - `services.json`
+  - `cities.json`
+  - `careers.json`
+  - `education.json`
+  - `housing.json`
+  - `transport.json`
+  - `focus_actions.json`
   - `events.json`
   - `presets.json`
   - `data/balance/*.json`
-- Old weekly-loop modules and unused weekly data files were removed.
-- Simulation tooling was rewired to the new daily engine.
+- Tkinter shell rebuilt around the new monthly state:
+  - status strip
+  - current setup panel
+  - month outlook panel
+  - finances/progress panel
+  - compact recent log
+  - monthly action buttons
+- Simulation tooling now runs the real monthly life loop instead of the retired commodity loop.
+- Old market-hustle runtime modules and tests were removed.
 
 ## Key Runtime Shape
-- `1 turn = 1 day`
-- `7 days = 1 week`
-- `12 weeks = 84 turns`
-- The player takes one main action per day:
-  - travel
-  - buy
-  - sell
-  - work gig
-  - rest
-  - study
-  - bank action
-  - use item
-
-## Current Balance Snapshot
-- The new loop is functional and deterministic under seed.
-- Early simulation samples show the system is playable but not yet well balanced.
-- Small sampled result on `normal + balanced` across all presets:
-  - some runs complete the term
-  - `scholarship_grinder` currently looks strongest
-  - heat pressure and end-of-term survival thresholds are still rough
+- `1 turn = 1 month`
+- `120 turns = 10 years`
+- Main persistent systems:
+  - career
+  - education
+  - housing
+  - transport
+  - budget stance
+- Monthly focus action:
+  - `Stack Cash`
+  - `Push Forward`
+  - `Recover`
+- College now tracks a real GPA.
+- Office/professional entry and higher office tiers can be blocked by low GPA.
+- Trades progression stays on the apprenticeship credential/pass lane.
 
 ## Most Important Files
 - Engine:
   - `src/budgetwars/engine/game_loop.py`
-  - `src/budgetwars/engine/turn_resolution.py`
-  - `src/budgetwars/engine/market.py`
+  - `src/budgetwars/engine/month_resolution.py`
+  - `src/budgetwars/engine/careers.py`
+  - `src/budgetwars/engine/education.py`
   - `src/budgetwars/engine/events.py`
   - `src/budgetwars/engine/simulation.py`
 - UI:
@@ -71,22 +68,26 @@
   - `src/budgetwars/loaders/`
 - Data:
   - `data/config.json`
-  - `data/commodities.json`
-  - `data/districts.json`
-  - `data/gigs.json`
+  - `data/cities.json`
+  - `data/careers.json`
+  - `data/education.json`
+  - `data/housing.json`
+  - `data/transport.json`
+  - `data/focus_actions.json`
   - `data/events.json`
   - `data/presets.json`
 
 ## Known Limits
-- Balance is not finished.
-- District identity is present but still not sharp enough.
-- The Tkinter shell is functional and readable, but still not fully screenshot-close.
-- Some policies complete the term but fail survival checks due to net-worth / heat pressure.
+- Balance is early, not finished.
+- City identity is currently archetype-level, not deep content-level.
+- Education is intentionally lightweight in v1.
+- There is no city-move system yet.
+- The shell is readable and functional, but still a first playable rather than a finished desktop sim.
 
 ## Recommended Next Pass
-- Do a focused balance and content-depth pass on the new loop:
-  - sharpen district opportunity identity
-  - improve commodity spreads and event spikes
-  - rebalance heat accumulation
-  - tune preset survivability bands
-  - deepen gigs/items without bloating actions
+- Do a focused balance and feel pass on the new monthly loop:
+  - tune survivability bands across presets and paths
+  - deepen city identity without adding huge scope
+  - sharpen housing and transport event pressure
+  - improve career-track identity text and event flavor
+  - add a small annual-summary presentation pass

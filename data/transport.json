@@ -1,0 +1,50 @@
+[
+  {
+    "id": "walk_bike",
+    "name": "Walk / Bike",
+    "description": "Cheap and simple, but it limits how far your work life can stretch.",
+    "monthly_cost": 30,
+    "upfront_cost": 0,
+    "stress_delta": 0,
+    "access_level": 1,
+    "reliability": 0.96,
+    "repair_event_weight": 0.0,
+    "quality_score": 55
+  },
+  {
+    "id": "transit",
+    "name": "Transit",
+    "description": "Manageable cost and decent access, with occasional schedule friction and price hikes.",
+    "monthly_cost": 140,
+    "upfront_cost": 40,
+    "stress_delta": 0,
+    "access_level": 2,
+    "reliability": 0.87,
+    "repair_event_weight": 0.1,
+    "quality_score": 65
+  },
+  {
+    "id": "beater_car",
+    "name": "Beater Car",
+    "description": "Freedom and job access now, repairs and chaos later.",
+    "monthly_cost": 310,
+    "upfront_cost": 1200,
+    "stress_delta": 1,
+    "access_level": 3,
+    "reliability": 0.62,
+    "repair_event_weight": 1.0,
+    "quality_score": 70
+  },
+  {
+    "id": "financed_car",
+    "name": "Financed Car",
+    "description": "Reliable access with monthly payments that can quietly handcuff your whole plan.",
+    "monthly_cost": 540,
+    "upfront_cost": 400,
+    "stress_delta": 0,
+    "access_level": 4,
+    "reliability": 0.92,
+    "repair_event_weight": 0.35,
+    "quality_score": 84
+  }
+]

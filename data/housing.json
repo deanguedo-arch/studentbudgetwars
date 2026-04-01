@@ -1,0 +1,41 @@
+[
+  {
+    "id": "parents",
+    "name": "Stay With Parents",
+    "description": "The cheapest option by far. Strong financially, but it can start to feel like your life never started.",
+    "base_monthly_cost": 120,
+    "move_in_cost": 0,
+    "stress_delta": -2,
+    "life_satisfaction_delta": -1,
+    "roommate_event_weight": 0.1,
+    "quality_score": 55,
+    "requires_hometown": true,
+    "minimum_family_support": 25
+  },
+  {
+    "id": "roommates",
+    "name": "Rent With Roommates",
+    "description": "The default independence move: cheaper than living alone, but your peace is never fully yours.",
+    "base_monthly_cost": 780,
+    "move_in_cost": 300,
+    "stress_delta": 1,
+    "life_satisfaction_delta": 1,
+    "roommate_event_weight": 1.0,
+    "quality_score": 65,
+    "requires_hometown": false,
+    "minimum_family_support": 0
+  },
+  {
+    "id": "solo_rental",
+    "name": "Solo Rental",
+    "description": "Privacy and control, at a price that can quietly dominate your twenties.",
+    "base_monthly_cost": 1280,
+    "move_in_cost": 900,
+    "stress_delta": -2,
+    "life_satisfaction_delta": 5,
+    "roommate_event_weight": 0.0,
+    "quality_score": 82,
+    "requires_hometown": false,
+    "minimum_family_support": 0
+  }
+]

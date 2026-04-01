@@ -1,60 +1,74 @@
 from __future__ import annotations
 
 from budgetwars.models import (
-    CommodityDefinition,
+    BudgetStanceDefinition,
+    CareerTierDefinition,
+    CareerTrackDefinition,
+    CityDefinition,
     ContentBundle,
     DifficultyModifier,
-    DistrictDefinition,
+    EducationProgramDefinition,
     EventDefinition,
-    ExamWeekDefinition,
-    GigDefinition,
-    ItemDefinition,
+    FocusActionDefinition,
+    GameState,
+    HousingOptionDefinition,
+    OpeningPathDefinition,
     PresetDefinition,
-    ServiceDefinition,
+    TransportOptionDefinition,
 )
 
 
-def _find(records: list[object], record_id: str, label: str) -> object:
-    for record in records:
-        if getattr(record, "id") == record_id:
-            return record
-    raise ValueError(f"Unknown {label} id '{record_id}'")
+def _get_by_id(collection, item_id: str, label: str):
+    for item in collection:
+        if item.id == item_id:
+            return item
+    raise ValueError(f"Unknown {label}: {item_id}")
 
 
-def get_difficulty(bundle: ContentBundle, difficulty_id: str) -> DifficultyModifier:
-    return _find(bundle.difficulties, difficulty_id, "difficulty")  # type: ignore[return-value]
+def get_city(bundle: ContentBundle, city_id: str) -> CityDefinition:
+    return _get_by_id(bundle.cities, city_id, "city")
 
 
-def get_preset(bundle: ContentBundle, preset_id: str) -> PresetDefinition:
-    return _find(bundle.presets, preset_id, "preset")  # type: ignore[return-value]
+def get_career_track(bundle: ContentBundle, career_id: str) -> CareerTrackDefinition:
+    return _get_by_id(bundle.careers, career_id, "career track")
 
 
-def get_district(bundle: ContentBundle, district_id: str) -> DistrictDefinition:
-    return _find(bundle.districts, district_id, "district")  # type: ignore[return-value]
+def get_current_career_tier(bundle: ContentBundle, state: GameState) -> CareerTierDefinition:
+    track = get_career_track(bundle, state.player.career.track_id)
+    return track.tiers[state.player.career.tier_index]
 
 
-def get_commodity(bundle: ContentBundle, commodity_id: str) -> CommodityDefinition:
-    return _find(bundle.commodities, commodity_id, "commodity")  # type: ignore[return-value]
+def get_education_program(bundle: ContentBundle, program_id: str) -> EducationProgramDefinition:
+    return _get_by_id(bundle.education_programs, program_id, "education program")
 
 
-def get_gig(bundle: ContentBundle, gig_id: str) -> GigDefinition:
-    return _find(bundle.gigs, gig_id, "gig")  # type: ignore[return-value]
+def get_housing_option(bundle: ContentBundle, housing_id: str) -> HousingOptionDefinition:
+    return _get_by_id(bundle.housing_options, housing_id, "housing option")
 
 
-def get_item(bundle: ContentBundle, item_id: str) -> ItemDefinition:
-    return _find(bundle.items, item_id, "item")  # type: ignore[return-value]
+def get_transport_option(bundle: ContentBundle, transport_id: str) -> TransportOptionDefinition:
+    return _get_by_id(bundle.transport_options, transport_id, "transport option")
 
 
-def get_service(bundle: ContentBundle, service_id: str) -> ServiceDefinition:
-    return _find(bundle.services, service_id, "service")  # type: ignore[return-value]
+def get_focus_action(bundle: ContentBundle, focus_id: str) -> FocusActionDefinition:
+    return _get_by_id(bundle.focus_actions, focus_id, "focus action")
 
 
 def get_event(bundle: ContentBundle, event_id: str) -> EventDefinition:
-    return _find(bundle.events, event_id, "event")  # type: ignore[return-value]
+    return _get_by_id(bundle.events, event_id, "event")
 
 
-def get_exam_week(bundle: ContentBundle, week: int) -> ExamWeekDefinition | None:
-    for exam in bundle.exam_weeks:
-        if exam.week == week:
-            return exam
-    return None
+def get_preset(bundle: ContentBundle, preset_id: str) -> PresetDefinition:
+    return _get_by_id(bundle.presets, preset_id, "preset")
+
+
+def get_difficulty(bundle: ContentBundle, difficulty_id: str) -> DifficultyModifier:
+    return _get_by_id(bundle.difficulties, difficulty_id, "difficulty")
+
+
+def get_budget_stance(bundle: ContentBundle, stance_id: str) -> BudgetStanceDefinition:
+    return _get_by_id(bundle.config.budget_stances, stance_id, "budget stance")
+
+
+def get_opening_path(bundle: ContentBundle, opening_path_id: str) -> OpeningPathDefinition:
+    return _get_by_id(bundle.config.opening_paths, opening_path_id, "opening path")

@@ -1,240 +1,307 @@
 [
   {
-    "id": "exam_rush",
-    "name": "Exam Rush",
-    "description": "Students are scrambling for calculators and textbooks before a brutal exam wave.",
-    "trigger": "weekly",
-    "weight": 8,
-    "duration_days": 7,
-    "event_tags": ["academic"],
-    "commodity_multipliers": {
-      "graphing_calculators": 1.5,
-      "used_textbooks": 1.3
-    },
-    "district_commodity_multipliers": {
-      "main_campus": {
-        "graphing_calculators": 1.2,
-        "used_textbooks": 1.15
-      },
-      "library": {
-        "graphing_calculators": 1.15
-      }
-    },
-    "stat_effects": {},
-    "log_entry": "Exam week is heating up. Academic gear is moving fast."
-  },
-  {
-    "id": "bookstore_dump",
-    "name": "Bookstore Dump",
-    "description": "A bookstore clearance floods the market with used books.",
-    "trigger": "weekly",
-    "weight": 5,
-    "duration_days": 7,
-    "event_tags": ["academic"],
-    "commodity_multipliers": {
-      "used_textbooks": 0.65
-    },
-    "district_commodity_multipliers": {
-      "dorms": {
-        "used_textbooks": 0.8
-      }
-    },
-    "stat_effects": {},
-    "log_entry": "Textbook prices just cratered after a bookstore dump."
-  },
-  {
-    "id": "sold_out_show",
-    "name": "Sold-Out Show",
-    "description": "A big act sells out and ticket demand goes feral overnight.",
-    "trigger": "weekly",
-    "weight": 5,
-    "duration_days": 7,
-    "event_tags": ["events"],
-    "commodity_multipliers": {
-      "concert_tickets": 1.7
-    },
-    "district_commodity_multipliers": {
-      "student_union": {
-        "concert_tickets": 1.15
-      },
-      "stadium_district": {
-        "concert_tickets": 1.25
-      }
-    },
-    "stat_effects": {
-      "heat": 4
-    },
-    "log_entry": "Ticket resale is scorching hot around the stadium."
-  },
-  {
-    "id": "transit_crackdown",
-    "name": "Transit Crackdown",
-    "description": "Inspectors flood the stations and everyone suddenly wants legit passes.",
-    "trigger": "weekly",
+    "id": "rent_increase",
+    "name": "Rent Increase",
+    "description": "Your place just got more expensive, and the margin disappears faster than you expected.",
     "weight": 6,
-    "duration_days": 7,
-    "event_tags": ["transit", "inspectors"],
-    "commodity_multipliers": {
-      "transit_passes": 1.6
+    "min_month": 2,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": ["roommates", "solo_rental"],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "stress": 4,
+      "life_satisfaction": -2
     },
-    "district_commodity_multipliers": {
-      "transit_hub": {
-        "transit_passes": 1.25
-      }
+    "modifier": {
+      "id": "rent_increase_pressure",
+      "label": "Rent Increase",
+      "duration_months": 4,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 130,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
     },
-    "stat_effects": {
-      "heat": 6,
-      "stress": 4
-    },
-    "log_entry": "Transit inspectors are everywhere and pass demand is surging."
+    "log_entry": "Your rent jumped. The month got tighter before it even started."
   },
   {
-    "id": "move_out_flood",
-    "name": "Move-Out Flood",
-    "description": "Dorm move-outs dump bulky goods into the market all at once.",
-    "trigger": "weekly",
-    "weight": 5,
-    "duration_days": 7,
-    "event_tags": ["move_outs"],
-    "commodity_multipliers": {
-      "mini_fridges": 0.7,
-      "thrift_jackets": 0.85
-    },
-    "district_commodity_multipliers": {
-      "dorms": {
-        "mini_fridges": 0.65
-      },
-      "thrift_district": {
-        "mini_fridges": 0.8
-      }
-    },
-    "stat_effects": {},
-    "log_entry": "Dorm move-outs are flooding the market with bulky junk and hidden gems."
-  },
-  {
-    "id": "battery_panic",
-    "name": "Battery Panic",
-    "description": "A campus-wide power mess sends students hunting for chargers and backup tech.",
-    "trigger": "weekly",
-    "weight": 4,
-    "duration_days": 7,
-    "event_tags": ["tech"],
-    "commodity_multipliers": {
-      "phone_chargers": 1.6,
-      "used_laptops": 1.25
-    },
-    "district_commodity_multipliers": {
-      "main_campus": {
-        "phone_chargers": 1.15
-      },
-      "electronics_strip": {
-        "phone_chargers": 0.9
-      }
-    },
-    "stat_effects": {},
-    "log_entry": "Everyone suddenly needs chargers and working tech."
-  },
-  {
-    "id": "roommate_covers_meal",
-    "name": "Roommate Covers Dinner",
-    "description": "A roommate quietly covers food after a rough day.",
-    "trigger": "daily",
+    "id": "roommate_conflict",
+    "name": "Roommate Conflict",
+    "description": "Bills, noise, mess, and tension all land at the same time.",
     "weight": 7,
-    "duration_days": 0,
-    "event_tags": ["roommates"],
-    "commodity_multipliers": {},
-    "district_commodity_multipliers": {},
-    "stat_effects": {
-      "cash": 10,
-      "stress": -4
-    },
-    "log_entry": "Roommate covered dinner. Small mercy."
-  },
-  {
-    "id": "inspection_scare",
-    "name": "Inspection Scare",
-    "description": "Uniforms on the platform put everyone on edge.",
-    "trigger": "daily",
-    "weight": 6,
-    "duration_days": 0,
-    "event_tags": ["inspectors"],
-    "commodity_multipliers": {},
-    "district_commodity_multipliers": {},
-    "stat_effects": {
-      "heat": 8,
-      "stress": 5
-    },
-    "log_entry": "Inspectors rattled the district today."
-  },
-  {
-    "id": "found_source_lead",
-    "name": "Found Source Lead",
-    "description": "A casual conversation gives you a better lead on cheap tech.",
-    "trigger": "daily",
-    "weight": 5,
-    "duration_days": 1,
-    "event_tags": ["tech", "lead"],
-    "commodity_multipliers": {
-      "phone_chargers": 0.85,
-      "headphones": 0.9
-    },
-    "district_commodity_multipliers": {
-      "electronics_strip": {
-        "phone_chargers": 0.8,
-        "used_laptops": 0.92
-      }
-    },
-    "stat_effects": {
-      "stress": -2
-    },
-    "log_entry": "A cheap tech lead opened up for a day."
-  },
-  {
-    "id": "rainy_commute",
-    "name": "Rainy Commute",
-    "description": "Everything takes longer and the whole city feels more annoying.",
-    "trigger": "daily",
-    "weight": 6,
-    "duration_days": 0,
-    "event_tags": ["weather"],
-    "commodity_multipliers": {},
-    "district_commodity_multipliers": {},
-    "stat_effects": {
-      "energy": -5,
-      "stress": 3
-    },
-    "log_entry": "Bad weather dragged your day down."
-  },
-  {
-    "id": "study_group_breakthrough",
-    "name": "Study Group Breakthrough",
-    "description": "A good study session lands harder than expected.",
-    "trigger": "daily",
-    "weight": 4,
-    "duration_days": 0,
-    "event_tags": ["study"],
-    "commodity_multipliers": {},
-    "district_commodity_multipliers": {},
-    "stat_effects": {
-      "gpa": 0.03,
-      "stress": -3
-    },
-    "log_entry": "A study group breakthrough steadied your semester."
-  },
-  {
-    "id": "backpack_theft",
-    "name": "Backpack Theft Scare",
-    "description": "You lose time and nerves dealing with a possible theft attempt.",
-    "trigger": "daily",
-    "weight": 3,
-    "duration_days": 0,
-    "event_tags": ["crowds", "risk"],
-    "commodity_multipliers": {},
-    "district_commodity_multipliers": {},
-    "stat_effects": {
+    "min_month": 1,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": ["roommates"],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "cash": -150,
       "stress": 6,
-      "heat": 4
+      "life_satisfaction": -6,
+      "family_support": -3
     },
-    "log_entry": "Crowds got messy and you nearly lost your bag."
+    "modifier": {
+      "id": "roommate_aftershock",
+      "label": "Roommate Tension",
+      "duration_months": 2,
+      "stat_effects": {
+        "stress": 2,
+        "life_satisfaction": -2
+      },
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Roommate drama blew up the month."
+  },
+  {
+    "id": "layoff",
+    "name": "Reduced Hours / Layoff",
+    "description": "Your income lane takes a hit and the month starts looking unstable fast.",
+    "weight": 5,
+    "min_month": 3,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": ["service_retail", "warehouse_logistics", "office_professional"],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "stress": 7,
+      "life_satisfaction": -8,
+      "promotion_progress": -2
+    },
+    "modifier": {
+      "id": "income_shock",
+      "label": "Income Shock",
+      "duration_months": 2,
+      "stat_effects": {},
+      "income_multiplier": 0.55,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -1,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Work dried up hard this month."
+  },
+  {
+    "id": "promotion_window",
+    "name": "Promotion Window",
+    "description": "Someone above you moved on and the timing finally broke in your favor.",
+    "weight": 4,
+    "min_month": 4,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": ["service_retail", "warehouse_logistics", "trades_apprenticeship", "office_professional"],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "promotion_progress": 3,
+      "life_satisfaction": 2
+    },
+    "modifier": null,
+    "log_entry": "A promotion window opened if you can capitalize on it."
+  },
+  {
+    "id": "car_repair",
+    "name": "Car Repair",
+    "description": "One bad sound becomes one expensive month.",
+    "weight": 6,
+    "min_month": 1,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": ["beater_car", "financed_car"],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "cash": -450,
+      "stress": 5,
+      "life_satisfaction": -3
+    },
+    "modifier": null,
+    "log_entry": "Your vehicle demanded money you were not ready to spend."
+  },
+  {
+    "id": "used_car_deal",
+    "name": "Used Car Deal",
+    "description": "A decent mechanic says there is a window for a cheaper car upgrade if you move soon.",
+    "weight": 3,
+    "min_month": 2,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": ["walk_bike", "transit"],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "stress": -1,
+      "life_satisfaction": 1
+    },
+    "modifier": {
+      "id": "cheap_wheels_window",
+      "label": "Used Car Deal",
+      "duration_months": 2,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 350
+    },
+    "log_entry": "A mechanic tipped you off to a rare decent beater deal."
+  },
+  {
+    "id": "scholarship_boost",
+    "name": "Scholarship / Help Grant",
+    "description": "You caught a break that lowers the cost of staying on track.",
+    "weight": 4,
+    "min_month": 2,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": ["college", "apprenticeship_training"],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "cash": 250,
+      "life_satisfaction": 3
+    },
+    "modifier": {
+      "id": "tuition_relief",
+      "label": "Tuition Relief",
+      "duration_months": 4,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": -120,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "You landed education money right when you needed it."
+  },
+  {
+    "id": "family_emergency",
+    "name": "Family Emergency",
+    "description": "Someone needs help and your own plan takes a hit.",
+    "weight": 4,
+    "min_month": 3,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "cash": -150,
+      "savings": -300,
+      "stress": 5,
+      "family_support": -8
+    },
+    "modifier": null,
+    "log_entry": "Family trouble forced money and attention out of your month."
+  },
+  {
+    "id": "burnout_month",
+    "name": "Burnout Month",
+    "description": "You kept pushing and your body finally made you feel it.",
+    "weight": 4,
+    "min_month": 2,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "minimum_stress": 75,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "energy": -8,
+      "stress": 5,
+      "life_satisfaction": -6
+    },
+    "modifier": {
+      "id": "burnout_aftershock",
+      "label": "Burnout Aftershock",
+      "duration_months": 2,
+      "stat_effects": {
+        "energy": -3,
+        "stress": 3,
+        "life_satisfaction": -2
+      },
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -1,
+      "education_progress_delta": -1,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Your body finally called the bluff."
+  },
+  {
+    "id": "transit_hike",
+    "name": "Transit Hike",
+    "description": "Transit got more expensive again, and the monthly math shifted under you.",
+    "weight": 5,
+    "min_month": 3,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": ["transit"],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "immediate_effects": {
+      "stress": 2,
+      "life_satisfaction": -1
+    },
+    "modifier": {
+      "id": "fare_hike",
+      "label": "Transit Fare Hike",
+      "duration_months": 4,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 45,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Transit fares went up again."
   }
 ]

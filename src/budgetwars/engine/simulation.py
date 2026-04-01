@@ -1,203 +1,265 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from statistics import mean
 
 from budgetwars.models import ContentBundle
+from budgetwars.utils.rng import derive_seed
 
 from .game_loop import GameController
+from .lookups import get_career_track, get_transport_option
 
 
-@dataclass
+@dataclass(slots=True)
 class SimulationRunResult:
     preset_id: str
     difficulty_id: str
+    city_id: str
+    opening_path_id: str
     policy_name: str
     seed: int
     survived: bool
     final_score: float
+    ending_label: str
+    game_over_reason: str | None
     ending_cash: int
-    ending_bank_balance: int
+    ending_savings: int
     ending_debt: int
     ending_stress: int
     ending_energy: int
-    ending_gpa: float
-    ending_district_id: str
-    game_over_reason: str | None
+    final_month: int
+    final_career_track_id: str
+    final_housing_id: str
+    final_transport_id: str
 
 
-def balanced_policy(controller: GameController) -> tuple[str, dict[str, int | str]]:
+def _career_income_now(bundle: ContentBundle, controller: GameController, career_id: str) -> int:
+    track = get_career_track(bundle, career_id)
+    city = next(city for city in bundle.cities if city.id == controller.state.player.current_city_id)
+    difficulty = next(item for item in bundle.difficulties if item.id == controller.state.difficulty_id)
+    return int(round(track.tiers[0].monthly_income * city.career_income_biases.get(career_id, 1.0) * difficulty.income_multiplier))
+
+
+def conservative_policy(controller: GameController) -> None:
     state = controller.state
-    market = controller.current_market()
-    player = state.player
+    bundle = controller.bundle
 
-    if player.energy <= 20 or player.stress >= 78:
-        return ("rest", {})
-    if state.current_week in {2, 4, 6, 9, 12} and state.weekly_study_points < max(2, state.current_week // 2):
-        return ("study", {})
+    if state.player.stress >= 60 or state.player.energy <= 40:
+        if state.player.selected_focus_action_id != "recover":
+            controller.change_focus_action("recover")
+    elif state.player.education.is_active or state.player.career.track_id in {"trades_apprenticeship", "office_professional"}:
+        if state.player.selected_focus_action_id != "push_forward":
+            controller.change_focus_action("push_forward")
+    else:
+        if state.player.selected_focus_action_id != "stack_cash":
+            controller.change_focus_action("stack_cash")
 
-    local_bank = any(
-        service.kind == "bank" and player.current_district_id in service.district_ids for service in controller.bundle.services
-    )
-    if player.debt > 0 and player.cash >= min(player.debt, 50) and local_bank:
-        return ("repay", {"amount": min(player.debt, 50)})
+    if state.player.debt > 12000 or state.player.cash < 180:
+        if state.player.budget_stance_id != "bare_minimum":
+            controller.change_budget_stance("bare_minimum")
+    elif state.player.debt > 4500 or state.player.savings < 500:
+        if state.player.budget_stance_id != "future_focused":
+            controller.change_budget_stance("future_focused")
+    elif state.player.budget_stance_id != "balanced":
+        controller.change_budget_stance("balanced")
 
-    for entry in player.commodity_inventory:
-        local_price = market.listings[entry.commodity_id]
-        if local_price >= int(entry.average_price * 1.22):
-            return ("sell", {"commodity_id": entry.commodity_id, "quantity": min(entry.quantity, 3)})
+    if (
+        state.player.current_city_id == "hometown"
+        and state.player.family_support >= state.minimum_parent_fallback_support + 5
+        and state.player.housing_id != "parents"
+        and (state.player.debt > 6000 or state.player.cash < 120)
+    ):
+        try:
+            controller.change_housing("parents")
+        except ValueError:
+            pass
 
-    gigs = controller.available_gigs()
-    if gigs and player.energy >= 24:
-        gigs = sorted(gigs, key=lambda gig: (gig.pay - (gig.energy_cost * 1.5) - (gig.stress_delta * 3)), reverse=True)
-        return ("gig", {"gig_id": gigs[0].id})
+    if state.player.transport_id == "walk_bike" and state.player.cash + state.player.savings > 1700:
+        try:
+            controller.change_transport("transit")
+        except ValueError:
+            pass
 
-    affordable = []
-    for commodity in controller.bundle.commodities:
-        price = market.listings[commodity.id]
-        max_qty = min(player.cash // price, controller.remaining_capacity() // commodity.size)
-        if max_qty > 0:
-            affordable.append((commodity.id, price, max_qty))
-    if affordable:
-        commodity_id, price, max_qty = min(affordable, key=lambda item: item[1])
-        return ("buy", {"commodity_id": commodity_id, "quantity": max(1, min(max_qty, 2))})
-
-    safer_districts = sorted(controller.bundle.districts, key=lambda district: (district.local_risk, district.travel_cost))
-    for district in safer_districts:
-        if district.id != player.current_district_id and player.cash >= district.travel_cost:
-            return ("travel", {"district_id": district.id})
-    return ("rest", {})
+    if "college_credential" in state.player.education.earned_credential_ids and state.player.career.track_id != "office_professional":
+        try:
+            controller.change_career("office_professional")
+        except ValueError:
+            pass
+    elif state.player.debt > 5000 and state.player.career.track_id == "service_retail":
+        for target in ("warehouse_logistics", "trades_apprenticeship"):
+            try:
+                controller.change_career(target)
+                break
+            except ValueError:
+                continue
 
 
-def cash_hungry_policy(controller: GameController) -> tuple[str, dict[str, int | str]]:
+def ambitious_policy(controller: GameController) -> None:
     state = controller.state
-    market = controller.current_market()
-    player = state.player
+    if state.player.stress >= 75 or state.player.energy <= 25:
+        if state.player.selected_focus_action_id != "recover":
+            controller.change_focus_action("recover")
+    else:
+        if state.player.selected_focus_action_id != "stack_cash":
+            controller.change_focus_action("stack_cash")
 
-    for entry in player.commodity_inventory:
-        local_price = market.listings[entry.commodity_id]
-        if local_price >= int(entry.average_price * 1.1):
-            return ("sell", {"commodity_id": entry.commodity_id, "quantity": min(entry.quantity, 4)})
+    if state.player.debt > 8000:
+        if state.player.budget_stance_id != "bare_minimum":
+            controller.change_budget_stance("bare_minimum")
+    elif state.player.budget_stance_id != "future_focused":
+        controller.change_budget_stance("future_focused")
 
-    gigs = controller.available_gigs()
-    if gigs and player.energy >= 14:
-        gigs = sorted(gigs, key=lambda gig: gig.pay - (gig.energy_cost + max(0, gig.stress_delta * 2)), reverse=True)
-        return ("gig", {"gig_id": gigs[0].id})
+    if state.player.transport_id in {"walk_bike", "transit"} and state.player.cash + state.player.savings > 1400:
+        desired = "beater_car" if state.player.transport_id == "transit" else "transit"
+        try:
+            controller.change_transport(desired)
+        except ValueError:
+            pass
 
-    affordable = []
-    for commodity in controller.bundle.commodities:
-        price = market.listings[commodity.id]
-        max_qty = min(player.cash // price, controller.remaining_capacity() // commodity.size)
-        if max_qty > 0:
-            affordable.append((commodity.id, price, max_qty))
-    if affordable:
-        commodity_id, price, max_qty = min(affordable, key=lambda item: item[1])
-        quantity = max(1, min(max_qty, 3))
-        return ("buy", {"commodity_id": commodity_id, "quantity": quantity})
+    current_income = _career_income_now(controller.bundle, controller, state.player.career.track_id)
+    better_tracks = []
+    for track in controller.bundle.careers:
+        if track.id == state.player.career.track_id:
+            continue
+        try:
+            controller.change_career(track.id)
+            better_tracks.append(track.id)
+            break
+        except ValueError:
+            continue
+    if better_tracks:
+        return
 
-    if player.energy <= 12:
-        return ("rest", {})
+    if current_income < 2400 and state.player.education.program_id == "none":
+        for program_id in ("apprenticeship_training", "college"):
+            try:
+                controller.change_education(program_id)
+                break
+            except ValueError:
+                continue
 
-    risky_districts = sorted(controller.bundle.districts, key=lambda district: (-district.local_risk, district.travel_cost))
-    for district in risky_districts:
-        if district.id != player.current_district_id and player.cash >= district.travel_cost:
-            return ("travel", {"district_id": district.id})
-    return ("study", {})
 
-
-POLICIES = {"balanced": balanced_policy, "cash_hungry": cash_hungry_policy}
+POLICIES = {
+    "conservative": conservative_policy,
+    "ambitious": ambitious_policy,
+    "balanced": conservative_policy,
+}
 
 
 def apply_policy_action(controller: GameController, policy_name: str) -> None:
     if policy_name not in POLICIES:
-        raise ValueError(f"Unknown policy '{policy_name}'")
-    action, params = POLICIES[policy_name](controller)
-    if action == "travel":
-        controller.travel(str(params["district_id"]))
-    elif action == "buy":
-        controller.buy(str(params["commodity_id"]), int(params["quantity"]))
-    elif action == "sell":
-        controller.sell(str(params["commodity_id"]), int(params["quantity"]))
-    elif action == "gig":
-        controller.work_gig(str(params["gig_id"]))
-    elif action == "study":
-        controller.study()
-    elif action == "rest":
-        controller.rest()
-    elif action == "repay":
-        controller.bank_repay(int(params["amount"]))
-    else:
-        raise ValueError(f"Unsupported policy action '{action}'")
+        raise ValueError(f"Unknown policy: {policy_name}")
+    POLICIES[policy_name](controller)
+    controller.resolve_month()
+
+
+def run_single_simulation(
+    bundle: ContentBundle,
+    *,
+    player_name: str,
+    preset_id: str,
+    difficulty_id: str,
+    city_id: str,
+    opening_path_id: str,
+    policy_name: str,
+    seed: int,
+) -> SimulationRunResult:
+    controller = GameController.new_game(
+        bundle,
+        player_name=player_name,
+        preset_id=preset_id,
+        difficulty_id=difficulty_id,
+        seed=seed,
+        city_id=city_id,
+        opening_path_id=opening_path_id,
+    )
+    while not controller.is_finished():
+        apply_policy_action(controller, policy_name)
+    summary = controller.final_score_summary()
+    state = controller.state
+    return SimulationRunResult(
+        preset_id=preset_id,
+        difficulty_id=difficulty_id,
+        city_id=city_id,
+        opening_path_id=opening_path_id,
+        policy_name=policy_name,
+        seed=seed,
+        survived=summary.survived_to_28,
+        final_score=summary.final_score,
+        ending_label=summary.ending_label,
+        game_over_reason=state.game_over_reason,
+        ending_cash=state.player.cash,
+        ending_savings=state.player.savings,
+        ending_debt=state.player.debt,
+        ending_stress=state.player.stress,
+        ending_energy=state.player.energy,
+        final_month=state.current_month,
+        final_career_track_id=state.player.career.track_id,
+        final_housing_id=state.player.housing_id,
+        final_transport_id=state.player.transport_id,
+    )
 
 
 def run_simulation(
     bundle: ContentBundle,
-    preset_id: str,
-    difficulty_id: str,
-    runs: int,
-    policy_name: str,
-    seed: int,
+    *,
+    preset_id: str = "all",
+    difficulty_id: str = "normal",
+    city_id: str = "hometown",
+    opening_path_id: str = "full_time_work",
+    policy_name: str = "conservative",
+    runs: int = 20,
+    seed: int = 42,
 ) -> list[SimulationRunResult]:
+    preset_ids = [preset.id for preset in bundle.presets] if preset_id == "all" else [preset_id]
     results: list[SimulationRunResult] = []
-    for offset in range(runs):
-        controller = GameController.new_game(
-            bundle=bundle,
-            player_name="Sim",
-            preset_id=preset_id,
-            difficulty_id=difficulty_id,
-            seed=seed + offset,
-        )
-        while controller.state.current_day <= controller.state.total_days and controller.state.game_over_reason is None:
-            apply_policy_action(controller, policy_name)
-        summary = controller.final_score_summary()
-        results.append(
-            SimulationRunResult(
-                preset_id=preset_id,
-                difficulty_id=difficulty_id,
-                policy_name=policy_name,
-                seed=seed + offset,
-                survived=summary.survived_term,
-                final_score=summary.final_score,
-                ending_cash=controller.state.player.cash,
-                ending_bank_balance=controller.state.player.bank_balance,
-                ending_debt=controller.state.player.debt,
-                ending_stress=controller.state.player.stress,
-                ending_energy=controller.state.player.energy,
-                ending_gpa=controller.state.player.gpa,
-                ending_district_id=controller.state.player.current_district_id,
-                game_over_reason=controller.state.game_over_reason,
+    for chosen_preset in preset_ids:
+        for run_index in range(runs):
+            run_seed = derive_seed(seed, chosen_preset, difficulty_id, city_id, opening_path_id, policy_name, run_index)
+            results.append(
+                run_single_simulation(
+                    bundle,
+                    player_name="Simulator",
+                    preset_id=chosen_preset,
+                    difficulty_id=difficulty_id,
+                    city_id=city_id,
+                    opening_path_id=opening_path_id,
+                    policy_name=policy_name,
+                    seed=run_seed,
+                )
             )
-        )
     return results
 
 
 def summarize_runs(results: list[SimulationRunResult]) -> dict[str, object]:
     if not results:
         return {"runs": 0}
-    failures = Counter(result.game_over_reason or "completed" for result in results)
-    grouped_preset: dict[str, list[SimulationRunResult]] = defaultdict(list)
-    for result in results:
-        grouped_preset[result.preset_id].append(result)
-    by_preset = {
-        preset_id: {
-            "survival_rate": round(sum(1 for result in preset_results if result.survived) / len(preset_results), 4),
-            "average_score": round(mean(result.final_score for result in preset_results), 2),
-            "average_debt": round(mean(result.ending_debt for result in preset_results), 2),
+
+    survivals = [result for result in results if result.survived]
+    reasons = Counter(result.game_over_reason or "survived" for result in results)
+    by_preset: dict[str, dict[str, float]] = {}
+    for preset_id in sorted({result.preset_id for result in results}):
+        subset = [result for result in results if result.preset_id == preset_id]
+        by_preset[preset_id] = {
+            "survival_rate": round(len([item for item in subset if item.survived]) / len(subset), 3),
+            "average_score": round(mean(item.final_score for item in subset), 2),
+            "average_debt": round(mean(item.ending_debt for item in subset), 2),
         }
-        for preset_id, preset_results in grouped_preset.items()
-    }
     return {
         "runs": len(results),
-        "survivals": sum(1 for result in results if result.survived),
-        "survival_rate": round(sum(1 for result in results if result.survived) / len(results), 4),
-        "average_final_score": round(mean(result.final_score for result in results), 2),
-        "average_ending_cash": round(mean(result.ending_cash for result in results), 2),
-        "average_ending_bank_balance": round(mean(result.ending_bank_balance for result in results), 2),
-        "average_ending_debt": round(mean(result.ending_debt for result in results), 2),
-        "average_ending_stress": round(mean(result.ending_stress for result in results), 2),
-        "average_ending_energy": round(mean(result.ending_energy for result in results), 2),
-        "average_ending_gpa": round(mean(result.ending_gpa for result in results), 3),
-        "most_common_game_over_reasons": failures.most_common(3),
+        "survivals": len(survivals),
+        "survival_rate": round(len(survivals) / len(results), 3),
+        "average_final_score": round(mean(item.final_score for item in results), 2),
+        "average_ending_cash": round(mean(item.ending_cash for item in results), 2),
+        "average_ending_savings": round(mean(item.ending_savings for item in results), 2),
+        "average_ending_debt": round(mean(item.ending_debt for item in results), 2),
+        "average_ending_stress": round(mean(item.ending_stress for item in results), 2),
+        "average_ending_energy": round(mean(item.ending_energy for item in results), 2),
+        "most_common_game_over_reasons": reasons.most_common(3),
         "by_preset": by_preset,
     }
+
+
+def serialize_run_results(results: list[SimulationRunResult]) -> list[dict[str, object]]:
+    return [asdict(result) for result in results]

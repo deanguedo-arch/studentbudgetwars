@@ -1,8 +1,0 @@
-{
-  "base_randomness_floor": 0.9,
-  "base_randomness_ceiling": 1.12,
-  "scarcity_multiplier_floor": 1.18,
-  "scarcity_multiplier_ceiling": 1.45,
-  "flood_multiplier_floor": 0.68,
-  "flood_multiplier_ceiling": 0.88
-}

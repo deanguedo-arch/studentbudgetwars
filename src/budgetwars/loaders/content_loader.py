@@ -8,17 +8,17 @@ from pydantic import BaseModel, TypeAdapter
 
 from budgetwars.models import (
     AppConfig,
-    CommodityDefinition,
+    CareerTrackDefinition,
+    CityDefinition,
     ContentBundle,
     DifficultyModifier,
-    DistrictDefinition,
+    EducationProgramDefinition,
     EventDefinition,
-    ExamWeekDefinition,
-    GigDefinition,
-    ItemDefinition,
+    FocusActionDefinition,
+    HousingOptionDefinition,
     PresetDefinition,
-    PriceCurveConfig,
-    ServiceDefinition,
+    ScoringWeights,
+    TransportOptionDefinition,
 )
 
 from .validators import validate_content_bundle
@@ -44,14 +44,14 @@ def load_content_bundle(data_dir: Path) -> ContentBundle:
     bundle = ContentBundle(
         config=_load_model(data_dir / "config.json", AppConfig),
         difficulties=_load_model_list(data_dir / "balance" / "difficulty_modifiers.json", DifficultyModifier),
-        price_curves=_load_model(data_dir / "balance" / "price_curves.json", PriceCurveConfig),
-        exam_weeks=_load_model_list(data_dir / "balance" / "exam_weeks.json", ExamWeekDefinition),
-        districts=_load_model_list(data_dir / "districts.json", DistrictDefinition),
-        commodities=_load_model_list(data_dir / "commodities.json", CommodityDefinition),
-        gigs=_load_model_list(data_dir / "gigs.json", GigDefinition),
+        scoring_weights=_load_model(data_dir / "balance" / "scoring_weights.json", ScoringWeights),
+        cities=_load_model_list(data_dir / "cities.json", CityDefinition),
+        careers=_load_model_list(data_dir / "careers.json", CareerTrackDefinition),
+        education_programs=_load_model_list(data_dir / "education.json", EducationProgramDefinition),
+        housing_options=_load_model_list(data_dir / "housing.json", HousingOptionDefinition),
+        transport_options=_load_model_list(data_dir / "transport.json", TransportOptionDefinition),
+        focus_actions=_load_model_list(data_dir / "focus_actions.json", FocusActionDefinition),
         events=_load_model_list(data_dir / "events.json", EventDefinition),
-        items=_load_model_list(data_dir / "items.json", ItemDefinition),
-        services=_load_model_list(data_dir / "services.json", ServiceDefinition),
         presets=_load_model_list(data_dir / "presets.json", PresetDefinition),
     )
     validate_content_bundle(bundle)

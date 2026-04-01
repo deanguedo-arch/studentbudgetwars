@@ -1,71 +1,54 @@
 [
   {
-    "id": "dorm_flipper",
-    "name": "Dorm Flipper",
-    "description": "Low debt, light cash, and strong space for moving cheap goods around campus.",
-    "starting_cash": 120,
-    "starting_debt": 140,
-    "starting_bank_balance": 20,
+    "id": "supported_student",
+    "name": "Supported Student",
+    "description": "Solid family support, decent savings, and enough breathing room to think long-term.",
+    "starting_cash": 900,
+    "starting_savings": 500,
+    "starting_debt": 0,
+    "starting_stress": 18,
     "starting_energy": 72,
-    "starting_stress": 24,
-    "starting_heat": 8,
-    "starting_gpa": 2.7,
-    "starting_backpack_capacity": 28,
-    "starting_district_id": "dorms",
-    "starting_item_ids": {
-      "instant_noodles_pack": 1
-    }
+    "starting_life_satisfaction": 62,
+    "starting_family_support": 78,
+    "academic_strength": 82
   },
   {
-    "id": "commuter_hustler",
-    "name": "Commuter Hustler",
-    "description": "Better starting cash and access, but more stress and less time to recover.",
-    "starting_cash": 170,
-    "starting_debt": 180,
-    "starting_bank_balance": 40,
-    "starting_energy": 64,
+    "id": "broke_but_ambitious",
+    "name": "Broke but Ambitious",
+    "description": "You have brains and drive, but not much room for early mistakes.",
+    "starting_cash": 220,
+    "starting_savings": 50,
+    "starting_debt": 1800,
     "starting_stress": 32,
-    "starting_heat": 12,
-    "starting_gpa": 2.5,
-    "starting_backpack_capacity": 24,
-    "starting_district_id": "transit_hub",
-    "starting_item_ids": {
-      "energy_drink": 1
-    }
+    "starting_energy": 66,
+    "starting_life_satisfaction": 54,
+    "starting_family_support": 38,
+    "academic_strength": 72
   },
   {
-    "id": "scholarship_grinder",
-    "name": "Scholarship Grinder",
-    "description": "Solid GPA and low heat, but cash is tight and your margin for mistakes is small.",
-    "starting_cash": 95,
-    "starting_debt": 120,
-    "starting_bank_balance": 10,
-    "starting_energy": 68,
-    "starting_stress": 22,
-    "starting_heat": 4,
-    "starting_gpa": 3.4,
-    "starting_backpack_capacity": 22,
-    "starting_district_id": "library",
-    "starting_item_ids": {
-      "planner": 1
-    }
+    "id": "trades_bound_grinder",
+    "name": "Trades-Bound Grinder",
+    "description": "You are built to work, but your margin is narrow and your body will feel the choices.",
+    "starting_cash": 450,
+    "starting_savings": 150,
+    "starting_debt": 600,
+    "starting_stress": 28,
+    "starting_energy": 74,
+    "starting_life_satisfaction": 56,
+    "starting_family_support": 48,
+    "academic_strength": 55
   },
   {
-    "id": "overdrawn_survivor",
-    "name": "Overdrawn Survivor",
-    "description": "Heavy debt, shaky academics, and just enough breathing room to try something clever.",
-    "starting_cash": 80,
-    "starting_debt": 320,
-    "starting_bank_balance": 0,
+    "id": "independent_struggler",
+    "name": "Independent Struggler",
+    "description": "Little safety net, real pressure, and just enough momentum to try to build something.",
+    "starting_cash": 180,
+    "starting_savings": 0,
+    "starting_debt": 2500,
+    "starting_stress": 42,
     "starting_energy": 60,
-    "starting_stress": 38,
-    "starting_heat": 18,
-    "starting_gpa": 2.1,
-    "starting_backpack_capacity": 24,
-    "starting_district_id": "part_time_job_zone",
-    "starting_item_ids": {
-      "energy_drink": 1,
-      "instant_noodles_pack": 1
-    }
+    "starting_life_satisfaction": 46,
+    "starting_family_support": 22,
+    "academic_strength": 60
   }
 ]

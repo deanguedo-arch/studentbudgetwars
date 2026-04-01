@@ -1,52 +1,67 @@
-# Daily Loop
+# Monthly Loop
 
-## Current Implemented Loop
+## Start Of Run
 
-1. Load the current district market for the day.
-2. Show the retro desktop shell:
-   - status strip
-   - current district
-   - local goods
-   - current inventory
-   - activity log
-   - compact opportunity/outlook lines
-3. Take one main action:
-   - travel
-   - buy
-   - sell
-   - work gig
-   - rest
-   - study
-   - bank action
-   - use item
-4. Resolve any daily event roll.
-5. Advance the day.
-6. Regenerate markets for the next day.
+1. Choose a preset background.
+2. Choose a city archetype.
+3. Choose an opening path.
+4. Start at age 18, month 1.
 
-## Weekly Tick
+## Persistent Setup
 
-Every 7th day, after the chosen action:
+These choices stay active until the player changes them:
+- career track
+- education plan
+- housing
+- transport
+- budget stance
 
-1. Housing hits.
-2. Utilities hit.
-3. Phone hits.
-4. Debt interest is added.
-5. Bank interest is added.
-6. Heat decays.
-7. Academic checkpoint logic runs if the week has one.
-8. Weekly market events for the next week are rolled.
+Each month the player also chooses one focus:
+- `Stack Cash`
+- `Push Forward`
+- `Recover`
 
-## Tactical Intent
+## Main Monthly Rhythm
 
-- Travel should feel like route choice, not flavor.
-- Buying and selling should feel like short-horizon opportunity scanning.
-- Gigs are emergency or tempo cash, not a passive salary identity.
-- Study is necessary pressure, not the whole game.
-- Inventory space should make commodity choice matter.
+1. Review current status:
+   - age / month / year
+   - cash / savings / debt
+   - stress / energy / life satisfaction
+   - housing / transport / career / education
+2. Optionally change persistent systems.
+3. Choose monthly focus.
+4. Resolve the month.
+5. Read the compact summary and react next month.
 
-## What Still Needs Work
+## Month Resolution Order
 
-- Stronger district-specific service identity
-- More board-level event swings
-- More exciting item usage
-- Sharper late-term pressure
+1. Apply ongoing monthly modifiers.
+2. Apply career income.
+3. Apply education cost, school pressure, and GPA/training updates.
+4. Apply housing cost and housing effects.
+5. Apply transport cost and access pressure.
+6. Apply living-cost bundle.
+7. Apply debt payment and debt interest.
+8. Apply budget stance effects.
+9. Apply focus action effects.
+10. Roll 0-2 monthly life events.
+11. Update career and education progression.
+12. Check failures.
+13. Advance to the next month.
+
+## Concrete Failure States
+
+- `collections`
+  - debt crossed the hard threshold
+- `housing_loss`
+  - housing kept failing and no fallback remained
+- `burnout_collapse`
+  - high-stress / low-energy pressure held too long
+
+## End Of Game
+
+At month 121, the run ends and the player receives:
+- final score
+- ending label
+- category breakdown
+- overall outcome summary

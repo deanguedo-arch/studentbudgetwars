@@ -2,129 +2,149 @@
 
 ## `config.json`
 
-Global runtime settings:
-- day/week/term length
+Global rules and pacing:
+- total months
 - stat bounds
-- survival thresholds
-- weekly cost totals
-- interest rates
+- failure thresholds
+- base living cost
+- debt and savings rates
 - event odds
-- study/rest values
+- budget stances
+- opening paths
 - autosave name
 
-## `districts.json`
+## `cities.json`
 
-District definitions for the city/campus map.
+City archetypes for v1.
 
-Each district includes:
-- travel cost
-- travel energy/stress impact
-- local risk
-- event tags
-- commodity biases
-- local services
-- local gigs
+Each city defines:
+- housing cost multiplier
+- living cost multiplier
+- transport cost multiplier
+- family support bonus
+- opportunity text
+- pressure text
+- career income biases
 
-## `commodities.json`
+## `careers.json`
 
-Tradable market goods.
+Career-track content.
 
-Each commodity includes:
-- id / name / description
-- min/max price
-- typical range
-- volatility
-- backpack size
-- district biases
-- rare-event tags
+Each career defines:
+- entry path restrictions
+- minimum transport access
+- education / credential requirements
+- optional minimum GPA requirements
+- tier ladder
 
-## `gigs.json`
+Each tier defines:
+- monthly income
+- stress / energy profile
+- life satisfaction effect
+- promotion target
+- optional minimum GPA requirement
 
-District-based hustle opportunities.
+## `education.json`
 
-Each gig includes:
-- availability districts
-- pay
-- energy cost
-- stress delta
-- heat delta
-- GPA gate
-- required item ids
+Education lanes for v1.
 
-## `items.json`
+Each program defines:
+- monthly cost
+- monthly stress / energy effect
+- duration
+- earned credential
+- opening path access
+- applicable careers
 
-Support items the player can carry and use.
+Runtime education state also tracks:
+- academic standing
+- college GPA for the college lane
+- earned credentials / completed programs
 
-Each item includes:
-- price
-- backpack size
-- allowed districts
-- use effects
+## `housing.json`
 
-Valid effect keys:
-- `cash`
-- `debt`
-- `bank_balance`
-- `energy`
-- `stress`
-- `heat`
-- `gpa`
-- `study_points`
+Housing options.
 
-## `services.json`
+Each option defines:
+- monthly cost
+- move-in cost
+- stress / life satisfaction effect
+- roommate-event pressure
+- quality score
+- hometown requirement if any
+- minimum family support if any
 
-Local district services.
+## `transport.json`
 
-Current service kinds:
-- `bank`
-- `supply_shop`
+Transport options.
+
+Each option defines:
+- monthly cost
+- upfront cost
+- stress effect
+- access level
+- reliability
+- repair-event weight
+- quality score
+
+## `focus_actions.json`
+
+Monthly focus choices.
+
+Each focus action defines:
+- income multiplier
+- promotion progress bonus
+- education progress bonus
+- stress / energy effect
+- life satisfaction effect
 
 ## `events.json`
 
-Board-level and daily events.
+Monthly life events.
 
-Each event includes:
-- trigger: `weekly`, `daily`, or `any`
-- weight
-- duration in days
-- event tags
-- market multipliers
-- optional district-specific market multipliers
+Each event defines:
+- eligibility filters
+- minimum month / stress / debt rules
 - immediate stat effects
-- log entry
+- optional temporary modifier
+- log text
+
+Valid stat-effect keys:
+- `cash`
+- `savings`
+- `debt`
+- `stress`
+- `energy`
+- `life_satisfaction`
+- `family_support`
+- `promotion_progress`
+- `education_progress`
 
 ## `presets.json`
 
 Starting archetypes.
 
 Each preset defines:
-- starting cash / debt / bank balance
-- starting energy / stress / heat / GPA
-- starting backpack capacity
-- starting district
-- starting support items
+- starting cash / savings / debt
+- starting stress / energy / life satisfaction
+- starting family support
+- academic strength
 
 ## `data/balance/difficulty_modifiers.json`
 
-Difficulty-level multipliers and bonuses:
-- starting cash/debt shifts
-- rent multiplier
-- debt-interest multiplier
-- price-spread multiplier
-- study-requirement multiplier
-- energy-recovery multiplier
+Difficulty-level runtime modifiers:
+- starting cash / debt bonus
+- income multiplier
+- housing / transport multiplier
 - stress multiplier
+- progression multiplier
+- interest multiplier
 
-## `data/balance/price_curves.json`
+## `data/balance/scoring_weights.json`
 
-Global market-generation knobs:
-- base randomness
-- scarcity multiplier range
-- flood multiplier range
-
-## `data/balance/exam_weeks.json`
-
-Academic checkpoint definitions by week:
-- required study points
-- GPA penalty / reward
-- stress delta
+Final Life Position Score weights:
+- financial position
+- career and credentials
+- housing stability
+- debt burden
+- wellbeing

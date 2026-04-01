@@ -1,32 +1,27 @@
 from __future__ import annotations
 
 import tkinter as tk
-from collections.abc import Callable
 
 
-class ActionsPanel(tk.Frame):
+class ActionsPanel(tk.LabelFrame):
     def __init__(self, master: tk.Misc):
-        super().__init__(master, bg="#c0c0c0", bd=2, relief="raised")
-        tk.Label(self, text="Actions", bg="#c0c0c0", font=("Courier New", 10, "bold")).pack(anchor="w", padx=4, pady=(4, 0))
-        self.button_frame = tk.Frame(self, bg="#c0c0c0")
-        self.button_frame.pack(fill="both", expand=True, padx=4, pady=4)
-        self.buttons: dict[str, tk.Button] = {}
+        super().__init__(master, text="Actions", bg="#c0c0c0", fg="black", bd=2, relief="groove")
+        self._buttons: list[tk.Button] = []
 
-    def set_actions(self, actions: list[tuple[str, Callable[[], None]]]) -> None:
-        for widget in self.button_frame.winfo_children():
-            widget.destroy()
-        self.buttons.clear()
-        for index, (label, command) in enumerate(actions):
+    def set_actions(self, actions: list[tuple[str, object]]) -> None:
+        for button in self._buttons:
+            button.destroy()
+        self._buttons.clear()
+        for index, (label, callback) in enumerate(actions):
             button = tk.Button(
-                self.button_frame,
+                self,
                 text=label,
-                command=command,
+                command=callback,
                 width=16,
-                bg="#d4d0c8",
+                bg="#d9d9d9",
+                activebackground="#e8e8e8",
                 relief="raised",
-                font=("Courier New", 10),
             )
-            button.grid(row=index // 2, column=index % 2, padx=4, pady=4, sticky="ew")
-            self.buttons[label] = button
-        for column in range(2):
-            self.button_frame.grid_columnconfigure(column, weight=1)
+            button.grid(row=0, column=index, padx=4, pady=6, sticky="ew")
+            self._buttons.append(button)
+            self.grid_columnconfigure(index, weight=1)

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "none",
+    "name": "No Formal Program",
+    "description": "You are not currently enrolled in school or training.",
+    "monthly_cost": 0,
+    "monthly_stress": 0,
+    "monthly_energy_delta": 0,
+    "duration_months": 0,
+    "credential_id": null,
+    "entry_path_ids": [
+      "full_time_work",
+      "college",
+      "trades_apprenticeship",
+      "move_out_immediately"
+    ],
+    "completion_life_satisfaction_bonus": 0,
+    "applicable_career_ids": [
+      "service_retail",
+      "warehouse_logistics",
+      "trades_apprenticeship",
+      "office_professional"
+    ]
+  },
+  {
+    "id": "college",
+    "name": "College / University",
+    "description": "Expensive and draining, but the cleanest path into office and professional work.",
+    "monthly_cost": 650,
+    "monthly_stress": 5,
+    "monthly_energy_delta": -3,
+    "duration_months": 36,
+    "credential_id": "college_credential",
+    "entry_path_ids": [
+      "full_time_work",
+      "college",
+      "trades_apprenticeship",
+      "move_out_immediately"
+    ],
+    "completion_life_satisfaction_bonus": 5,
+    "applicable_career_ids": [
+      "office_professional"
+    ]
+  },
+  {
+    "id": "apprenticeship_training",
+    "name": "Apprenticeship Training",
+    "description": "Lower-cost skill building that feeds directly into the trades lane.",
+    "monthly_cost": 180,
+    "monthly_stress": 3,
+    "monthly_energy_delta": -2,
+    "duration_months": 24,
+    "credential_id": "apprenticeship_certificate",
+    "entry_path_ids": [
+      "full_time_work",
+      "college",
+      "trades_apprenticeship",
+      "move_out_immediately"
+    ],
+    "completion_life_satisfaction_bonus": 3,
+    "applicable_career_ids": [
+      "trades_apprenticeship"
+    ]
+  }
+]

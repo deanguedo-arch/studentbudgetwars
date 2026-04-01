@@ -1,0 +1,204 @@
+[
+  {
+    "id": "service_retail",
+    "name": "Service / Retail",
+    "description": "Accessible work with quick entry, messy schedules, and a ceiling that arrives early.",
+    "entry_path_ids": [
+      "full_time_work",
+      "college",
+      "trades_apprenticeship",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 1,
+    "entry_required_credential_ids": [],
+    "entry_required_education_program_id": null,
+    "entry_requires_active_education": false,
+    "entry_minimum_gpa": null,
+    "tiers": [
+      {
+        "label": "Floor Staff",
+        "monthly_income": 2050,
+        "energy_delta": -11,
+        "stress_delta": 8,
+        "life_satisfaction_delta": -1,
+        "promotion_target": 4,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null
+      },
+      {
+        "label": "Shift Lead",
+        "monthly_income": 2550,
+        "energy_delta": -12,
+        "stress_delta": 9,
+        "life_satisfaction_delta": 0,
+        "promotion_target": 6,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null
+      },
+      {
+        "label": "Assistant Manager",
+        "monthly_income": 3200,
+        "energy_delta": -13,
+        "stress_delta": 11,
+        "life_satisfaction_delta": 1,
+        "promotion_target": 8,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null
+      }
+    ]
+  },
+  {
+    "id": "warehouse_logistics",
+    "name": "Warehouse / Logistics",
+    "description": "Good early money, real physical wear, and a steady but demanding climb.",
+    "entry_path_ids": [
+      "full_time_work",
+      "college",
+      "trades_apprenticeship",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 2,
+    "entry_required_credential_ids": [],
+    "entry_required_education_program_id": null,
+    "entry_requires_active_education": false,
+    "entry_minimum_gpa": null,
+    "tiers": [
+      {
+        "label": "Picker / Packer",
+        "monthly_income": 2500,
+        "energy_delta": -18,
+        "stress_delta": 8,
+        "life_satisfaction_delta": 0,
+        "promotion_target": 4,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null
+      },
+      {
+        "label": "Team Lead",
+        "monthly_income": 3200,
+        "energy_delta": -19,
+        "stress_delta": 9,
+        "life_satisfaction_delta": 1,
+        "promotion_target": 6,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null
+      },
+      {
+        "label": "Ops Supervisor",
+        "monthly_income": 3900,
+        "energy_delta": -20,
+        "stress_delta": 10,
+        "life_satisfaction_delta": 2,
+        "promotion_target": 8,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null
+      }
+    ]
+  },
+  {
+    "id": "trades_apprenticeship",
+    "name": "Trades / Apprenticeship",
+    "description": "Early years are lean, but commitment pays off into one of the strongest long-term lanes.",
+    "entry_path_ids": [
+      "full_time_work",
+      "trades_apprenticeship",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 2,
+    "entry_required_credential_ids": [],
+    "entry_required_education_program_id": "apprenticeship_training",
+    "entry_requires_active_education": true,
+    "entry_minimum_gpa": null,
+    "tiers": [
+      {
+        "label": "Apprentice",
+        "monthly_income": 1800,
+        "energy_delta": -15,
+        "stress_delta": 8,
+        "life_satisfaction_delta": 1,
+        "promotion_target": 8,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null
+      },
+      {
+        "label": "Junior Tradesperson",
+        "monthly_income": 3300,
+        "energy_delta": -16,
+        "stress_delta": 8,
+        "life_satisfaction_delta": 2,
+        "promotion_target": 10,
+        "required_credential_ids": [
+          "apprenticeship_certificate"
+        ],
+        "required_minimum_gpa": null
+      },
+      {
+        "label": "Skilled Tradesperson",
+        "monthly_income": 4700,
+        "energy_delta": -17,
+        "stress_delta": 9,
+        "life_satisfaction_delta": 4,
+        "promotion_target": 12,
+        "required_credential_ids": [
+          "apprenticeship_certificate"
+        ],
+        "required_minimum_gpa": null
+      }
+    ]
+  },
+  {
+    "id": "office_professional",
+    "name": "Office / Professional",
+    "description": "Delayed access, credential-gated promotion, and strong upside if you survive the early squeeze.",
+    "entry_path_ids": [
+      "full_time_work",
+      "college",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 1,
+    "entry_required_credential_ids": [
+      "college_credential"
+    ],
+    "entry_required_education_program_id": null,
+    "entry_requires_active_education": false,
+    "entry_minimum_gpa": 2.7,
+    "tiers": [
+      {
+        "label": "Coordinator",
+        "monthly_income": 2800,
+        "energy_delta": -8,
+        "stress_delta": 7,
+        "life_satisfaction_delta": 1,
+        "promotion_target": 6,
+        "required_credential_ids": [
+          "college_credential"
+        ],
+        "required_minimum_gpa": 2.7
+      },
+      {
+        "label": "Analyst",
+        "monthly_income": 4300,
+        "energy_delta": -9,
+        "stress_delta": 8,
+        "life_satisfaction_delta": 3,
+        "promotion_target": 8,
+        "required_credential_ids": [
+          "college_credential"
+        ],
+        "required_minimum_gpa": 3.0
+      },
+      {
+        "label": "Manager",
+        "monthly_income": 6200,
+        "energy_delta": -10,
+        "stress_delta": 9,
+        "life_satisfaction_delta": 4,
+        "promotion_target": 10,
+        "required_credential_ids": [
+          "college_credential"
+        ],
+        "required_minimum_gpa": 3.2
+      }
+    ]
+  }
+]

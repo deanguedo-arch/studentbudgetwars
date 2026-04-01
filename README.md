@@ -1,15 +1,65 @@
-# Student Budget Wars: City Hustle
+# After Grad: The First 10 Years
 
-Student Budget Wars is now a retro desktop Python game about surviving a school term by moving across campus and the city, spotting temporary price swings, flipping student-life commodities, grinding gigs, keeping your GPA alive, and staying ahead of debt.
+After Grad is a retro desktop Python life-strategy game about building your position from age 18 to 28.
 
-The repo keeps the strong parts of the original scaffold:
-- JSON-driven content
-- typed Pydantic models
-- modular engine/UI/save/load layers
-- local save files
-- deterministic simulation tooling for balance work
+You start right after graduation, choose a city and opening path, then spend 120 monthly turns juggling:
+- work and career progression
+- college GPA or training progress
+- housing pressure
+- transport pressure
+- education choices
+- debt and savings
+- burnout risk
+- a small set of concrete life events
 
-The old weekly “life manager” loop has been replaced by a daily market loop.
+The goal is:
+
+**Reach age 28 in the strongest position you can build.**
+
+Money matters, but the game does not score on cash alone. Your ending weighs financial position, career and credentials, housing stability, debt burden, and wellbeing.
+
+## Current V1 Shape
+
+- `1 turn = 1 month`
+- `120 turns = 10 years`
+- Start flow:
+  - choose preset
+  - choose city
+  - choose opening path
+- Persistent systems:
+  - career
+  - education
+  - housing
+  - transport
+  - budget stance
+- Monthly focus actions:
+  - `Stack Cash`
+  - `Push Forward`
+  - `Recover`
+
+## Core V1 Systems
+
+- Housing:
+  - parents
+  - roommates
+  - solo rental
+- Transport:
+  - walk/bike
+  - transit
+  - beater car
+  - financed car
+- Career tracks:
+  - service/retail
+  - warehouse/logistics
+  - trades/apprenticeship
+  - office/professional
+- Education:
+  - none
+  - college
+  - apprenticeship training
+
+College now tracks a real GPA that can open or block the office/professional lane.
+Trades stays on a pass/credential path instead of a GPA path.
 
 ## Install
 
@@ -33,99 +83,48 @@ Windows launcher:
 live_preview.bat
 ```
 
-Example:
+Example with direct setup values:
 
 ```bash
-live_preview.bat --preset dorm_flipper --difficulty hard
+budgetwars --preset supported_student --city hometown --path full_time_work --difficulty easy
 ```
 
-## Current Game Shape
+## Simulation Tooling
 
-- `1 turn = 1 day`
-- `7 days = 1 week`
-- `12 weeks = 84 turns`
-- Each day you take one main action:
-  - travel
-  - buy
-  - sell
-  - work gig
-  - rest
-  - study
-  - bank action
-  - use item
-- Each week:
-  - housing/utilities/phone hit
-  - debt interest hits
-  - bank interest applies
-  - heat decays
-  - academic checkpoint pressure can punish or reward you
-
-Core resources:
-- cash
-- debt
-- bank balance
-- energy
-- stress
-- heat
-- GPA
-- backpack space
-- days left
-
-## Current Content Base
-
-- 10 districts
-- 10 tradable commodities
-- 9 gigs
-- 4 supply/support items
-- 12 board and daily events
-- 4 starting presets
-- 3 difficulties
-
-## Simulation And Balance Audit
-
-Run the non-interactive simulation tool against the real daily loop:
+Run deterministic balance batches against the real monthly loop:
 
 ```bash
-C:\Users\dean.guedo\AppData\Local\Programs\Python\Python312\python.exe tools\simulate_runs.py --preset dorm_flipper --runs 50 --difficulty normal --policy balanced --seed 42
+C:\Users\dean.guedo\AppData\Local\Programs\Python\Python312\python.exe tools\simulate_runs.py --preset all --difficulty normal --city hometown --path full_time_work --policy conservative --runs 20 --seed 42
 ```
 
-Supported policies:
-- `balanced`
-- `cash_hungry`
-
-The tool reports:
-- run count
-- survivals / survival rate
-- average score
-- average ending cash / bank / debt / stress / energy / GPA
-- common game-over reasons
-- by-preset balance summary
-
-Optional report outputs:
-
-```bash
-tools\simulate_runs.py --preset all --runs 25 --output-json reports\audit.json --output-csv reports\runs.csv
-```
+Current policies:
+- `conservative`
+- `ambitious`
+- `balanced` (alias of `conservative`)
 
 ## Architecture
 
-- `src/budgetwars/models/`: typed content + runtime state
-- `src/budgetwars/loaders/`: JSON loading + validation
-- `src/budgetwars/engine/`: market, travel, gigs, study, events, scoring, simulation
-- `src/budgetwars/ui/`: retro Tkinter shell
-- `src/budgetwars/saves/`: local save manager
+- `src/budgetwars/models/`: typed content and runtime state
+- `src/budgetwars/loaders/`: JSON loading and cross-file validation
+- `src/budgetwars/engine/`: monthly life-sim rules, scoring, and simulation
+- `src/budgetwars/ui/`: retro Tkinter desktop shell
+- `src/budgetwars/saves/`: local JSON save/load
+- `data/`: all tunable content and balance data
 
-## What’s Still Early
+## What Is In Scope Now
 
-- Balance is real but still rough
-- The Tkinter shell is functional, not finished-polished
-- The commodity board needs more event depth and more district-specific swing
-- Gigs and item interactions still have room to deepen
+- a playable monthly life loop
+- graduation setup
+- housing and transport pressure
+- career and education progression
+- concrete failure states
+- end-of-run scoring at age 28
 
-## Best Next Pass
+## What Is Intentionally Deferred
 
-Use simulation output to tighten:
-- preset survivability spread
-- district opportunity identity
-- commodity volatility
-- academic pressure vs market pressure
+- partner/shared-relationship systems
+- deep social simulation
+- school pause/drop/rejoin edge cases
+- large city-specific unlock trees
+- realism-complete cost breakdowns
+- a huge event library

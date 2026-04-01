@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "student-budget-wars"
 version = "0.1.0"
-description = "Retro desktop student-hustle trading game."
+description = "Retro desktop after-graduation life strategy game."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
