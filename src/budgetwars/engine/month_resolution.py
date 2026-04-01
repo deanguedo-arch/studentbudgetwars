@@ -21,6 +21,7 @@ from .events import roll_month_events
 from .housing import apply_housing_effects, monthly_housing_cost
 from .lookups import get_current_career_tier, get_focus_action
 from .transport import apply_transport_access_penalty, apply_transport_effects, monthly_transport_cost
+from .wealth import apply_wealth_allocations, apply_wealth_returns
 
 
 @dataclass(slots=True)
@@ -119,6 +120,14 @@ def _update_social_and_family_pressure(state: GameState) -> None:
         state.player.social_stability -= 1
     if state.player.family_support <= 25:
         state.player.stress += 1
+    if state.player.housing.housing_stability <= 38:
+        state.player.social_stability -= 1
+        state.player.stress += 1
+    if state.player.social_stability <= 30:
+        state.player.stress += 2
+        state.player.energy -= 1
+    if state.player.social_stability >= 70:
+        state.player.stress -= 1
 
 
 def _check_collections(state: GameState) -> None:
@@ -137,6 +146,24 @@ def _check_academic_collapse(state: GameState) -> None:
     append_log(state, "Academic pressure broke the month badly enough that school shut down for now.")
     if state.player.career.track_id == "degree_gated_professional":
         state.game_over_reason = "academic_collapse"
+
+
+def _update_momentum_and_drag(state: GameState) -> None:
+    player = state.player
+    if player.monthly_surplus >= 150:
+        player.housing.housing_stability = min(100, player.housing.housing_stability + 1)
+    elif player.monthly_surplus < -150:
+        player.housing.housing_stability = max(0, player.housing.housing_stability - 2)
+    if player.debt > 20000:
+        player.career.promotion_momentum = max(0, player.career.promotion_momentum - 2)
+        player.education.education_momentum = max(0, player.education.education_momentum - 2)
+    if player.debt > 32000:
+        player.stress += 2
+    if player.cash + player.savings + player.high_interest_savings < 250:
+        player.life_satisfaction = max(0, player.life_satisfaction - 1)
+    if player.family_support < 28 and player.housing_id == "parents":
+        player.housing.housing_stability = max(0, player.housing.housing_stability - 2)
+        player.stress += 1
 
 
 def _record_annual_milestone(bundle: ContentBundle, state: GameState) -> None:
@@ -303,6 +330,8 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     )
     append_log(state, f"Focus for the month: {focus.name}")
 
+    wealth_allocations = apply_wealth_allocations(bundle, state)
+
     before_stress = state.player.stress
     before_energy = state.player.energy
     roll_month_events(bundle, state, rng)
@@ -320,6 +349,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     maybe_promote(bundle, state)
 
     interest, savings_growth = apply_interest_and_growth(bundle, state)
+    safe_gain, index_gain, growth_gain, regime_name = apply_wealth_returns(bundle, state, rng)
     _update_social_and_family_pressure(state)
     clamp_player_state(state)
     _tick_existing_modifiers(state, existing_modifier_tokens)
@@ -332,6 +362,8 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     state.player.monthly_expenses = monthly_expenses
     end_net = net_worth(state)
     state.player.monthly_surplus = end_net - start_net
+    _update_momentum_and_drag(state)
+    clamp_player_state(state)
     state.recent_summary = [
         f"Income ${income}",
         f"Expenses ${monthly_expenses}",
@@ -341,7 +373,16 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
         f"Living ${living}",
         f"Debt {'payment $' + str(debt_paid) if debt_paid else 'steady'}",
         f"Savings transfer ${savings_transfer}",
+        (
+            "Wealth allocation "
+            f"safe ${wealth_allocations['safe']}, index ${wealth_allocations['index']}, "
+            f"growth ${wealth_allocations['growth']}, debt ${wealth_allocations['extra_debt']}"
+        ),
         f"Interest +${interest} / Growth +${savings_growth}",
+        (
+            f"Market {regime_name}: safe {safe_gain:+d}, index {index_gain:+d}, "
+            f"growth {growth_gain:+d}"
+        ),
         f"Month swing {state.player.monthly_surplus:+d}",
         f"Stress {stress_start}->{state.player.stress} ({state.player.stress - stress_start:+d})",
         "Stress drivers: " + (", ".join(stress_parts) if stress_parts else "steady"),

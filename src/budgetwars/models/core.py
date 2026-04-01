@@ -40,6 +40,11 @@ class BudgetStanceDefinition(BaseModel):
     energy_delta: int = 0
     life_satisfaction_delta: int = 0
     social_stability_delta: int = 0
+    emergency_cash_floor: int = Field(ge=0, default=150)
+    safe_savings_rate: float = Field(ge=0, le=1, default=0.0)
+    index_invest_rate: float = Field(ge=0, le=1, default=0.0)
+    growth_invest_rate: float = Field(ge=0, le=1, default=0.0)
+    extra_debt_payment_rate: float = Field(ge=0, le=1, default=0.0)
 
 
 class OpeningPathDefinition(BaseModel):
@@ -62,6 +67,15 @@ class OpeningPathDefinition(BaseModel):
     academic_strength_delta: int = 0
     standing_delta: int = 0
     starting_gpa_delta: float = 0.0
+
+
+class MarketRegimeDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    weight: float = Field(gt=0)
+    index_return_rate: float
+    growth_return_rate: float
 
 
 class AppConfig(BaseModel):
@@ -92,6 +106,7 @@ class AppConfig(BaseModel):
     debt_payment_rate: float = Field(gt=0)
     debt_interest_rate: float = Field(ge=0)
     savings_growth_rate: float = Field(ge=0)
+    high_interest_savings_rate: float = Field(ge=0)
     primary_event_chance: float = Field(ge=0, le=1)
     secondary_event_chance: float = Field(ge=0, le=1)
     parent_drift_family_penalty: int = Field(ge=0)
@@ -103,6 +118,20 @@ class AppConfig(BaseModel):
     crisis_warning_stress: int = Field(ge=0)
     crisis_warning_energy: int = Field(ge=0)
     crisis_warning_housing_streak: int = Field(ge=0)
+    career_switch_cash_cost: int = Field(ge=0)
+    career_switch_stress_cost: int = Field(ge=0)
+    career_switch_transition_months: int = Field(ge=0)
+    career_switch_progress_loss_ratio: float = Field(ge=0, le=1)
+    housing_move_stress_penalty: int = Field(ge=0)
+    housing_move_instability_months: int = Field(ge=0)
+    transport_switch_stress_penalty: int = Field(ge=0)
+    transport_switch_instability_months: int = Field(ge=0)
+    transport_switch_admin_cost: int = Field(ge=0)
+    education_reentry_cash_cost: int = Field(ge=0)
+    education_reentry_stress_cost: int = Field(ge=0)
+    education_reentry_drag_months: int = Field(ge=0)
+    default_market_regime_id: str
+    market_regimes: list[MarketRegimeDefinition]
     budget_stances: list[BudgetStanceDefinition]
     opening_paths: list[OpeningPathDefinition]
     academic_levels: list[AcademicLevelDefinition]

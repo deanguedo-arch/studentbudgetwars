@@ -21,6 +21,10 @@
     "social_income_factor": 0.002,
     "layoff_weight": 1.15,
     "promotion_weight": 0.9,
+    "stability_profile": 40,
+    "volatility_profile": 60,
+    "transport_sensitivity": 35,
+    "city_sensitivity": 45,
     "tiers": [
       {
         "label": "Floor Staff",
@@ -82,6 +86,10 @@
     "social_income_factor": 0.0,
     "layoff_weight": 0.9,
     "promotion_weight": 0.95,
+    "stability_profile": 62,
+    "volatility_profile": 38,
+    "transport_sensitivity": 72,
+    "city_sensitivity": 35,
     "tiers": [
       {
         "label": "Picker / Loader",
@@ -143,6 +151,10 @@
     "social_income_factor": 0.004,
     "layoff_weight": 0.7,
     "promotion_weight": 0.6,
+    "stability_profile": 30,
+    "volatility_profile": 80,
+    "transport_sensitivity": 78,
+    "city_sensitivity": 55,
     "tiers": [
       {
         "label": "App Courier",
@@ -204,6 +216,10 @@
     "social_income_factor": 0.005,
     "layoff_weight": 0.95,
     "promotion_weight": 1.05,
+    "stability_profile": 66,
+    "volatility_profile": 30,
+    "transport_sensitivity": 28,
+    "city_sensitivity": 40,
     "tiers": [
       {
         "label": "Reception / Admin Clerk",
@@ -265,6 +281,10 @@
     "social_income_factor": 0.0,
     "layoff_weight": 0.8,
     "promotion_weight": 1.1,
+    "stability_profile": 58,
+    "volatility_profile": 44,
+    "transport_sensitivity": 80,
+    "city_sensitivity": 36,
     "tiers": [
       {
         "label": "Apprentice",
@@ -331,6 +351,10 @@
     "social_income_factor": 0.003,
     "layoff_weight": 0.55,
     "promotion_weight": 1.0,
+    "stability_profile": 64,
+    "volatility_profile": 42,
+    "transport_sensitivity": 55,
+    "city_sensitivity": 30,
     "tiers": [
       {
         "label": "Care Aide",
@@ -397,6 +421,10 @@
     "social_income_factor": 0.012,
     "layoff_weight": 1.05,
     "promotion_weight": 1.2,
+    "stability_profile": 35,
+    "volatility_profile": 85,
+    "transport_sensitivity": 32,
+    "city_sensitivity": 62,
     "tiers": [
       {
         "label": "Sales Associate",
@@ -459,6 +487,10 @@
     "social_income_factor": 0.007,
     "layoff_weight": 0.8,
     "promotion_weight": 1.15,
+    "stability_profile": 72,
+    "volatility_profile": 28,
+    "transport_sensitivity": 20,
+    "city_sensitivity": 48,
     "tiers": [
       {
         "label": "Analyst",

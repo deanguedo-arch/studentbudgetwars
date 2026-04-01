@@ -5,7 +5,7 @@ from random import Random
 from budgetwars.models import ContentBundle, FinalScoreSummary, GameState
 
 from .budgeting import pay_named_cost
-from .careers import can_enter_career
+from .careers import can_enter_career, promotion_blockers
 from .education import can_switch_education
 from .effects import append_log, trim_logs
 from .events import eligible_events
@@ -76,6 +76,13 @@ class GameController:
                 available.append(track)
         return available
 
+    def career_entry_statuses(self) -> list[tuple[str, str, bool, str]]:
+        statuses: list[tuple[str, str, bool, str]] = []
+        for track in self.bundle.careers:
+            allowed, reason = can_enter_career(self.bundle, self.state, track.id)
+            statuses.append((track.name, track.id, allowed, reason))
+        return statuses
+
     def available_education_programs(self) -> list:
         return list(self.bundle.education_programs)
 
@@ -95,12 +102,25 @@ class GameController:
         allowed, reason = can_enter_career(self.bundle, self.state, career_id)
         if not allowed:
             raise ValueError(reason)
+        previous_track = self.state.player.career.track_id
+        previous_progress = self.state.player.career.promotion_progress
+        switch_cost = self.bundle.config.career_switch_cash_cost
+        if switch_cost:
+            pay_named_cost(self.state, switch_cost, "Career transition cost")
+        self.state.player.stress += self.bundle.config.career_switch_stress_cost
         self.state.player.career.track_id = career_id
         self.state.player.career.tier_index = 0
         self.state.player.career.months_in_track = 0
-        self.state.player.career.promotion_progress = 0
+        retained_progress = int(round(previous_progress * (1.0 - self.bundle.config.career_switch_progress_loss_ratio)))
+        self.state.player.career.promotion_progress = max(0, retained_progress)
+        self.state.player.career.transition_penalty_months = self.bundle.config.career_switch_transition_months
+        self.state.player.career.promotion_momentum = max(20, self.state.player.career.promotion_momentum - 12)
+        self.state.player.social_stability = max(0, self.state.player.social_stability - 2)
         self.state.player.career.layoff_pressure = 0
-        append_log(self.state, f"Career pivot: {get_career_track(self.bundle, career_id).name}")
+        append_log(
+            self.state,
+            f"Career pivot: {get_career_track(self.bundle, previous_track).name} -> {get_career_track(self.bundle, career_id).name}",
+        )
         trim_logs(self.bundle, self.state)
 
     def change_education(self, program_id: str) -> None:
@@ -115,6 +135,17 @@ class GameController:
             append_log(self.state, f"Education {'resumed' if education.is_active else 'paused'}: {program.name}")
             trim_logs(self.bundle, self.state)
             return
+        if education.program_id != "none" and education.months_completed > 0 and education.is_active:
+            education.months_completed = int(round(education.months_completed * 0.65))
+            self.state.player.stress += 2
+            self.state.player.life_satisfaction -= 2
+            append_log(self.state, "Switching programs cost progress and added pressure.")
+        if program_id != "none" and self.state.current_month > 24:
+            if self.bundle.config.education_reentry_cash_cost:
+                pay_named_cost(self.state, self.bundle.config.education_reentry_cash_cost, "Education re-entry cost")
+            self.state.player.stress += self.bundle.config.education_reentry_stress_cost
+            education.reentry_drag_months = max(education.reentry_drag_months, self.bundle.config.education_reentry_drag_months)
+            append_log(self.state, "Late school re-entry is possible, but the transition friction is real.")
         education.program_id = program_id
         education.is_active = program_id != "none"
         education.is_paused = False
@@ -140,6 +171,9 @@ class GameController:
         move_cost = max(0, housing.move_in_cost - self.current_housing_move_discount())
         if move_cost:
             pay_named_cost(self.state, move_cost, f"Move to {housing.name}")
+        self.state.player.stress += self.bundle.config.housing_move_stress_penalty
+        self.state.player.housing.recent_move_penalty_months = self.bundle.config.housing_move_instability_months
+        self.state.player.housing.housing_stability = max(25, self.state.player.housing.housing_stability - 10)
         self.state.player.housing.option_id = housing_id
         self.state.player.housing.months_in_place = 0
         self.state.player.housing.missed_payment_streak = 0
@@ -160,6 +194,13 @@ class GameController:
         upfront = max(0, transport.upfront_cost - self.current_transport_switch_discount())
         if upfront:
             pay_named_cost(self.state, upfront, f"Switch to {transport.name}")
+        if self.bundle.config.transport_switch_admin_cost:
+            pay_named_cost(self.state, self.bundle.config.transport_switch_admin_cost, "Transport switch admin")
+        if self.state.player.transport.option_id == "financed_car" and transport_id != "financed_car":
+            pay_named_cost(self.state, 280, "Vehicle disposition loss")
+        self.state.player.stress += self.bundle.config.transport_switch_stress_penalty
+        self.state.player.transport.recent_switch_penalty_months = self.bundle.config.transport_switch_instability_months
+        self.state.player.transport.reliability_score = max(35, self.state.player.transport.reliability_score - 8)
         self.state.player.transport.option_id = transport_id
         self.state.player.transport.months_owned = 0
         append_log(self.state, f"Transport changed: {transport.name}")
@@ -194,6 +235,12 @@ class GameController:
             warnings.append("Housing stability is wobbling.")
         if player.education.failure_streak >= max(1, self.state.academic_failure_streak_limit - 1):
             warnings.append("School pressure is close to a hard setback.")
+        if player.housing.housing_stability <= 40:
+            warnings.append("Housing stability is sliding and may cascade into stress.")
+        if player.transport.reliability_score <= 45:
+            warnings.append("Transport reliability is now threatening your work consistency.")
+        if player.career.transition_penalty_months > 0:
+            warnings.append("Career transition drag is still active.")
         return warnings
 
     def build_month_outlook(self) -> list[str]:
@@ -221,10 +268,26 @@ class GameController:
             outlook.append("Your GPA is below the stronger office/professional thresholds right now.")
         if player.education.is_active and player.education.standing < 55:
             outlook.append("School is slipping and could slow your long-term upside.")
+        blockers = promotion_blockers(self.bundle, self.state)
+        if blockers:
+            outlook.append("Promotion gate: " + blockers[0])
+        blocked_careers = [status for status in self.career_entry_statuses() if not status[2]]
+        if blocked_careers:
+            name, _, _, reason = blocked_careers[0]
+            outlook.append(f"Career lockout: {name} - {reason}")
+        outlook.append(
+            f"Trajectory: momentum {player.career.promotion_momentum}, housing stability {player.housing.housing_stability}, "
+            f"transport reliability {player.transport.reliability_score}."
+        )
+        outlook.append(f"Market regime: {self.state.current_market_regime_id.replace('_', ' ')}.")
         if self.state.active_modifiers:
             outlook.append("Active pressure: " + ", ".join(modifier.label for modifier in self.state.active_modifiers))
         if not self.state.active_modifiers and not eligible_events(self.bundle, self.state):
             outlook.append("Quiet month. Your own choices will shape most of the pressure.")
+        if self.state.player.career.transition_penalty_months > 0:
+            outlook.append("Career transition drag is still reducing this month's reliability.")
+        if self.state.player.education.reentry_drag_months > 0:
+            outlook.append("Education re-entry drag is slowing school momentum this month.")
         return outlook[:8]
 
     def is_finished(self) -> bool:

@@ -28,7 +28,21 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         return False
     if event.minimum_debt is not None and player.debt < event.minimum_debt:
         return False
+    if event.minimum_family_support is not None and player.family_support < event.minimum_family_support:
+        return False
+    if event.maximum_family_support is not None and player.family_support > event.maximum_family_support:
+        return False
+    if event.minimum_social_stability is not None and player.social_stability < event.minimum_social_stability:
+        return False
+    if event.maximum_social_stability is not None and player.social_stability > event.maximum_social_stability:
+        return False
+    if event.maximum_transport_reliability is not None and player.transport.reliability_score > event.maximum_transport_reliability:
+        return False
+    if event.maximum_housing_stability is not None and player.housing.housing_stability > event.maximum_housing_stability:
+        return False
     if event.maximum_life_satisfaction is not None and player.life_satisfaction > event.maximum_life_satisfaction:
+        return False
+    if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
         return False
     return True
 
@@ -67,10 +81,30 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         weight *= 1.2
     if event.id == "family_emergency" and city.id == "hometown_low_cost":
         weight *= 1.15
+    if event.id == "family_emergency" and state.player.family_support <= 35:
+        weight *= 1.25
     if event.id == "burnout_month" and state.player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
         weight *= 1.15
+    if event.id == "burnout_month" and state.player.career.transition_penalty_months > 0:
+        weight *= 1.2
     if event.id == "side_hustle_window" and state.player.selected_focus_action_id == "side_gig":
         weight *= 1.35
+    if event.id == "job_layoff" and state.player.career.recent_performance_tag == "downtrend":
+        weight *= 1.2
+    if event.id == "job_layoff" and state.player.career.recent_performance_tag == "uptrend":
+        weight *= 0.85
+    if event.id == "rent_increase" and state.player.housing.housing_stability < 45:
+        weight *= 1.15
+    if event.id == "car_repair" and state.player.transport.reliability_score < 55:
+        weight *= 1.35
+    if event.id == "car_repair" and state.player.transport.option_id == "financed_car":
+        weight *= 1.1
+    if event.id == "used_car_window" and state.current_market_regime_id in {"weak", "correction"}:
+        weight *= 1.2
+    if event.id == "economic_downturn" and state.current_market_regime_id in {"weak", "correction"}:
+        weight *= 1.25
+    if event.id == "scholarship_relief" and state.player.education.education_momentum >= 60:
+        weight *= 1.2
 
     return max(0.05, weight * difficulty.event_weight_multiplier)
 

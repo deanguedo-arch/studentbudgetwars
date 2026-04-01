@@ -15,6 +15,12 @@ def can_switch_education(bundle: ContentBundle, state: GameState, program_id: st
         return False, "That program is not open from your current life lane."
     if state.player.academic_strength < program.minimum_academic_strength:
         return False, "Your academic footing is too weak for that program right now."
+    if (
+        program.id in {"full_time_university", "part_time_college"}
+        and state.player.stress >= 88
+        and state.player.housing.housing_stability < 45
+    ):
+        return False, "Your current instability is too high for a clean college restart right now."
     return True, ""
 
 
@@ -58,6 +64,13 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
         standing_delta -= 1
     if state.player.selected_focus_action_id == "recovery_month":
         standing_delta -= 1
+    if state.player.housing.housing_stability < 45:
+        standing_delta -= 2
+    if state.player.transport.reliability_score < 45:
+        standing_delta -= 1
+    if state.player.education.reentry_drag_months > 0:
+        standing_delta -= 1
+        state.player.education.reentry_drag_months -= 1
 
     education.standing = max(0, min(100, education.standing + standing_delta))
 
@@ -79,6 +92,10 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
             gpa_delta += 0.08
         elif state.player.selected_focus_action_id == "overtime":
             gpa_delta -= 0.04
+        if state.player.housing.housing_stability < 45:
+            gpa_delta -= 0.04
+        if state.player.transport.reliability_score < 45:
+            gpa_delta -= 0.03
         education.college_gpa = max(0.0, min(4.0, education.college_gpa + gpa_delta))
 
     if education.standing < 45:
@@ -89,11 +106,20 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
         if program.uses_gpa:
             education.college_gpa = max(0.0, education.college_gpa - 0.08)
         append_log(state, "School slipped badly this month and your progress took a real hit.")
+        education.education_momentum = max(0, education.education_momentum - 6)
         return
 
     education.failure_streak = 0
     progress_gain = max(0, 1 + progress_bonus)
+    if education.education_momentum >= 65:
+        progress_gain += 1
+    if education.education_momentum <= 30:
+        progress_gain = max(0, progress_gain - 1)
     education.months_completed += progress_gain
+    if state.player.stress <= 62 and state.player.energy >= 45:
+        education.education_momentum = min(100, education.education_momentum + 3)
+    elif state.player.stress >= 80 or state.player.energy <= 20:
+        education.education_momentum = max(0, education.education_momentum - 4)
     if program.duration_months > 0 and education.months_completed >= program.duration_months:
         education.months_completed = program.duration_months
         education.is_active = False

@@ -13,6 +13,8 @@
     "reliability": 1.0,
     "breakdown_risk": 0.0,
     "repair_event_weight": 0.0,
+    "odd_hour_access": 15,
+    "liquidity_pressure": 10,
     "quality_score": 45
   },
   {
@@ -29,6 +31,8 @@
     "reliability": 0.86,
     "breakdown_risk": 0.02,
     "repair_event_weight": 0.15,
+    "odd_hour_access": 52,
+    "liquidity_pressure": 34,
     "quality_score": 66
   },
   {
@@ -45,6 +49,8 @@
     "reliability": 0.9,
     "breakdown_risk": 0.04,
     "repair_event_weight": 0.1,
+    "odd_hour_access": 38,
+    "liquidity_pressure": 18,
     "quality_score": 58
   },
   {
@@ -61,6 +67,8 @@
     "reliability": 0.6,
     "breakdown_risk": 0.22,
     "repair_event_weight": 1.0,
+    "odd_hour_access": 76,
+    "liquidity_pressure": 74,
     "quality_score": 70
   },
   {
@@ -77,6 +85,8 @@
     "reliability": 0.93,
     "breakdown_risk": 0.06,
     "repair_event_weight": 0.35,
+    "odd_hour_access": 90,
+    "liquidity_pressure": 88,
     "quality_score": 84
   },
   {
@@ -93,6 +103,8 @@
     "reliability": 0.84,
     "breakdown_risk": 0.1,
     "repair_event_weight": 0.45,
+    "odd_hour_access": 86,
+    "liquidity_pressure": 61,
     "quality_score": 80
   }
 ]

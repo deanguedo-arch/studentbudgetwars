@@ -9,6 +9,9 @@ from budgetwars.models import ContentBundle
 VALID_STAT_EFFECT_KEYS = {
     "cash",
     "savings",
+    "high_interest_savings",
+    "index_fund",
+    "aggressive_growth_fund",
     "debt",
     "stress",
     "energy",
@@ -44,6 +47,7 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     _ensure_unique_ids(bundle.config.academic_levels, "academic level")
     _ensure_unique_ids(bundle.config.family_support_levels, "family support level")
     _ensure_unique_ids(bundle.config.savings_bands, "savings band")
+    _ensure_unique_ids(bundle.config.market_regimes, "market regime")
     _ensure_unique_ids(bundle.difficulties, "difficulty")
     _ensure_unique_ids(bundle.cities, "city")
     _ensure_unique_ids(bundle.careers, "career")
@@ -60,6 +64,8 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
         raise ValueError("minimum_parent_fallback_support cannot exceed max_family_support")
     if bundle.config.crisis_warning_housing_streak > bundle.config.housing_miss_limit:
         raise ValueError("crisis_warning_housing_streak cannot exceed housing_miss_limit")
+    if not any(regime.id == bundle.config.default_market_regime_id for regime in bundle.config.market_regimes):
+        raise ValueError("default_market_regime_id must exist in market_regimes")
 
     career_ids = {career.id for career in bundle.careers}
     education_ids = {program.id for program in bundle.education_programs}
@@ -92,6 +98,8 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             )
         if len(career.tiers) < 2:
             raise ValueError(f"Career '{career.id}' must define at least two tiers")
+        if career.stability_profile + career.volatility_profile < 70:
+            raise ValueError(f"Career '{career.id}' must have meaningful stability/volatility identity")
         for tier in career.tiers:
             unknown_tier_credentials = sorted(set(tier.required_credential_ids) - credential_ids)
             if unknown_tier_credentials:
@@ -164,10 +172,25 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Event '{event.id}' references unknown education ids")
         if sorted(set(event.eligible_opening_path_ids) - opening_path_ids):
             raise ValueError(f"Event '{event.id}' references unknown opening paths")
+        if event.eligible_market_regime_ids:
+            valid_regime_ids = {regime.id for regime in bundle.config.market_regimes}
+            if sorted(set(event.eligible_market_regime_ids) - valid_regime_ids):
+                raise ValueError(f"Event '{event.id}' references unknown market regimes")
         if event.modifier:
             _validate_effects(event.modifier.stat_effects, f"Event modifier '{event.modifier.id}'")
             if event.modifier.duration_months > 12:
                 raise ValueError(f"Event modifier '{event.modifier.id}' lasts too long for this version")
+
+    for stance in bundle.config.budget_stances:
+        allocation_total = (
+            stance.savings_contribution_rate
+            + stance.safe_savings_rate
+            + stance.index_invest_rate
+            + stance.growth_invest_rate
+            + stance.extra_debt_payment_rate
+        )
+        if allocation_total > 1.0:
+            raise ValueError(f"Budget stance '{stance.id}' allocates more than 100% of available cash")
 
     for preset in bundle.presets:
         if preset.starting_energy > bundle.config.max_energy:
