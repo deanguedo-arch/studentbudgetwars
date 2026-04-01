@@ -1,28 +1,26 @@
 # Active Handoff
 
 ## Current State
-- Branch: `after-grad-consequence-depth-pass`
-- Status: consequence-depth pass in progress on top of current `main` monthly after-grad runtime.
+- Branch: `after-grad-texture-visibility-pass`
+- Status: texture-and-visibility pass in progress on top of current `main` monthly after-grad runtime.
 - Validation status: `tools/validate_data.py` targets the v2 content bundle.
-- Test status: pending final pass run after consequence-depth edits.
+- Test status: `39 passed`.
 
 ## What Landed In This Pass
-- Career consequence deepening:
-  - switch friction costs and transition drag
-  - track-specific promotion blockers
-  - promotion momentum + performance trend tags
-- Housing/transport consequence deepening:
-  - housing stability and move-instability penalties
-  - transport reliability score and switch friction
-- Education re-entry friction:
-  - late re-entry cash/stress cost and temporary progress drag
-- Financial consequence layer:
-  - wealth allocation each month (safe/index/growth/debt)
-  - market regimes with monthly return variance
-- Contextual pressure events:
-  - added family/social/market-shock events tied to path state
-- UI visibility upgrades:
-  - trajectory lines for momentum, housing stability, transport reliability, and market regime
+- Explicit wealth strategy layer:
+  - separate `wealth_strategy` choice independent of budget stance
+  - four strategy profiles with different liquidity/risk/debt priorities
+- Housing/transport consequence texture:
+  - chained roommate and vehicle events that can echo beyond one month
+  - financed-car and stay-at-home paths now surface more concrete pressure
+- Stronger path feel:
+  - sales hot/cold streak events
+  - parent support/boundary events
+  - follow-up event gating through active modifier ids
+- Visibility upgrades:
+  - `Why This Month Changed` driver summary
+  - wealth strategy shown in UI alongside budget stance
+  - clearer month-to-month causal readout in the center panel
 
 ## Key Runtime Shape
 - `1 turn = 1 month`
@@ -33,6 +31,7 @@
   - housing
   - transport
   - budget stance
+  - wealth strategy
 - Monthly focus actions:
   - `overtime`
   - `side_gig`
@@ -73,11 +72,11 @@
 
 ## Known Limits
 - Social context is still lightweight and event-driven (by design), not a deep relationship sim.
-- Investing is broad-bucket based; no manual portfolio micro-control yet.
+- Wealth strategy is now explicit, but still profile-based rather than fully custom-rule authored.
 - Some track identity still relies on rules in code rather than fully data-authored gating tables.
 
 ## Recommended Next Pass
 - Balance audit pass driven by simulation evidence:
-  - verify no single debt-invest strategy dominates
-  - tune financed-car and late-school re-entry trap severity
-  - calibrate career switch friction so pivots are meaningful but still viable
+  - verify no single wealth strategy dominates
+  - tune chained event frequency so housing/transport paths feel vivid but not spammy
+  - refine month-driver wording so consequences feel sharper and more human

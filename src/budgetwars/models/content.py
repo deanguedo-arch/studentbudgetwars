@@ -127,6 +127,19 @@ class FocusActionDefinition(BaseModel):
     stat_effects: StatEffects = Field(default_factory=dict)
 
 
+class WealthStrategyDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    emergency_cash_floor: int = Field(ge=0, default=150)
+    safe_savings_rate: float = Field(ge=0, le=1, default=0.0)
+    index_invest_rate: float = Field(ge=0, le=1, default=0.0)
+    growth_invest_rate: float = Field(ge=0, le=1, default=0.0)
+    extra_debt_payment_rate: float = Field(ge=0, le=1, default=0.0)
+    liquidity_bias: int = Field(ge=0, le=100, default=50)
+    risk_bias: int = Field(ge=0, le=100, default=50)
+
+
 class ModifierTemplate(BaseModel):
     id: str
     label: str
@@ -154,6 +167,7 @@ class EventDefinition(BaseModel):
     eligible_career_ids: list[str] = Field(default_factory=list)
     eligible_education_ids: list[str] = Field(default_factory=list)
     eligible_opening_path_ids: list[str] = Field(default_factory=list)
+    eligible_modifier_ids: list[str] = Field(default_factory=list)
     minimum_stress: int | None = Field(default=None, ge=0)
     minimum_debt: int | None = Field(default=None, ge=0)
     minimum_family_support: int | None = Field(default=None, ge=0)
@@ -194,5 +208,6 @@ class ContentBundle(BaseModel):
     housing_options: list[HousingOptionDefinition]
     transport_options: list[TransportOptionDefinition]
     focus_actions: list[FocusActionDefinition]
+    wealth_strategies: list[WealthStrategyDefinition]
     events: list[EventDefinition]
     presets: list[PresetDefinition]

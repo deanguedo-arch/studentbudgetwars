@@ -37,6 +37,7 @@ Money matters heavily, but the game does not score on cash alone. Your ending we
   - housing
   - transport
   - budget stance
+  - wealth strategy
   - consequence momentum and transition drag
   - market regime + investing buckets
 - Monthly focus actions:
@@ -82,6 +83,7 @@ Money matters heavily, but the game does not score on cash alone. Your ending we
 College and university lanes track a real GPA that can open or block higher white-collar lanes.
 Trades and certificate lanes use pass-state and credentials instead of GPA.
 Switching career, housing, transport, and late school re-entry now carries explicit friction so early decisions echo into later years.
+The UI now surfaces a `Why This Month Changed` readout so players can see the main forces tilting the current month.
 
 ## Install
 
@@ -137,6 +139,7 @@ Current policies:
 - a playable monthly life loop
 - broader graduation setup
 - housing and transport pressure as first-class systems
+- explicit wealth strategy control separate from budget stance
 - distinct career and education lanes
 - contextual monthly events
 - annual milestone summaries

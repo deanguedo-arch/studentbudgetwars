@@ -19,6 +19,7 @@ from .lookups import (
     get_focus_action,
     get_housing_option,
     get_transport_option,
+    get_wealth_strategy,
 )
 from .month_resolution import resolve_month
 from .scoring import calculate_final_score
@@ -97,6 +98,9 @@ class GameController:
 
     def available_focus_actions(self) -> list:
         return list(self.bundle.focus_actions)
+
+    def available_wealth_strategies(self) -> list:
+        return list(self.bundle.wealth_strategies)
 
     def change_career(self, career_id: str) -> None:
         allowed, reason = can_enter_career(self.bundle, self.state, career_id)
@@ -222,6 +226,14 @@ class GameController:
         append_log(self.state, f"Monthly focus selected: {focus.name}")
         trim_logs(self.bundle, self.state)
 
+    def change_wealth_strategy(self, wealth_strategy_id: str) -> None:
+        if wealth_strategy_id == self.state.player.wealth_strategy_id:
+            raise ValueError("That wealth strategy is already selected.")
+        strategy = get_wealth_strategy(self.bundle, wealth_strategy_id)
+        self.state.player.wealth_strategy_id = wealth_strategy_id
+        append_log(self.state, f"Wealth strategy set: {strategy.name}")
+        trim_logs(self.bundle, self.state)
+
     def build_crisis_warnings(self) -> list[str]:
         player = self.state.player
         warnings: list[str] = []
@@ -250,10 +262,12 @@ class GameController:
         transport = get_transport_option(self.bundle, player.transport_id)
         track = get_career_track(self.bundle, player.career.track_id)
         tier = get_current_career_tier(self.bundle, self.state)
+        wealth_strategy = get_wealth_strategy(self.bundle, player.wealth_strategy_id)
         outlook = [
             f"{city.name}: {city.opportunity_text}",
             f"Pressure: {city.pressure_text}",
             f"Current lane: {tier.label} in {track.name}.",
+            f"Wealth plan: {wealth_strategy.name}.",
         ]
         outlook.extend(f"Warning: {warning}" for warning in self.build_crisis_warnings())
         if housing.id == "parents" and player.family_support <= self.state.minimum_parent_fallback_support + 10:

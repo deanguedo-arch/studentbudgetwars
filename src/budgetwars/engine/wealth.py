@@ -5,36 +5,43 @@ from random import Random
 from budgetwars.models import ContentBundle, GameState
 
 from .effects import append_log
-from .lookups import get_budget_stance
+from .lookups import get_wealth_strategy
 
 
 def apply_wealth_allocations(bundle: ContentBundle, state: GameState) -> dict[str, int]:
-    stance = get_budget_stance(bundle, state.player.budget_stance_id)
-    available = max(0, state.player.cash - stance.emergency_cash_floor)
+    strategy = get_wealth_strategy(bundle, state.player.wealth_strategy_id)
+    available = max(0, state.player.cash - strategy.emergency_cash_floor)
     if available <= 0:
         return {"safe": 0, "index": 0, "growth": 0, "extra_debt": 0}
 
-    safe_amount = min(state.player.cash, int(round(available * stance.safe_savings_rate)))
+    safe_amount = min(state.player.cash, int(round(available * strategy.safe_savings_rate)))
     state.player.cash -= safe_amount
     state.player.high_interest_savings += safe_amount
 
-    index_amount = min(state.player.cash, int(round(available * stance.index_invest_rate)))
+    index_amount = min(state.player.cash, int(round(available * strategy.index_invest_rate)))
     state.player.cash -= index_amount
     state.player.index_fund += index_amount
 
-    growth_amount = min(state.player.cash, int(round(available * stance.growth_invest_rate)))
+    growth_amount = min(state.player.cash, int(round(available * strategy.growth_invest_rate)))
     state.player.cash -= growth_amount
     state.player.aggressive_growth_fund += growth_amount
 
-    extra_debt = min(state.player.cash, int(round(available * stance.extra_debt_payment_rate)))
+    extra_debt = min(state.player.cash, int(round(available * strategy.extra_debt_payment_rate)))
     state.player.cash -= extra_debt
     if extra_debt:
         state.player.debt = max(0, state.player.debt - extra_debt)
 
+    if strategy.risk_bias >= 75 and state.player.debt >= 12000:
+        state.player.stress += 1
+        append_log(state, "You leaned into risk while still carrying real debt pressure.")
+    if strategy.liquidity_bias >= 75 and state.player.cash < strategy.emergency_cash_floor:
+        state.player.life_satisfaction -= 1
+        append_log(state, "You kept the plan defensive because the cash buffer still feels too thin.")
+
     if safe_amount or index_amount or growth_amount or extra_debt:
         append_log(
             state,
-            "Wealth allocation: "
+            f"Wealth strategy {strategy.name}: "
             f"safe ${safe_amount}, index ${index_amount}, growth ${growth_amount}, debt ${extra_debt}.",
         )
     return {

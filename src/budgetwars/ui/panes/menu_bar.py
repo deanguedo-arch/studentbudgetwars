@@ -19,6 +19,7 @@ def build_menu_bar(root: tk.Tk, callbacks: dict[str, object]) -> tk.Menu:
     actions_menu.add_command(label="Housing", command=callbacks["housing"])
     actions_menu.add_command(label="Transport", command=callbacks["transport"])
     actions_menu.add_command(label="Budget", command=callbacks["budget"])
+    actions_menu.add_command(label="Wealth", command=callbacks["wealth"])
     actions_menu.add_command(label="Focus", command=callbacks["focus"])
     actions_menu.add_command(label="Resolve Month", command=callbacks["resolve"])
     menu.add_cascade(label="Actions", menu=actions_menu)

@@ -18,6 +18,7 @@ from budgetwars.models import (
     PresetDefinition,
     SavingsBandDefinition,
     TransportOptionDefinition,
+    WealthStrategyDefinition,
 )
 
 
@@ -55,6 +56,10 @@ def get_transport_option(bundle: ContentBundle, transport_id: str) -> TransportO
 
 def get_focus_action(bundle: ContentBundle, focus_id: str) -> FocusActionDefinition:
     return _get_by_id(bundle.focus_actions, focus_id, "focus action")
+
+
+def get_wealth_strategy(bundle: ContentBundle, strategy_id: str) -> WealthStrategyDefinition:
+    return _get_by_id(bundle.wealth_strategies, strategy_id, "wealth strategy")
 
 
 def get_event(bundle: ContentBundle, event_id: str) -> EventDefinition:

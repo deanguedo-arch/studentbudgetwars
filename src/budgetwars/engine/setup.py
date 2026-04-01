@@ -25,6 +25,7 @@ from .lookups import (
     get_preset,
     get_savings_band,
     get_transport_option,
+    get_wealth_strategy,
 )
 
 
@@ -58,6 +59,7 @@ def build_new_game_state(
     support_level = get_family_support_level(bundle, family_support_level_id)
     savings_band = get_savings_band(bundle, savings_band_id)
     _ = get_budget_stance(bundle, opening_path.starting_budget_stance_id)
+    _ = get_wealth_strategy(bundle, opening_path.starting_wealth_strategy_id)
     _ = get_focus_action(bundle, opening_path.starting_focus_action_id)
 
     academic_strength = max(
@@ -111,6 +113,7 @@ def build_new_game_state(
         academic_strength=academic_strength,
         current_city_id=city_id,
         budget_stance_id=opening_path.starting_budget_stance_id,
+        wealth_strategy_id=opening_path.starting_wealth_strategy_id,
         opening_path_id=opening_path_id,
         selected_focus_action_id=opening_path.starting_focus_action_id,
         career=CareerState(track_id=opening_path.starting_career_track_id),
