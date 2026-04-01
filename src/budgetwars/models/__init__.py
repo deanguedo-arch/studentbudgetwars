@@ -11,20 +11,34 @@ from .content import (
     PresetDefinition,
     TransportOptionDefinition,
 )
-from .core import AppConfig, BudgetStanceDefinition, DifficultyModifier, OpeningPathDefinition, ScoringWeights
+from .core import (
+    AcademicLevelDefinition,
+    AppConfig,
+    BudgetStanceDefinition,
+    DifficultyModifier,
+    FamilySupportLevelDefinition,
+    OpeningPathDefinition,
+    SavingsBandDefinition,
+    ScoringWeights,
+)
 from .state import (
     ActiveMonthlyModifier,
+    AnnualMilestoneSummary,
     CareerState,
     EducationState,
     FileSystemPaths,
     FinalScoreSummary,
     GameState,
+    HousingState,
     PlayerState,
     SaveGamePayload,
+    TransportState,
 )
 
 __all__ = [
+    "AcademicLevelDefinition",
     "ActiveMonthlyModifier",
+    "AnnualMilestoneSummary",
     "AppConfig",
     "BudgetStanceDefinition",
     "CareerState",
@@ -36,16 +50,20 @@ __all__ = [
     "EducationProgramDefinition",
     "EducationState",
     "EventDefinition",
+    "FamilySupportLevelDefinition",
     "FileSystemPaths",
     "FinalScoreSummary",
     "FocusActionDefinition",
     "GameState",
     "HousingOptionDefinition",
+    "HousingState",
     "ModifierTemplate",
     "OpeningPathDefinition",
     "PlayerState",
     "PresetDefinition",
+    "SavingsBandDefinition",
     "SaveGamePayload",
     "ScoringWeights",
     "TransportOptionDefinition",
+    "TransportState",
 ]

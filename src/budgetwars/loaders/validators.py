@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from math import isclose
 
 from budgetwars.models import ContentBundle
 
@@ -13,6 +14,7 @@ VALID_STAT_EFFECT_KEYS = {
     "energy",
     "life_satisfaction",
     "family_support",
+    "social_stability",
     "promotion_progress",
     "education_progress",
 }
@@ -39,6 +41,9 @@ def _validate_effects(effects: dict[str, float], label: str) -> None:
 def validate_content_bundle(bundle: ContentBundle) -> None:
     _ensure_unique_ids(bundle.config.budget_stances, "budget stance")
     _ensure_unique_ids(bundle.config.opening_paths, "opening path")
+    _ensure_unique_ids(bundle.config.academic_levels, "academic level")
+    _ensure_unique_ids(bundle.config.family_support_levels, "family support level")
+    _ensure_unique_ids(bundle.config.savings_bands, "savings band")
     _ensure_unique_ids(bundle.difficulties, "difficulty")
     _ensure_unique_ids(bundle.cities, "city")
     _ensure_unique_ids(bundle.careers, "career")
@@ -53,6 +58,8 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
         raise ValueError("primary_event_chance should be greater than or equal to secondary_event_chance")
     if bundle.config.minimum_parent_fallback_support > bundle.config.max_family_support:
         raise ValueError("minimum_parent_fallback_support cannot exceed max_family_support")
+    if bundle.config.crisis_warning_housing_streak > bundle.config.housing_miss_limit:
+        raise ValueError("crisis_warning_housing_streak cannot exceed housing_miss_limit")
 
     career_ids = {career.id for career in bundle.careers}
     education_ids = {program.id for program in bundle.education_programs}
@@ -64,8 +71,8 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     focus_action_ids = {focus.id for focus in bundle.focus_actions}
     credential_ids = {program.credential_id for program in bundle.education_programs if program.credential_id}
 
-    if sum(bundle.scoring_weights.model_dump().values()) != 1.0:
-        raise ValueError("Scoring weights must sum exactly to 1.0")
+    if not isclose(sum(bundle.scoring_weights.model_dump().values()), 1.0, abs_tol=1e-9):
+        raise ValueError("Scoring weights must sum to 1.0")
 
     for city in bundle.cities:
         unknown_careers = sorted(set(city.career_income_biases) - career_ids)
@@ -102,10 +109,18 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(
                 f"Education program '{program.id}' references unknown careers: {', '.join(unknown_careers)}"
             )
+        if program.uses_gpa and program.pass_state_program:
+            raise ValueError(f"Education program '{program.id}' cannot use GPA and pass-state simultaneously")
 
     for housing in bundle.housing_options:
         if housing.requires_hometown and housing.id != "parents":
-            raise ValueError("Only parents housing may require the hometown city in v1")
+            raise ValueError("Only parents housing may require the hometown city in this version")
+        if housing.student_only and housing.id != "student_residence":
+            raise ValueError("Only student_residence may be student-only in this version")
+
+    for transport in bundle.transport_options:
+        if transport.breakdown_risk > transport.repair_event_weight + 0.4:
+            raise ValueError(f"Transport '{transport.id}' has a breakdown risk too large for its event weight")
 
     for opening_path in bundle.config.opening_paths:
         if opening_path.starting_career_track_id not in career_ids:
@@ -128,6 +143,10 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(
                 f"Opening path '{opening_path.id}' references unknown budget stance '{opening_path.starting_budget_stance_id}'"
             )
+        if opening_path.starting_focus_action_id not in focus_action_ids:
+            raise ValueError(
+                f"Opening path '{opening_path.id}' references unknown focus action '{opening_path.starting_focus_action_id}'"
+            )
 
     for event in bundle.events:
         _validate_effects(event.immediate_effects, f"Event '{event.id}'")
@@ -143,10 +162,12 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Event '{event.id}' references unknown career ids")
         if sorted(set(event.eligible_education_ids) - education_ids):
             raise ValueError(f"Event '{event.id}' references unknown education ids")
+        if sorted(set(event.eligible_opening_path_ids) - opening_path_ids):
+            raise ValueError(f"Event '{event.id}' references unknown opening paths")
         if event.modifier:
             _validate_effects(event.modifier.stat_effects, f"Event modifier '{event.modifier.id}'")
             if event.modifier.duration_months > 12:
-                raise ValueError(f"Event modifier '{event.modifier.id}' lasts too long for v1")
+                raise ValueError(f"Event modifier '{event.modifier.id}' lasts too long for this version")
 
     for preset in bundle.presets:
         if preset.starting_energy > bundle.config.max_energy:
@@ -157,7 +178,5 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Preset '{preset.id}' starts with too much life satisfaction")
         if preset.starting_family_support > bundle.config.max_family_support:
             raise ValueError(f"Preset '{preset.id}' starts with too much family support")
-
-    for focus_action in bundle.focus_actions:
-        if focus_action.id not in focus_action_ids:
-            raise ValueError("Invalid focus action configuration")
+        if preset.starting_social_stability > bundle.config.max_social_stability:
+            raise ValueError(f"Preset '{preset.id}' starts with too much social stability")

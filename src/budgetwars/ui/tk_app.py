@@ -18,13 +18,17 @@ class BudgetWarsTkApp:
         preset_id: str | None = None,
         difficulty_id: str | None = None,
         city_id: str | None = None,
+        academic_level_id: str | None = None,
+        family_support_level_id: str | None = None,
+        savings_band_id: str | None = None,
         opening_path_id: str | None = None,
         seed: int | None = None,
     ):
         self.root = tk.Tk()
         self.root.configure(bg="#c0c0c0")
-        self.root.geometry("1260x780")
-        self.root.minsize(1080, 700)
+        self.root.geometry("1200x730")
+        self.root.minsize(980, 620)
+        self.root.option_add("*Font", ("Segoe UI", 10))
 
         if controller is None:
             setup = prompt_new_game_setup(
@@ -33,6 +37,9 @@ class BudgetWarsTkApp:
                 initial_name=player_name,
                 initial_preset_id=preset_id,
                 initial_city_id=city_id,
+                initial_academic_level_id=academic_level_id,
+                initial_family_support_level_id=family_support_level_id,
+                initial_savings_band_id=savings_band_id,
                 initial_opening_path_id=opening_path_id,
                 initial_difficulty_id=difficulty_id,
             )
@@ -45,6 +52,9 @@ class BudgetWarsTkApp:
                 preset_id=setup["preset_id"],
                 difficulty_id=setup["difficulty_id"],
                 city_id=setup["city_id"],
+                academic_level_id=setup["academic_level_id"],
+                family_support_level_id=setup["family_support_level_id"],
+                savings_band_id=setup["savings_band_id"],
                 opening_path_id=setup["opening_path_id"],
                 seed=seed,
             )

@@ -2,27 +2,32 @@
   {
     "id": "rent_increase",
     "name": "Rent Increase",
-    "description": "Your place just got more expensive, and the margin disappears faster than you expected.",
+    "description": "The landlord pushed your housing cost up and your margin shrank overnight.",
     "weight": 6,
-    "min_month": 2,
+    "min_month": 3,
     "eligible_city_ids": [],
-    "eligible_housing_ids": ["roommates", "solo_rental"],
+    "eligible_housing_ids": [
+      "roommates",
+      "solo_rental"
+    ],
     "eligible_transport_ids": [],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
       "stress": 4,
       "life_satisfaction": -2
     },
     "modifier": {
-      "id": "rent_increase_pressure",
+      "id": "rent_pressure",
       "label": "Rent Increase",
       "duration_months": 4,
       "stat_effects": {},
       "income_multiplier": 1.0,
-      "housing_cost_delta": 130,
+      "housing_cost_delta": 140,
       "living_cost_delta": 0,
       "transport_cost_delta": 0,
       "education_cost_delta": 0,
@@ -30,26 +35,30 @@
       "education_progress_delta": 0,
       "transport_switch_discount": 0
     },
-    "log_entry": "Your rent jumped. The month got tighter before it even started."
+    "log_entry": "Rent went up again, and the month got tighter before it even started."
   },
   {
     "id": "roommate_conflict",
     "name": "Roommate Conflict",
-    "description": "Bills, noise, mess, and tension all land at the same time.",
+    "description": "Bills, noise, resentment, and bad timing all landed at once.",
     "weight": 7,
-    "min_month": 1,
+    "min_month": 2,
     "eligible_city_ids": [],
-    "eligible_housing_ids": ["roommates"],
+    "eligible_housing_ids": [
+      "roommates"
+    ],
     "eligible_transport_ids": [],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
-      "cash": -150,
+      "cash": -180,
       "stress": 6,
-      "life_satisfaction": -6,
-      "family_support": -3
+      "life_satisfaction": -5,
+      "social_stability": -4
     },
     "modifier": {
       "id": "roommate_aftershock",
@@ -68,32 +77,40 @@
       "education_progress_delta": 0,
       "transport_switch_discount": 0
     },
-    "log_entry": "Roommate drama blew up the month."
+    "log_entry": "Your place turned ugly and the month paid for it."
   },
   {
-    "id": "layoff",
+    "id": "job_layoff",
     "name": "Reduced Hours / Layoff",
-    "description": "Your income lane takes a hit and the month starts looking unstable fast.",
+    "description": "Your income lane took a hit and the plan immediately got shakier.",
     "weight": 5,
-    "min_month": 3,
+    "min_month": 4,
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
     "eligible_transport_ids": [],
-    "eligible_career_ids": ["service_retail", "warehouse_logistics", "office_professional"],
+    "eligible_career_ids": [
+      "retail_service",
+      "warehouse_logistics",
+      "delivery_gig",
+      "office_admin",
+      "sales"
+    ],
     "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
       "stress": 7,
-      "life_satisfaction": -8,
+      "life_satisfaction": -7,
       "promotion_progress": -2
     },
     "modifier": {
       "id": "income_shock",
-      "label": "Income Shock",
+      "label": "Reduced Hours",
       "duration_months": 2,
       "stat_effects": {},
-      "income_multiplier": 0.55,
+      "income_multiplier": 0.6,
       "housing_cost_delta": 0,
       "living_cost_delta": 0,
       "transport_cost_delta": 0,
@@ -107,19 +124,30 @@
   {
     "id": "promotion_window",
     "name": "Promotion Window",
-    "description": "Someone above you moved on and the timing finally broke in your favor.",
+    "description": "A small opening appeared above you. If your momentum is real, it might matter.",
     "weight": 4,
-    "min_month": 4,
+    "min_month": 5,
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
     "eligible_transport_ids": [],
-    "eligible_career_ids": ["service_retail", "warehouse_logistics", "trades_apprenticeship", "office_professional"],
+    "eligible_career_ids": [
+      "retail_service",
+      "warehouse_logistics",
+      "office_admin",
+      "trades_apprenticeship",
+      "healthcare_support",
+      "sales",
+      "degree_gated_professional"
+    ],
     "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
-      "promotion_progress": 3,
-      "life_satisfaction": 2
+      "promotion_progress": 4,
+      "life_satisfaction": 2,
+      "social_stability": 1
     },
     "modifier": null,
     "log_entry": "A promotion window opened if you can capitalize on it."
@@ -127,43 +155,55 @@
   {
     "id": "car_repair",
     "name": "Car Repair",
-    "description": "One bad sound becomes one expensive month.",
+    "description": "One bad sound became one expensive month.",
     "weight": 6,
-    "min_month": 1,
+    "min_month": 2,
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
-    "eligible_transport_ids": ["beater_car", "financed_car"],
+    "eligible_transport_ids": [
+      "beater_car",
+      "financed_car",
+      "reliable_used_car"
+    ],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
-      "cash": -450,
+      "cash": -420,
       "stress": 5,
       "life_satisfaction": -3
     },
     "modifier": null,
-    "log_entry": "Your vehicle demanded money you were not ready to spend."
+    "log_entry": "Your vehicle demanded money you did not want to spend."
   },
   {
-    "id": "used_car_deal",
-    "name": "Used Car Deal",
-    "description": "A decent mechanic says there is a window for a cheaper car upgrade if you move soon.",
+    "id": "used_car_window",
+    "name": "Used Car Window",
+    "description": "A decent mechanic says there is a narrow chance to upgrade smarter than usual.",
     "weight": 3,
-    "min_month": 2,
+    "min_month": 3,
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
-    "eligible_transport_ids": ["walk_bike", "transit"],
+    "eligible_transport_ids": [
+      "none",
+      "transit",
+      "bike"
+    ],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
-      "stress": -1,
-      "life_satisfaction": 1
+      "life_satisfaction": 1,
+      "stress": -1
     },
     "modifier": {
-      "id": "cheap_wheels_window",
+      "id": "used_car_window",
       "label": "Used Car Deal",
       "duration_months": 2,
       "stat_effects": {},
@@ -176,45 +216,77 @@
       "education_progress_delta": 0,
       "transport_switch_discount": 350
     },
-    "log_entry": "A mechanic tipped you off to a rare decent beater deal."
+    "log_entry": "A rare decent used-car deal is on the table for a short time."
   },
   {
-    "id": "scholarship_boost",
+    "id": "scholarship_relief",
     "name": "Scholarship / Help Grant",
-    "description": "You caught a break that lowers the cost of staying on track.",
+    "description": "You caught a break that lowers the cost of staying on your education path.",
     "weight": 4,
     "min_month": 2,
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
     "eligible_transport_ids": [],
     "eligible_career_ids": [],
-    "eligible_education_ids": ["college", "apprenticeship_training"],
+    "eligible_education_ids": [
+      "part_time_college",
+      "full_time_university",
+      "apprenticeship",
+      "certificate"
+    ],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
-      "cash": 250,
+      "cash": 220,
       "life_satisfaction": 3
     },
     "modifier": {
       "id": "tuition_relief",
-      "label": "Tuition Relief",
+      "label": "Education Relief",
       "duration_months": 4,
       "stat_effects": {},
       "income_multiplier": 1.0,
       "housing_cost_delta": 0,
       "living_cost_delta": 0,
       "transport_cost_delta": 0,
-      "education_cost_delta": -120,
+      "education_cost_delta": -140,
       "promotion_progress_delta": 0,
-      "education_progress_delta": 0,
+      "education_progress_delta": 1,
       "transport_switch_discount": 0
     },
-    "log_entry": "You landed education money right when you needed it."
+    "log_entry": "You landed help money right when you needed it."
   },
   {
     "id": "family_emergency",
     "name": "Family Emergency",
-    "description": "Someone needs help and your own plan takes a hit.",
+    "description": "Someone close to you needed help and your own month took the hit.",
+    "weight": 4,
+    "min_month": 4,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "maximum_life_satisfaction": null,
+    "immediate_effects": {
+      "cash": -160,
+      "savings": -240,
+      "stress": 5,
+      "family_support": -6,
+      "social_stability": -2
+    },
+    "modifier": null,
+    "log_entry": "Family trouble pulled money and focus out of your month."
+  },
+  {
+    "id": "burnout_month",
+    "name": "Burnout Month",
+    "description": "You kept pushing and your body finally made you feel it.",
     "weight": 4,
     "min_month": 3,
     "eligible_city_ids": [],
@@ -222,33 +294,13 @@
     "eligible_transport_ids": [],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
-    "minimum_stress": null,
+    "eligible_opening_path_ids": [],
+    "minimum_stress": 72,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
-      "cash": -150,
-      "savings": -300,
-      "stress": 5,
-      "family_support": -8
-    },
-    "modifier": null,
-    "log_entry": "Family trouble forced money and attention out of your month."
-  },
-  {
-    "id": "burnout_month",
-    "name": "Burnout Month",
-    "description": "You kept pushing and your body finally made you feel it.",
-    "weight": 4,
-    "min_month": 2,
-    "eligible_city_ids": [],
-    "eligible_housing_ids": [],
-    "eligible_transport_ids": [],
-    "eligible_career_ids": [],
-    "eligible_education_ids": [],
-    "minimum_stress": 75,
-    "minimum_debt": null,
-    "immediate_effects": {
-      "energy": -8,
-      "stress": 5,
+      "energy": -10,
+      "stress": 6,
       "life_satisfaction": -6
     },
     "modifier": {
@@ -260,7 +312,7 @@
         "stress": 3,
         "life_satisfaction": -2
       },
-      "income_multiplier": 1.0,
+      "income_multiplier": 0.96,
       "housing_cost_delta": 0,
       "living_cost_delta": 0,
       "transport_cost_delta": 0,
@@ -274,16 +326,20 @@
   {
     "id": "transit_hike",
     "name": "Transit Hike",
-    "description": "Transit got more expensive again, and the monthly math shifted under you.",
+    "description": "Transit got more expensive again and the monthly math shifted under you.",
     "weight": 5,
     "min_month": 3,
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
-    "eligible_transport_ids": ["transit"],
+    "eligible_transport_ids": [
+      "transit"
+    ],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
     "minimum_stress": null,
     "minimum_debt": null,
+    "maximum_life_satisfaction": null,
     "immediate_effects": {
       "stress": 2,
       "life_satisfaction": -1
@@ -296,12 +352,121 @@
       "income_multiplier": 1.0,
       "housing_cost_delta": 0,
       "living_cost_delta": 0,
-      "transport_cost_delta": 45,
+      "transport_cost_delta": 55,
       "education_cost_delta": 0,
       "promotion_progress_delta": 0,
       "education_progress_delta": 0,
       "transport_switch_discount": 0
     },
-    "log_entry": "Transit fares went up again."
+    "log_entry": "Transit fares jumped again."
+  },
+  {
+    "id": "apprenticeship_opening",
+    "name": "Apprenticeship Opening",
+    "description": "A rare opening appeared for someone willing to commit to the trades lane.",
+    "weight": 3,
+    "min_month": 4,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [
+      "transit",
+      "beater_car",
+      "reliable_used_car",
+      "financed_car"
+    ],
+    "eligible_career_ids": [
+      "warehouse_logistics",
+      "delivery_gig",
+      "retail_service"
+    ],
+    "eligible_education_ids": [
+      "none",
+      "upgrading"
+    ],
+    "eligible_opening_path_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "maximum_life_satisfaction": 70,
+    "immediate_effects": {
+      "promotion_progress": 2,
+      "life_satisfaction": 2
+    },
+    "modifier": {
+      "id": "apprenticeship_momentum",
+      "label": "Apprenticeship Momentum",
+      "duration_months": 3,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": -60,
+      "promotion_progress_delta": 1,
+      "education_progress_delta": 1,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Someone tipped you off to an apprenticeship opening while it was still real."
+  },
+  {
+    "id": "economic_downturn",
+    "name": "Economic Downturn",
+    "description": "The whole month gets tighter. Nobody is as generous with hours or opportunity as they were.",
+    "weight": 3,
+    "min_month": 8,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "maximum_life_satisfaction": null,
+    "immediate_effects": {
+      "stress": 4,
+      "life_satisfaction": -3
+    },
+    "modifier": {
+      "id": "downturn",
+      "label": "Economic Downturn",
+      "duration_months": 3,
+      "stat_effects": {},
+      "income_multiplier": 0.92,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 30,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -1,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "The wider economy softened and the whole month felt it."
+  },
+  {
+    "id": "side_hustle_window",
+    "name": "Side Hustle Window",
+    "description": "A clean little money window opened if you can actually take advantage of it.",
+    "weight": 4,
+    "min_month": 2,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
+      "move_out_immediately"
+    ],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "maximum_life_satisfaction": null,
+    "immediate_effects": {
+      "cash": 180,
+      "energy": -2,
+      "stress": 1
+    },
+    "modifier": null,
+    "log_entry": "A short side-hustle window put quick money on the table."
   }
 ]

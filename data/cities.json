@@ -1,53 +1,68 @@
 [
   {
-    "id": "hometown",
-    "name": "Hometown",
-    "description": "Cheap enough to breathe, familiar enough to feel stuck, and full of fallback options if family stays on your side.",
-    "housing_cost_multiplier": 0.72,
+    "id": "hometown_low_cost",
+    "name": "Hometown Low-Cost",
+    "description": "Cheaper housing, more fallback, and a ceiling that arrives sooner than you want.",
+    "housing_cost_multiplier": 0.74,
     "living_cost_multiplier": 0.9,
-    "transport_cost_multiplier": 0.92,
-    "family_support_bonus": 12,
-    "opportunity_text": "Cheap housing and family fallback make it easier to stabilize early.",
-    "pressure_text": "Ceilings arrive sooner, and staying too long can start to feel like drifting.",
+    "transport_cost_multiplier": 0.9,
+    "education_cost_multiplier": 0.94,
+    "family_support_bonus": 10,
+    "opportunity_text": "Cheap housing and parent fallback make it easier to stabilize early.",
+    "pressure_text": "If you stay too passive here, it starts to feel like your life never left neutral.",
     "career_income_biases": {
-      "service_retail": 0.95,
+      "retail_service": 0.95,
       "warehouse_logistics": 1.0,
-      "trades_apprenticeship": 1.05,
-      "office_professional": 0.88
+      "delivery_gig": 0.9,
+      "office_admin": 0.9,
+      "trades_apprenticeship": 1.02,
+      "healthcare_support": 0.98,
+      "sales": 0.9,
+      "degree_gated_professional": 0.84
     }
   },
   {
     "id": "mid_size_city",
     "name": "Mid-Size City",
-    "description": "A balanced place to build. Costs are manageable, options are steady, and nothing comes easy for free.",
+    "description": "Nothing comes easy for free here, but most paths are viable if you stop bleeding money.",
     "housing_cost_multiplier": 1.0,
     "living_cost_multiplier": 1.0,
     "transport_cost_multiplier": 1.0,
-    "family_support_bonus": 4,
-    "opportunity_text": "Steady jobs and moderate rents make this the most forgiving long-game city.",
-    "pressure_text": "You can survive here without a plan, but you will not surge forward by accident.",
+    "education_cost_multiplier": 1.0,
+    "family_support_bonus": 2,
+    "opportunity_text": "Steady work, manageable rent, and fewer extremes make this the most forgiving long game.",
+    "pressure_text": "You can survive here without a plan, but you will not surge ahead by accident.",
     "career_income_biases": {
-      "service_retail": 1.02,
-      "warehouse_logistics": 1.0,
+      "retail_service": 1.0,
+      "warehouse_logistics": 1.02,
+      "delivery_gig": 1.0,
+      "office_admin": 1.02,
       "trades_apprenticeship": 1.0,
-      "office_professional": 1.02
+      "healthcare_support": 1.01,
+      "sales": 1.0,
+      "degree_gated_professional": 1.03
     }
   },
   {
-    "id": "big_metro",
-    "name": "Big Metro",
-    "description": "Higher ceilings, harsher costs, and a lifestyle that rewards momentum but punishes sloppy money.",
-    "housing_cost_multiplier": 1.25,
-    "living_cost_multiplier": 1.18,
-    "transport_cost_multiplier": 1.12,
-    "family_support_bonus": -10,
-    "opportunity_text": "The biggest upside is here if you can survive the rent, debt, and pace.",
-    "pressure_text": "Everything costs more, and weak plans unravel fast.",
+    "id": "high_opportunity_metro",
+    "name": "High-Opportunity Metro",
+    "description": "The biggest ceilings are here, but weak plans get punished faster and more expensively.",
+    "housing_cost_multiplier": 1.28,
+    "living_cost_multiplier": 1.16,
+    "transport_cost_multiplier": 1.1,
+    "education_cost_multiplier": 1.08,
+    "family_support_bonus": -8,
+    "opportunity_text": "High ceilings, stronger networks, and better career upside reward momentum.",
+    "pressure_text": "Rent, debt, and pace can shred you if your setup is sloppy.",
     "career_income_biases": {
-      "service_retail": 1.06,
+      "retail_service": 1.05,
       "warehouse_logistics": 1.08,
+      "delivery_gig": 1.1,
+      "office_admin": 1.08,
       "trades_apprenticeship": 1.0,
-      "office_professional": 1.18
+      "healthcare_support": 1.08,
+      "sales": 1.14,
+      "degree_gated_professional": 1.18
     }
   }
 ]

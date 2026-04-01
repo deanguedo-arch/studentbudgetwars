@@ -1,12 +1,14 @@
 [
   {
-    "id": "service_retail",
-    "name": "Service / Retail",
-    "description": "Accessible work with quick entry, messy schedules, and a ceiling that arrives early.",
+    "id": "retail_service",
+    "name": "Retail / Service",
+    "description": "Easy to enter, schedule-chaotic, and decent only if you can squeeze promotions out of it.",
     "entry_path_ids": [
       "full_time_work",
-      "college",
+      "college_university",
       "trades_apprenticeship",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
       "move_out_immediately"
     ],
     "minimum_transport_access": 1,
@@ -14,47 +16,60 @@
     "entry_required_education_program_id": null,
     "entry_requires_active_education": false,
     "entry_minimum_gpa": null,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.05,
+    "social_income_factor": 0.002,
+    "layoff_weight": 1.15,
+    "promotion_weight": 0.9,
     "tiers": [
       {
         "label": "Floor Staff",
-        "monthly_income": 2050,
-        "energy_delta": -11,
-        "stress_delta": 8,
+        "monthly_income": 2100,
+        "energy_delta": -12,
+        "stress_delta": 9,
         "life_satisfaction_delta": -1,
+        "social_stability_delta": -1,
         "promotion_target": 4,
         "required_credential_ids": [],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": false
       },
       {
         "label": "Shift Lead",
         "monthly_income": 2550,
-        "energy_delta": -12,
-        "stress_delta": 9,
+        "energy_delta": -13,
+        "stress_delta": 10,
         "life_satisfaction_delta": 0,
+        "social_stability_delta": 0,
         "promotion_target": 6,
         "required_credential_ids": [],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": false
       },
       {
         "label": "Assistant Manager",
-        "monthly_income": 3200,
-        "energy_delta": -13,
+        "monthly_income": 3150,
+        "energy_delta": -14,
         "stress_delta": 11,
         "life_satisfaction_delta": 1,
+        "social_stability_delta": 0,
         "promotion_target": 8,
         "required_credential_ids": [],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": false
       }
     ]
   },
   {
     "id": "warehouse_logistics",
     "name": "Warehouse / Logistics",
-    "description": "Good early money, real physical wear, and a steady but demanding climb.",
+    "description": "Steady early cash with real physical wear and a stable grind mentality.",
     "entry_path_ids": [
       "full_time_work",
-      "college",
+      "college_university",
       "trades_apprenticeship",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
       "move_out_immediately"
     ],
     "minimum_transport_access": 2,
@@ -62,142 +77,430 @@
     "entry_required_education_program_id": null,
     "entry_requires_active_education": false,
     "entry_minimum_gpa": null,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.03,
+    "social_income_factor": 0.0,
+    "layoff_weight": 0.9,
+    "promotion_weight": 0.95,
     "tiers": [
       {
-        "label": "Picker / Packer",
-        "monthly_income": 2500,
-        "energy_delta": -18,
+        "label": "Picker / Loader",
+        "monthly_income": 2550,
+        "energy_delta": -19,
         "stress_delta": 8,
         "life_satisfaction_delta": 0,
+        "social_stability_delta": -1,
         "promotion_target": 4,
         "required_credential_ids": [],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": false
       },
       {
         "label": "Team Lead",
-        "monthly_income": 3200,
-        "energy_delta": -19,
+        "monthly_income": 3250,
+        "energy_delta": -20,
         "stress_delta": 9,
         "life_satisfaction_delta": 1,
+        "social_stability_delta": 0,
         "promotion_target": 6,
         "required_credential_ids": [],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": false
       },
       {
         "label": "Ops Supervisor",
-        "monthly_income": 3900,
-        "energy_delta": -20,
+        "monthly_income": 3980,
+        "energy_delta": -21,
         "stress_delta": 10,
         "life_satisfaction_delta": 2,
+        "social_stability_delta": 0,
         "promotion_target": 8,
         "required_credential_ids": [],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      }
+    ]
+  },
+  {
+    "id": "delivery_gig",
+    "name": "Delivery / Gig Work",
+    "description": "Flexible and unstable. Great when you need freedom, brutal when you need certainty.",
+    "entry_path_ids": [
+      "full_time_work",
+      "college_university",
+      "trades_apprenticeship",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 1,
+    "entry_required_credential_ids": [],
+    "entry_required_education_program_id": null,
+    "entry_requires_active_education": false,
+    "entry_minimum_gpa": null,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.16,
+    "social_income_factor": 0.004,
+    "layoff_weight": 0.7,
+    "promotion_weight": 0.6,
+    "tiers": [
+      {
+        "label": "App Courier",
+        "monthly_income": 2000,
+        "energy_delta": -14,
+        "stress_delta": 7,
+        "life_satisfaction_delta": 0,
+        "social_stability_delta": -1,
+        "promotion_target": 5,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      },
+      {
+        "label": "Route Regular",
+        "monthly_income": 2450,
+        "energy_delta": -15,
+        "stress_delta": 7,
+        "life_satisfaction_delta": 1,
+        "social_stability_delta": 0,
+        "promotion_target": 7,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      },
+      {
+        "label": "Independent Runner",
+        "monthly_income": 3050,
+        "energy_delta": -16,
+        "stress_delta": 8,
+        "life_satisfaction_delta": 2,
+        "social_stability_delta": 1,
+        "promotion_target": 9,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      }
+    ]
+  },
+  {
+    "id": "office_admin",
+    "name": "Office / Admin",
+    "description": "A lower-ceiling white-collar lane with steadier hours and less physical grind.",
+    "entry_path_ids": [
+      "full_time_work",
+      "college_university",
+      "trades_apprenticeship",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 1,
+    "entry_required_credential_ids": [],
+    "entry_required_education_program_id": null,
+    "entry_requires_active_education": false,
+    "entry_minimum_gpa": 2.3,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.04,
+    "social_income_factor": 0.005,
+    "layoff_weight": 0.95,
+    "promotion_weight": 1.05,
+    "tiers": [
+      {
+        "label": "Reception / Admin Clerk",
+        "monthly_income": 2350,
+        "energy_delta": -9,
+        "stress_delta": 6,
+        "life_satisfaction_delta": 1,
+        "social_stability_delta": 1,
+        "promotion_target": 5,
+        "required_credential_ids": [],
+        "required_minimum_gpa": 2.3,
+        "required_pass_state": false
+      },
+      {
+        "label": "Office Coordinator",
+        "monthly_income": 3050,
+        "energy_delta": -10,
+        "stress_delta": 7,
+        "life_satisfaction_delta": 2,
+        "social_stability_delta": 1,
+        "promotion_target": 7,
+        "required_credential_ids": [],
+        "required_minimum_gpa": 2.5,
+        "required_pass_state": false
+      },
+      {
+        "label": "Operations Coordinator",
+        "monthly_income": 3850,
+        "energy_delta": -11,
+        "stress_delta": 8,
+        "life_satisfaction_delta": 3,
+        "social_stability_delta": 2,
+        "promotion_target": 9,
+        "required_credential_ids": [],
+        "required_minimum_gpa": 2.7,
+        "required_pass_state": false
       }
     ]
   },
   {
     "id": "trades_apprenticeship",
     "name": "Trades / Apprenticeship",
-    "description": "Early years are lean, but commitment pays off into one of the strongest long-term lanes.",
+    "description": "Lean early pay, good long payoff, and a path that rewards sticking it out.",
     "entry_path_ids": [
       "full_time_work",
+      "college_university",
       "trades_apprenticeship",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
       "move_out_immediately"
     ],
     "minimum_transport_access": 2,
     "entry_required_credential_ids": [],
-    "entry_required_education_program_id": "apprenticeship_training",
+    "entry_required_education_program_id": "apprenticeship",
     "entry_requires_active_education": true,
     "entry_minimum_gpa": null,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.02,
+    "social_income_factor": 0.0,
+    "layoff_weight": 0.8,
+    "promotion_weight": 1.1,
     "tiers": [
       {
         "label": "Apprentice",
-        "monthly_income": 1800,
-        "energy_delta": -15,
-        "stress_delta": 8,
+        "monthly_income": 1900,
+        "energy_delta": -16,
+        "stress_delta": 7,
         "life_satisfaction_delta": 1,
+        "social_stability_delta": 0,
         "promotion_target": 8,
         "required_credential_ids": [],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": false
       },
       {
         "label": "Junior Tradesperson",
-        "monthly_income": 3300,
-        "energy_delta": -16,
-        "stress_delta": 8,
+        "monthly_income": 3400,
+        "energy_delta": -17,
+        "stress_delta": 7,
         "life_satisfaction_delta": 2,
+        "social_stability_delta": 1,
         "promotion_target": 10,
         "required_credential_ids": [
           "apprenticeship_certificate"
         ],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": true
       },
       {
-        "label": "Skilled Tradesperson",
-        "monthly_income": 4700,
-        "energy_delta": -17,
-        "stress_delta": 9,
+        "label": "Certified Tradesperson",
+        "monthly_income": 4850,
+        "energy_delta": -18,
+        "stress_delta": 8,
         "life_satisfaction_delta": 4,
+        "social_stability_delta": 1,
         "promotion_target": 12,
         "required_credential_ids": [
           "apprenticeship_certificate"
         ],
-        "required_minimum_gpa": null
+        "required_minimum_gpa": null,
+        "required_pass_state": true
       }
     ]
   },
   {
-    "id": "office_professional",
-    "name": "Office / Professional",
-    "description": "Delayed access, credential-gated promotion, and strong upside if you survive the early squeeze.",
+    "id": "healthcare_support",
+    "name": "Healthcare Support",
+    "description": "Stressful but steady work with decent security if you get the credential in hand.",
     "entry_path_ids": [
       "full_time_work",
-      "college",
+      "college_university",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 2,
+    "entry_required_credential_ids": [
+      "support_certificate"
+    ],
+    "entry_required_education_program_id": null,
+    "entry_requires_active_education": false,
+    "entry_minimum_gpa": null,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.03,
+    "social_income_factor": 0.003,
+    "layoff_weight": 0.55,
+    "promotion_weight": 1.0,
+    "tiers": [
+      {
+        "label": "Care Aide",
+        "monthly_income": 2750,
+        "energy_delta": -15,
+        "stress_delta": 11,
+        "life_satisfaction_delta": 1,
+        "social_stability_delta": 0,
+        "promotion_target": 5,
+        "required_credential_ids": [
+          "support_certificate"
+        ],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      },
+      {
+        "label": "Senior Care Aide",
+        "monthly_income": 3350,
+        "energy_delta": -16,
+        "stress_delta": 11,
+        "life_satisfaction_delta": 2,
+        "social_stability_delta": 1,
+        "promotion_target": 7,
+        "required_credential_ids": [
+          "support_certificate"
+        ],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      },
+      {
+        "label": "Unit Lead",
+        "monthly_income": 4080,
+        "energy_delta": -17,
+        "stress_delta": 12,
+        "life_satisfaction_delta": 3,
+        "social_stability_delta": 1,
+        "promotion_target": 9,
+        "required_credential_ids": [
+          "support_certificate"
+        ],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      }
+    ]
+  },
+  {
+    "id": "sales",
+    "name": "Sales",
+    "description": "Higher upside, social leverage, and months that can swing hard in either direction.",
+    "entry_path_ids": [
+      "full_time_work",
+      "college_university",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
+      "move_out_immediately"
+    ],
+    "minimum_transport_access": 1,
+    "entry_required_credential_ids": [],
+    "entry_required_education_program_id": null,
+    "entry_requires_active_education": false,
+    "entry_minimum_gpa": null,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.18,
+    "social_income_factor": 0.012,
+    "layoff_weight": 1.05,
+    "promotion_weight": 1.2,
+    "tiers": [
+      {
+        "label": "Sales Associate",
+        "monthly_income": 2150,
+        "energy_delta": -11,
+        "stress_delta": 9,
+        "life_satisfaction_delta": 1,
+        "social_stability_delta": 1,
+        "promotion_target": 5,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      },
+      {
+        "label": "Account Rep",
+        "monthly_income": 3150,
+        "energy_delta": -12,
+        "stress_delta": 10,
+        "life_satisfaction_delta": 2,
+        "social_stability_delta": 1,
+        "promotion_target": 7,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      },
+      {
+        "label": "Senior Rep",
+        "monthly_income": 4550,
+        "energy_delta": -13,
+        "stress_delta": 11,
+        "life_satisfaction_delta": 3,
+        "social_stability_delta": 2,
+        "promotion_target": 9,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false
+      }
+    ]
+  },
+  {
+    "id": "degree_gated_professional",
+    "name": "Degree-Gated Professional",
+    "description": "Delayed entry, GPA and credential pressure, then serious upside if you held the line.",
+    "entry_path_ids": [
+      "full_time_work",
+      "college_university",
+      "gap_year_mixed_hustle",
+      "stay_home_stack_cash",
       "move_out_immediately"
     ],
     "minimum_transport_access": 1,
     "entry_required_credential_ids": [
-      "college_credential"
+      "university_degree"
     ],
     "entry_required_education_program_id": null,
     "entry_requires_active_education": false,
-    "entry_minimum_gpa": 2.7,
+    "entry_minimum_gpa": 3.0,
+    "entry_requires_pass_state": false,
+    "income_variance": 0.04,
+    "social_income_factor": 0.007,
+    "layoff_weight": 0.8,
+    "promotion_weight": 1.15,
     "tiers": [
       {
-        "label": "Coordinator",
-        "monthly_income": 2800,
-        "energy_delta": -8,
+        "label": "Analyst",
+        "monthly_income": 3550,
+        "energy_delta": -9,
         "stress_delta": 7,
-        "life_satisfaction_delta": 1,
+        "life_satisfaction_delta": 2,
+        "social_stability_delta": 1,
         "promotion_target": 6,
         "required_credential_ids": [
-          "college_credential"
+          "university_degree"
         ],
-        "required_minimum_gpa": 2.7
+        "required_minimum_gpa": 3.0,
+        "required_pass_state": false
       },
       {
-        "label": "Analyst",
-        "monthly_income": 4300,
-        "energy_delta": -9,
+        "label": "Specialist",
+        "monthly_income": 5050,
+        "energy_delta": -10,
         "stress_delta": 8,
-        "life_satisfaction_delta": 3,
+        "life_satisfaction_delta": 4,
+        "social_stability_delta": 2,
         "promotion_target": 8,
         "required_credential_ids": [
-          "college_credential"
+          "university_degree"
         ],
-        "required_minimum_gpa": 3.0
+        "required_minimum_gpa": 3.1,
+        "required_pass_state": false
       },
       {
         "label": "Manager",
-        "monthly_income": 6200,
-        "energy_delta": -10,
+        "monthly_income": 6900,
+        "energy_delta": -11,
         "stress_delta": 9,
-        "life_satisfaction_delta": 4,
+        "life_satisfaction_delta": 5,
+        "social_stability_delta": 2,
         "promotion_target": 10,
         "required_credential_ids": [
-          "college_credential"
+          "university_degree"
         ],
-        "required_minimum_gpa": 3.2
+        "required_minimum_gpa": 3.2,
+        "required_pass_state": false
       }
     ]
   }

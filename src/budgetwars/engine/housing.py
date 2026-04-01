@@ -18,10 +18,12 @@ def can_switch_housing(bundle: ContentBundle, state: GameState, housing_id: str)
     housing = get_housing_option(bundle, housing_id)
     if housing.id == state.player.housing_id:
         return False, "You already live there."
-    if housing.requires_hometown and state.player.current_city_id != "hometown":
-        return False, "You can only stay with parents while living in your hometown."
-    if state.player.family_support < housing.minimum_family_support:
+    if housing.requires_hometown and state.player.current_city_id != "hometown_low_cost":
+        return False, "You can only stay with parents in the hometown low-cost city."
+    if housing.minimum_family_support and state.player.family_support < housing.minimum_family_support:
         return False, "Your family support is too low for that fallback right now."
+    if housing.student_only and (not state.player.education.is_active or state.player.education.program_id == "none"):
+        return False, "Student residence only makes sense while you are actively enrolled."
     return True, ""
 
 
@@ -29,8 +31,16 @@ def apply_housing_effects(bundle: ContentBundle, state: GameState) -> HousingOpt
     housing = get_housing_option(bundle, state.player.housing_id)
     state.player.stress += housing.stress_delta
     state.player.life_satisfaction += housing.life_satisfaction_delta
-    if housing.id == "parents" and state.player.career.track_id in {"service_retail", "warehouse_logistics"} and state.player.education.program_id == "none":
+    state.player.social_stability += housing.social_stability_delta
+    state.player.housing.months_in_place += 1
+    if (
+        housing.id == "parents"
+        and state.player.current_city_id == "hometown_low_cost"
+        and state.player.career.track_id in {"retail_service", "delivery_gig"}
+        and state.player.education.program_id == "none"
+    ):
         state.player.family_support -= bundle.config.parent_drift_family_penalty
         state.player.life_satisfaction -= bundle.config.parent_drift_satisfaction_penalty
-        append_log(state, "Living at home kept costs low, but the feeling of drifting hit harder this month.")
+        state.player.social_stability -= bundle.config.parent_drift_social_penalty
+        append_log(state, "Living at home saved money, but the sense of drifting hit harder this month.")
     return housing

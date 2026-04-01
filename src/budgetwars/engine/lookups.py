@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from budgetwars.models import (
+    AcademicLevelDefinition,
     BudgetStanceDefinition,
     CareerTierDefinition,
     CareerTrackDefinition,
@@ -9,11 +10,13 @@ from budgetwars.models import (
     DifficultyModifier,
     EducationProgramDefinition,
     EventDefinition,
+    FamilySupportLevelDefinition,
     FocusActionDefinition,
     GameState,
     HousingOptionDefinition,
     OpeningPathDefinition,
     PresetDefinition,
+    SavingsBandDefinition,
     TransportOptionDefinition,
 )
 
@@ -72,3 +75,15 @@ def get_budget_stance(bundle: ContentBundle, stance_id: str) -> BudgetStanceDefi
 
 def get_opening_path(bundle: ContentBundle, opening_path_id: str) -> OpeningPathDefinition:
     return _get_by_id(bundle.config.opening_paths, opening_path_id, "opening path")
+
+
+def get_academic_level(bundle: ContentBundle, option_id: str) -> AcademicLevelDefinition:
+    return _get_by_id(bundle.config.academic_levels, option_id, "academic level")
+
+
+def get_family_support_level(bundle: ContentBundle, option_id: str) -> FamilySupportLevelDefinition:
+    return _get_by_id(bundle.config.family_support_levels, option_id, "family support level")
+
+
+def get_savings_band(bundle: ContentBundle, option_id: str) -> SavingsBandDefinition:
+    return _get_by_id(bundle.config.savings_bands, option_id, "savings band")

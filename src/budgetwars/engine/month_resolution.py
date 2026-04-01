@@ -16,10 +16,10 @@ from .budgeting import (
 )
 from .careers import add_promotion_progress, apply_career_effects, current_income, maybe_promote
 from .education import apply_education_effects, education_monthly_cost, update_education_progress
-from .effects import append_log, apply_stat_effects, clamp_player_state, net_worth, trim_logs
+from .effects import append_log, apply_stat_effects, clamp_player_state, net_worth, summarize_milestone, trim_logs
 from .events import roll_month_events
 from .housing import apply_housing_effects, monthly_housing_cost
-from .lookups import get_city, get_focus_action, get_housing_option
+from .lookups import get_current_career_tier, get_focus_action
 from .transport import apply_transport_access_penalty, apply_transport_effects, monthly_transport_cost
 
 
@@ -80,23 +80,24 @@ def _tick_existing_modifiers(state: GameState, existing_modifier_tokens: set[int
     state.active_modifiers = remaining
 
 
-def _update_housing_stability(bundle: ContentBundle, state: GameState, housing_shortfall: int) -> None:
+def _update_housing_stability(state: GameState, housing_shortfall: int) -> None:
     if housing_shortfall > 0:
-        state.missed_housing_payments += 1
+        state.player.housing.missed_payment_streak += 1
     else:
-        state.missed_housing_payments = max(0, state.missed_housing_payments - 1)
+        state.player.housing.missed_payment_streak = max(0, state.player.housing.missed_payment_streak - 1)
 
-    if state.missed_housing_payments <= state.housing_miss_limit:
+    if state.player.housing.missed_payment_streak <= state.housing_miss_limit:
         return
 
     player = state.player
     if (
-        player.current_city_id == "hometown"
+        player.current_city_id == "hometown_low_cost"
         and player.family_support >= state.minimum_parent_fallback_support
         and player.housing_id != "parents"
     ):
-        player.housing_id = "parents"
-        state.missed_housing_payments = 0
+        player.housing.option_id = "parents"
+        player.housing.months_in_place = 0
+        player.housing.missed_payment_streak = 0
         append_log(state, "Housing slipped badly enough that you moved back in with your parents to stabilize.")
         return
     state.game_over_reason = "housing_loss"
@@ -111,19 +112,46 @@ def _update_burnout(state: GameState) -> None:
         state.game_over_reason = "burnout_collapse"
 
 
+def _update_social_and_family_pressure(state: GameState) -> None:
+    if state.player.life_satisfaction <= 35:
+        state.player.social_stability -= 2
+    if state.player.stress >= 75:
+        state.player.social_stability -= 1
+    if state.player.family_support <= 25:
+        state.player.stress += 1
+
+
 def _check_collections(state: GameState) -> None:
     if state.player.debt >= state.debt_game_over_threshold:
         state.game_over_reason = "collections"
 
 
-def _annual_summary(state: GameState) -> None:
-    append_log(
-        state,
-        (
-            f"Year {state.current_year} closed: cash ${state.player.cash}, savings ${state.player.savings}, "
-            f"debt ${state.player.debt}, stress {state.player.stress}, energy {state.player.energy}."
-        ),
-    )
+def _check_academic_collapse(state: GameState) -> None:
+    education = state.player.education
+    if education.failure_streak <= state.academic_failure_streak_limit:
+        return
+    education.is_active = False
+    education.is_paused = True
+    state.player.life_satisfaction -= 4
+    state.player.stress += 5
+    append_log(state, "Academic pressure broke the month badly enough that school shut down for now.")
+    if state.player.career.track_id == "degree_gated_professional":
+        state.game_over_reason = "academic_collapse"
+
+
+def _record_annual_milestone(bundle: ContentBundle, state: GameState) -> None:
+    tier = get_current_career_tier(bundle, state)
+    summary = summarize_milestone(state, career_tier_label=tier.label)
+    summary.summary_lines = [
+        f"Age {summary.age}: net worth {summary.net_worth:+d}.",
+        f"Income ${summary.monthly_income} vs expenses ${summary.monthly_expenses}.",
+        f"Housing: {summary.housing_id.replace('_', ' ')}.",
+        f"Career: {summary.career_track_id.replace('_', ' ')} - {summary.career_tier_label}.",
+        f"Education: {summary.education_program_id.replace('_', ' ')}.",
+        f"Stress {summary.stress}, life satisfaction {summary.life_satisfaction}.",
+    ]
+    state.annual_milestones.append(summary)
+    append_log(state, f"Year {summary.year} closed. You are now age {summary.age}.")
 
 
 def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
@@ -173,6 +201,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     )
     income = current_income(bundle, state, snapshot.income_multiplier * focus.income_multiplier * access_multiplier)
     state.player.cash += income
+    state.player.monthly_income = income
     append_log(state, f"Income from {state.player.career.track_id.replace('_', ' ')}: ${income}")
 
     before_stress = state.player.stress
@@ -189,7 +218,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
 
     before_stress = state.player.stress
     before_energy = state.player.energy
-    education_program = apply_education_effects(bundle, state)
+    apply_education_effects(bundle, state)
     _capture_resource_delta(
         state,
         label="school",
@@ -237,8 +266,9 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     pay_named_cost(state, living, "Living costs")
 
     debt_due = debt_payment_due(bundle, state)
+    debt_paid = 0
     if debt_due:
-        make_debt_payment(state, debt_due)
+        debt_paid = make_debt_payment(state, debt_due)
 
     discretionary = discretionary_spending(bundle, state)
     if discretionary:
@@ -246,7 +276,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
 
     before_stress = state.player.stress
     before_energy = state.player.energy
-    apply_budget_stance(bundle, state, state.player.cash)
+    savings_transfer = apply_budget_stance(bundle, state, state.player.cash)
     _capture_resource_delta(
         state,
         label="budget",
@@ -261,6 +291,8 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     state.player.stress += focus.stress_delta
     state.player.energy += focus.energy_delta
     state.player.life_satisfaction += focus.life_satisfaction_delta
+    state.player.social_stability += focus.social_stability_delta
+    apply_stat_effects(state, focus.stat_effects)
     _capture_resource_delta(
         state,
         label=focus.name.lower(),
@@ -288,20 +320,28 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     maybe_promote(bundle, state)
 
     interest, savings_growth = apply_interest_and_growth(bundle, state)
+    _update_social_and_family_pressure(state)
     clamp_player_state(state)
     _tick_existing_modifiers(state, existing_modifier_tokens)
-    _update_housing_stability(bundle, state, housing_payment.added_to_debt)
+    _update_housing_stability(state, housing_payment.added_to_debt)
     _update_burnout(state)
+    _check_academic_collapse(state)
     _check_collections(state)
 
+    monthly_expenses = housing_cost + transport_cost + living + education_cost + debt_paid + discretionary
+    state.player.monthly_expenses = monthly_expenses
     end_net = net_worth(state)
     state.player.monthly_surplus = end_net - start_net
     state.recent_summary = [
         f"Income ${income}",
+        f"Expenses ${monthly_expenses}",
         f"Housing ${housing_cost}",
         f"Transport ${transport_cost}",
+        f"Education ${education_cost}",
         f"Living ${living}",
-        f"Debt {'payment $' + str(debt_due) if debt_due else 'steady'}",
+        f"Debt {'payment $' + str(debt_paid) if debt_paid else 'steady'}",
+        f"Savings transfer ${savings_transfer}",
+        f"Interest +${interest} / Growth +${savings_growth}",
         f"Month swing {state.player.monthly_surplus:+d}",
         f"Stress {stress_start}->{state.player.stress} ({state.player.stress - stress_start:+d})",
         "Stress drivers: " + (", ".join(stress_parts) if stress_parts else "steady"),
@@ -311,7 +351,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     if state.game_over_reason:
         append_log(state, f"Run ended: {state.game_over_reason.replace('_', ' ')}.")
     elif state.current_month % 12 == 0:
-        _annual_summary(state)
+        _record_annual_milestone(bundle, state)
 
     trim_logs(bundle, state)
     if not state.game_over_reason:

@@ -23,6 +23,10 @@ def build_menu_bar(root: tk.Tk, callbacks: dict[str, object]) -> tk.Menu:
     actions_menu.add_command(label="Resolve Month", command=callbacks["resolve"])
     menu.add_cascade(label="Actions", menu=actions_menu)
 
+    view_menu = tk.Menu(menu, tearoff=False)
+    view_menu.add_command(label="Toggle Large Text", command=callbacks["text_size"])
+    menu.add_cascade(label="View", menu=view_menu)
+
     info_menu = tk.Menu(menu, tearoff=False)
     info_menu.add_command(label="Projected Ending", command=callbacks["score"])
     info_menu.add_command(label="Help", command=callbacks["help"])

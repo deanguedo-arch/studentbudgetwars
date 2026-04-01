@@ -1,35 +1,99 @@
 [
   {
-    "id": "stack_cash",
-    "name": "Stack Cash",
-    "description": "Take the month seriously, work harder, and accept the grind cost.",
+    "id": "overtime",
+    "name": "Overtime",
+    "description": "Push harder this month and accept the grind cost in your body and mood.",
     "income_multiplier": 1.15,
     "promotion_progress_bonus": 1,
     "education_progress_bonus": 0,
-    "stress_delta": 4,
-    "energy_delta": -6,
-    "life_satisfaction_delta": -3
+    "stress_delta": 5,
+    "energy_delta": -7,
+    "life_satisfaction_delta": -3,
+    "social_stability_delta": -1,
+    "stat_effects": {}
   },
   {
-    "id": "push_forward",
-    "name": "Push Forward",
-    "description": "Put pressure on progress now, even if the month gets tighter and uglier.",
-    "income_multiplier": 1.0,
-    "promotion_progress_bonus": 2,
-    "education_progress_bonus": 2,
+    "id": "side_gig",
+    "name": "Side Gig",
+    "description": "Find extra money on the side, but give up time and a little stability to do it.",
+    "income_multiplier": 1.1,
+    "promotion_progress_bonus": 0,
+    "education_progress_bonus": 0,
+    "stress_delta": 3,
+    "energy_delta": -5,
+    "life_satisfaction_delta": -2,
+    "social_stability_delta": -2,
+    "stat_effects": {
+      "cash": 80
+    }
+  },
+  {
+    "id": "promotion_hunt",
+    "name": "Promotion Hunt",
+    "description": "Channel the month toward advancement and live with the extra pressure.",
+    "income_multiplier": 1.02,
+    "promotion_progress_bonus": 3,
+    "education_progress_bonus": 0,
+    "stress_delta": 4,
+    "energy_delta": -4,
+    "life_satisfaction_delta": -1,
+    "social_stability_delta": 0,
+    "stat_effects": {}
+  },
+  {
+    "id": "study_push",
+    "name": "Study Push",
+    "description": "Lean hard into school this month and let everything else get tighter.",
+    "income_multiplier": 0.95,
+    "promotion_progress_bonus": 0,
+    "education_progress_bonus": 3,
     "stress_delta": 3,
     "energy_delta": -4,
-    "life_satisfaction_delta": -1
+    "life_satisfaction_delta": -1,
+    "social_stability_delta": -1,
+    "stat_effects": {}
   },
   {
-    "id": "recover",
-    "name": "Recover",
-    "description": "Take care of yourself this month and accept that growth slows down.",
-    "income_multiplier": 0.92,
+    "id": "recovery_month",
+    "name": "Recovery Month",
+    "description": "Back off the grind, protect your energy, and try not to let the rest of life slide.",
+    "income_multiplier": 0.9,
     "promotion_progress_bonus": 0,
     "education_progress_bonus": 0,
     "stress_delta": -14,
-    "energy_delta": 14,
-    "life_satisfaction_delta": 4
+    "energy_delta": 16,
+    "life_satisfaction_delta": 5,
+    "social_stability_delta": 2,
+    "stat_effects": {}
+  },
+  {
+    "id": "social_maintenance",
+    "name": "Social Maintenance",
+    "description": "Keep your support network alive instead of letting the month hollow you out.",
+    "income_multiplier": 0.97,
+    "promotion_progress_bonus": 0,
+    "education_progress_bonus": 0,
+    "stress_delta": -5,
+    "energy_delta": 2,
+    "life_satisfaction_delta": 4,
+    "social_stability_delta": 5,
+    "stat_effects": {
+      "family_support": 2
+    }
+  },
+  {
+    "id": "move_prep",
+    "name": "Move Prep",
+    "description": "Use the month to stabilize just enough to make a housing or transport switch cleaner.",
+    "income_multiplier": 0.98,
+    "promotion_progress_bonus": 0,
+    "education_progress_bonus": 0,
+    "stress_delta": -2,
+    "energy_delta": 1,
+    "life_satisfaction_delta": 1,
+    "social_stability_delta": 1,
+    "stat_effects": {
+      "cash": -60
+    }
   }
 ]

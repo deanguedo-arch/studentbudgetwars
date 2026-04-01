@@ -22,9 +22,13 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         return False
     if event.eligible_education_ids and player.education.program_id not in event.eligible_education_ids:
         return False
+    if event.eligible_opening_path_ids and player.opening_path_id not in event.eligible_opening_path_ids:
+        return False
     if event.minimum_stress is not None and player.stress < event.minimum_stress:
         return False
     if event.minimum_debt is not None and player.debt < event.minimum_debt:
+        return False
+    if event.maximum_life_satisfaction is not None and player.life_satisfaction > event.maximum_life_satisfaction:
         return False
     return True
 
@@ -37,25 +41,38 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
     weight = float(event.weight)
     housing = get_housing_option(bundle, state.player.housing_id)
     transport = get_transport_option(bundle, state.player.transport_id)
+    city = get_city(bundle, state.player.current_city_id)
+    difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
+
     if event.id == "roommate_conflict":
         weight *= max(0.05, housing.roommate_event_weight)
     if event.id == "car_repair":
         weight *= max(0.05, transport.repair_event_weight)
-    if event.id == "used_car_deal" and transport.access_level >= 3:
+    if event.id == "used_car_window" and transport.access_level >= 3:
         weight *= 0.2
-    if event.id == "scholarship_boost":
+    if event.id == "promotion_window":
+        track = next(track for track in bundle.careers if track.id == state.player.career.track_id)
+        weight *= track.promotion_weight
+    if event.id == "job_layoff":
+        track = next(track for track in bundle.careers if track.id == state.player.career.track_id)
+        weight *= track.layoff_weight
+    if event.id == "scholarship_relief":
         if not state.player.education.is_active:
             weight *= 0.2
-        elif state.player.education.program_id == "college":
-            if state.player.education.college_gpa >= 3.2:
-                weight *= 1.4
-            elif state.player.education.college_gpa < 2.4:
-                weight *= 0.6
+        elif state.player.education.college_gpa >= 3.2:
+            weight *= 1.5
+        elif state.player.education.college_gpa < 2.3:
+            weight *= 0.65
     if event.id == "rent_increase" and housing.id == "solo_rental":
+        weight *= 1.2
+    if event.id == "family_emergency" and city.id == "hometown_low_cost":
         weight *= 1.15
-    if event.id == "family_emergency" and get_city(bundle, state.player.current_city_id).id == "hometown":
-        weight *= 1.1
-    return max(0.05, weight)
+    if event.id == "burnout_month" and state.player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
+        weight *= 1.15
+    if event.id == "side_hustle_window" and state.player.selected_focus_action_id == "side_gig":
+        weight *= 1.35
+
+    return max(0.05, weight * difficulty.event_weight_multiplier)
 
 
 def pick_event(bundle: ContentBundle, state: GameState, rng: Random, excluded_ids: set[str] | None = None) -> EventDefinition | None:

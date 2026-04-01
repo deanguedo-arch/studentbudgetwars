@@ -16,10 +16,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run non-interactive After Grad life-sim batches.")
     parser.add_argument("--preset", default="all", help="Preset id or 'all'.")
     parser.add_argument("--difficulty", default="normal", help="Difficulty id (default: normal).")
-    parser.add_argument("--city", default="hometown", help="City archetype id (default: hometown).")
+    parser.add_argument("--city", default="mid_size_city", help="City archetype id.")
+    parser.add_argument("--academics", default="average", help="Academic level id.")
+    parser.add_argument("--family-support", dest="family_support", default="medium", help="Family support level id.")
+    parser.add_argument("--savings-band", dest="savings_band", default="some", help="Starting savings band id.")
     parser.add_argument("--path", dest="opening_path", default="full_time_work", help="Opening path id.")
     parser.add_argument("--runs", type=int, default=25, help="Runs per preset (default: 25).")
-    parser.add_argument("--policy", default="conservative", choices=sorted(POLICIES), help="Policy name.")
+    parser.add_argument("--policy", default="cautious", choices=sorted(POLICIES), help="Policy name.")
     parser.add_argument("--seed", type=int, default=42, help="Base deterministic seed.")
     parser.add_argument("--output-json", help="Optional aggregate JSON report path.")
     parser.add_argument("--output-csv", help="Optional per-run CSV report path.")
@@ -49,6 +52,9 @@ def main() -> None:
         preset_id=args.preset,
         difficulty_id=args.difficulty,
         city_id=args.city,
+        academic_level_id=args.academics,
+        family_support_level_id=args.family_support,
+        savings_band_id=args.savings_band,
         opening_path_id=args.opening_path,
         runs=args.runs,
         policy_name=args.policy,
