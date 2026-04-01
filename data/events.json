@@ -598,5 +598,435 @@
     },
     "modifier": null,
     "log_entry": "Risk assets took a hit and your aggressive bucket felt it."
+  },
+  {
+    "id": "roommate_missed_bill",
+    "name": "Roommate Missed the Bill",
+    "description": "Your roommate came up short and your own month absorbed the shock.",
+    "weight": 6,
+    "min_month": 4,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [
+      "roommates"
+    ],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": 55,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": 70,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "cash": -220,
+      "stress": 4,
+      "life_satisfaction": -3,
+      "social_stability": -3
+    },
+    "modifier": {
+      "id": "roommate_bill_chaos",
+      "label": "Roommate Bill Chaos",
+      "duration_months": 3,
+      "stat_effects": {
+        "stress": 1,
+        "social_stability": -1
+      },
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 90,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "A roommate missed their share and your month got uglier fast."
+  },
+  {
+    "id": "roommate_moves_out",
+    "name": "Roommate Moves Out",
+    "description": "The place got quieter, but the rent split got a lot worse.",
+    "weight": 4,
+    "min_month": 5,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [
+      "roommates"
+    ],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [
+      "roommate_bill_chaos"
+    ],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": 65,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "stress": 5,
+      "life_satisfaction": -4,
+      "social_stability": -4
+    },
+    "modifier": {
+      "id": "vacancy_rent_pressure",
+      "label": "Vacancy Rent Pressure",
+      "duration_months": 3,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 180,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Your roommate bailed, and suddenly the cheap place stopped being cheap."
+  },
+  {
+    "id": "parent_bailout",
+    "name": "Parent Bailout",
+    "description": "Family stepped in, but it cost some pride and some future goodwill.",
+    "weight": 4,
+    "min_month": 3,
+    "eligible_city_ids": [
+      "hometown_low_cost"
+    ],
+    "eligible_housing_ids": [
+      "parents"
+    ],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": 3500,
+    "minimum_family_support": 60,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "cash": 420,
+      "stress": -3,
+      "family_support": -6,
+      "life_satisfaction": -1
+    },
+    "modifier": null,
+    "log_entry": "Family covered part of the mess, but it used up some of the buffer between you."
+  },
+  {
+    "id": "parent_boundary",
+    "name": "Parent Boundary",
+    "description": "The message was clear: staying home without momentum is no longer free.",
+    "weight": 5,
+    "min_month": 8,
+    "eligible_city_ids": [
+      "hometown_low_cost"
+    ],
+    "eligible_housing_ids": [
+      "parents"
+    ],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [
+      "retail_service",
+      "delivery_gig"
+    ],
+    "eligible_education_ids": [
+      "none"
+    ],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": 55,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": 70,
+    "maximum_life_satisfaction": 70,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "stress": 4,
+      "family_support": -8,
+      "life_satisfaction": -4
+    },
+    "modifier": {
+      "id": "parent_boundary_drag",
+      "label": "Parent Boundary",
+      "duration_months": 3,
+      "stat_effects": {
+        "stress": 1,
+        "life_satisfaction": -1
+      },
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 60,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -1,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Home is still cheaper than rent, but it no longer feels like unconditional support."
+  },
+  {
+    "id": "beater_breakdown",
+    "name": "Beater Breakdown",
+    "description": "The cheap car reminded you why it was cheap.",
+    "weight": 6,
+    "min_month": 3,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [
+      "beater_car"
+    ],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": 60,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "cash": -360,
+      "stress": 5,
+      "life_satisfaction": -2
+    },
+    "modifier": {
+      "id": "vehicle_drag",
+      "label": "Vehicle Drag",
+      "duration_months": 2,
+      "stat_effects": {
+        "stress": 1,
+        "energy": -1
+      },
+      "income_multiplier": 0.94,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 80,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -1,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "The beater broke down and turned access into a problem instead of a benefit."
+  },
+  {
+    "id": "missed_shift_after_breakdown",
+    "name": "Missed Shift After Breakdown",
+    "description": "The transport mess spilled into actual lost work.",
+    "weight": 4,
+    "min_month": 4,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [
+      "beater_car"
+    ],
+    "eligible_career_ids": [
+      "warehouse_logistics",
+      "delivery_gig",
+      "trades_apprenticeship"
+    ],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [
+      "vehicle_drag"
+    ],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "cash": -240,
+      "stress": 3,
+      "promotion_progress": -2
+    },
+    "modifier": null,
+    "log_entry": "One breakdown turned into a missed shift and a worse month than planned."
+  },
+  {
+    "id": "financed_car_insurance_spike",
+    "name": "Financed Car Insurance Spike",
+    "description": "The financed car kept the access, but the monthly trap just got meaner.",
+    "weight": 5,
+    "min_month": 6,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [
+      "financed_car"
+    ],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "stress": 3,
+      "life_satisfaction": -2
+    },
+    "modifier": {
+      "id": "financed_car_trap",
+      "label": "Financed Car Trap",
+      "duration_months": 4,
+      "stat_effects": {
+        "stress": 1
+      },
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 110,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Insurance jumped, and now the financed car feels a lot less clever."
+  },
+  {
+    "id": "sales_hot_streak",
+    "name": "Sales Hot Streak",
+    "description": "Momentum finally showed up in public and this lane felt alive for once.",
+    "weight": 4,
+    "min_month": 6,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": 55,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [
+      "strong",
+      "normal"
+    ],
+    "immediate_effects": {
+      "cash": 260,
+      "promotion_progress": 3,
+      "life_satisfaction": 2,
+      "social_stability": 2
+    },
+    "modifier": {
+      "id": "sales_heat",
+      "label": "Sales Heat",
+      "duration_months": 2,
+      "stat_effects": {
+        "stress": 1
+      },
+      "income_multiplier": 1.08,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 1,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Sales got hot and, for once, your lane felt like upside instead of pressure."
+  },
+  {
+    "id": "sales_cold_streak",
+    "name": "Sales Cold Streak",
+    "description": "The same volatility that creates upside also creates ugly silent months.",
+    "weight": 4,
+    "min_month": 6,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": 55,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": 55,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": 65,
+    "eligible_market_regime_ids": [
+      "weak",
+      "correction",
+      "normal"
+    ],
+    "immediate_effects": {
+      "cash": -180,
+      "stress": 4,
+      "promotion_progress": -2,
+      "life_satisfaction": -3
+    },
+    "modifier": {
+      "id": "sales_slump",
+      "label": "Sales Slump",
+      "duration_months": 2,
+      "stat_effects": {
+        "stress": 1
+      },
+      "income_multiplier": 0.93,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -1,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Sales went cold and reminded you how thin the floor is in this lane."
   }
 ]

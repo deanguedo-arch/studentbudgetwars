@@ -160,6 +160,7 @@ class MainWindow(tk.Frame):
                 ("Housing", self.change_housing),
                 ("Transport", self.change_transport),
                 ("Budget", self.change_budget),
+                ("Wealth", self.change_wealth),
                 ("Focus", self.change_focus),
                 ("Resolve Month", self.resolve_month),
                 ("Save", self.save_game),
@@ -178,6 +179,7 @@ class MainWindow(tk.Frame):
                     "housing": self.change_housing,
                     "transport": self.change_transport,
                     "budget": self.change_budget,
+                    "wealth": self.change_wealth,
                     "focus": self.change_focus,
                     "resolve": self.resolve_month,
                     "text_size": self.toggle_large_text,
@@ -222,6 +224,7 @@ class MainWindow(tk.Frame):
         city = next(item for item in self.controller.bundle.cities if item.id == player.current_city_id)
         stance = next(item for item in self.controller.bundle.config.budget_stances if item.id == player.budget_stance_id)
         focus = next(item for item in self.controller.bundle.focus_actions if item.id == player.selected_focus_action_id)
+        wealth = next(item for item in self.controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
         return [
             f"Name: {player.name}",
             f"City: {city.name}",
@@ -252,11 +255,14 @@ class MainWindow(tk.Frame):
             f"Transport: {transport.name}",
             f"Transport Reliability: {player.transport.reliability_score}",
             f"Budget: {stance.name}",
+            f"Wealth: {wealth.name}",
             f"Focus: {focus.name}",
         ]
 
     def _outlook_lines(self) -> list[str]:
         outlook = self.controller.build_month_outlook()
+        if self.controller.state.month_driver_notes:
+            outlook = outlook + ["", "Why This Month Changed:"] + self.controller.state.month_driver_notes
         summary = self.controller.state.recent_summary
         if summary:
             outlook = outlook + ["", "Last Month Summary:"] + summary
@@ -267,6 +273,7 @@ class MainWindow(tk.Frame):
         player = state.player
         housing = next(item for item in self.controller.bundle.housing_options if item.id == player.housing_id)
         transport = next(item for item in self.controller.bundle.transport_options if item.id == player.transport_id)
+        wealth = next(item for item in self.controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
         modifiers = ", ".join(f"{modifier.label} ({modifier.remaining_months})" for modifier in state.active_modifiers) or "None"
         warnings = self.controller.build_crisis_warnings()
         return [
@@ -294,6 +301,7 @@ class MainWindow(tk.Frame):
             f"School Failure Streak: {player.education.failure_streak}/{state.academic_failure_streak_limit}",
             f"Transport Reliability: {player.transport.reliability_score}/100",
             f"Market Regime: {state.current_market_regime_id.replace('_', ' ').title()}",
+            f"Wealth Strategy: {wealth.name}",
             "",
             "Active Modifiers:",
             modifiers,
@@ -406,6 +414,12 @@ class MainWindow(tk.Frame):
         if chosen:
             self._run_action(lambda: self.controller.change_budget_stance(chosen))
 
+    def change_wealth(self) -> None:
+        options = [(strategy.name, strategy.id, strategy.description) for strategy in self.controller.available_wealth_strategies()]
+        chosen = self._choose("Wealth Strategy", "Choose how you want extra money to behave each month:", options)
+        if chosen:
+            self._run_action(lambda: self.controller.change_wealth_strategy(chosen))
+
     def change_focus(self) -> None:
         options = [(focus.name, focus.id, focus.description) for focus in self.controller.available_focus_actions()]
         chosen = self._choose("Focus", "Choose this month's focus:", options)
@@ -436,6 +450,7 @@ class MainWindow(tk.Frame):
             "How To Play",
             "Each turn is one month.\n\n"
             "Your persistent setup is your career lane, education plan, housing, transport, and budget stance.\n"
+            "You also control a separate wealth strategy for liquidity, debt paydown, and investing posture.\n"
             "Pick one monthly focus, then resolve the month and react to the pressure that follows.\n\n"
             "The goal is not just cash. Reach age 28 in the strongest life position you can build.",
         )

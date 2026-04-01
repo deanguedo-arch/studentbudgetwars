@@ -10,6 +10,7 @@ from .content import (
     ModifierTemplate,
     PresetDefinition,
     TransportOptionDefinition,
+    WealthStrategyDefinition,
 )
 from .core import (
     AcademicLevelDefinition,
@@ -68,4 +69,5 @@ __all__ = [
     "ScoringWeights",
     "TransportOptionDefinition",
     "TransportState",
+    "WealthStrategyDefinition",
 ]

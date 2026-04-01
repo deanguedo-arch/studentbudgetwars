@@ -56,6 +56,7 @@ class OpeningPathDefinition(BaseModel):
     starting_housing_id: str
     starting_transport_id: str
     starting_budget_stance_id: str
+    starting_wealth_strategy_id: str
     starting_focus_action_id: str
     cash_delta: int = 0
     savings_delta: int = 0

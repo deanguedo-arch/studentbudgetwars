@@ -10,6 +10,7 @@ from .lookups import get_city, get_housing_option, get_transport_option
 
 def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefinition) -> bool:
     player = state.player
+    active_modifier_ids = {modifier.id for modifier in state.active_modifiers}
     if state.current_month < event.min_month:
         return False
     if event.eligible_city_ids and player.current_city_id not in event.eligible_city_ids:
@@ -23,6 +24,8 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
     if event.eligible_education_ids and player.education.program_id not in event.eligible_education_ids:
         return False
     if event.eligible_opening_path_ids and player.opening_path_id not in event.eligible_opening_path_ids:
+        return False
+    if event.eligible_modifier_ids and not set(event.eligible_modifier_ids).issubset(active_modifier_ids):
         return False
     if event.minimum_stress is not None and player.stress < event.minimum_stress:
         return False
@@ -60,8 +63,16 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
 
     if event.id == "roommate_conflict":
         weight *= max(0.05, housing.roommate_event_weight)
+    if event.id == "roommate_missed_bill":
+        weight *= max(0.05, housing.roommate_event_weight)
+    if event.id == "roommate_moves_out":
+        weight *= max(0.05, housing.roommate_event_weight * 0.9)
     if event.id == "car_repair":
         weight *= max(0.05, transport.repair_event_weight)
+    if event.id == "beater_breakdown":
+        weight *= max(0.05, transport.repair_event_weight * 1.15)
+    if event.id == "missed_shift_after_breakdown":
+        weight *= max(0.05, transport.repair_event_weight * 0.8)
     if event.id == "used_car_window" and transport.access_level >= 3:
         weight *= 0.2
     if event.id == "promotion_window":
@@ -83,6 +94,10 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         weight *= 1.15
     if event.id == "family_emergency" and state.player.family_support <= 35:
         weight *= 1.25
+    if event.id == "parent_bailout":
+        weight *= 1.1 if state.player.family_support >= 70 else 0.9
+    if event.id == "parent_boundary":
+        weight *= 1.2 if state.player.career.recent_performance_tag == "downtrend" else 1.0
     if event.id == "burnout_month" and state.player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
         weight *= 1.15
     if event.id == "burnout_month" and state.player.career.transition_penalty_months > 0:
@@ -104,6 +119,12 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
     if event.id == "economic_downturn" and state.current_market_regime_id in {"weak", "correction"}:
         weight *= 1.25
     if event.id == "scholarship_relief" and state.player.education.education_momentum >= 60:
+        weight *= 1.2
+    if event.id == "sales_hot_streak" and state.player.career.recent_performance_tag == "uptrend":
+        weight *= 1.3
+    if event.id == "sales_cold_streak" and state.player.career.recent_performance_tag == "downtrend":
+        weight *= 1.35
+    if event.id == "financed_car_insurance_spike" and state.player.monthly_surplus < 0:
         weight *= 1.2
 
     return max(0.05, weight * difficulty.event_weight_multiplier)

@@ -19,6 +19,7 @@ from budgetwars.models import (
     PresetDefinition,
     ScoringWeights,
     TransportOptionDefinition,
+    WealthStrategyDefinition,
 )
 
 from .validators import validate_content_bundle
@@ -51,6 +52,7 @@ def load_content_bundle(data_dir: Path) -> ContentBundle:
         housing_options=_load_model_list(data_dir / "housing.json", HousingOptionDefinition),
         transport_options=_load_model_list(data_dir / "transport.json", TransportOptionDefinition),
         focus_actions=_load_model_list(data_dir / "focus_actions.json", FocusActionDefinition),
+        wealth_strategies=_load_model_list(data_dir / "wealth_strategies.json", WealthStrategyDefinition),
         events=_load_model_list(data_dir / "events.json", EventDefinition),
         presets=_load_model_list(data_dir / "presets.json", PresetDefinition),
     )

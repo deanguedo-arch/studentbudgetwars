@@ -64,13 +64,19 @@ def test_education_reentry_has_friction(controller_factory):
     assert state.player.stress >= start_stress
 
 
+def test_wealth_strategy_is_player_controlled(controller_factory):
+    controller = controller_factory()
+    controller.change_wealth_strategy("market_chaser")
+    assert controller.state.player.wealth_strategy_id == "market_chaser"
+
+
 def test_wealth_allocation_and_returns_apply(bundle, controller_factory):
     controller = controller_factory()
     state = controller.state
     state.player.cash = 3000
-    state.player.budget_stance_id = "quality_of_life"
+    state.player.wealth_strategy_id = "market_chaser"
     allocation = apply_wealth_allocations(bundle, state)
-    assert allocation["index"] > 0 or allocation["growth"] > 0 or allocation["safe"] > 0
+    assert allocation["index"] > 0 or allocation["growth"] > 0
     before_total = state.player.high_interest_savings + state.player.index_fund + state.player.aggressive_growth_fund
     apply_wealth_returns(bundle, state, Random(99))
     after_total = state.player.high_interest_savings + state.player.index_fund + state.player.aggressive_growth_fund
@@ -85,6 +91,32 @@ def test_market_regime_event_targeting(bundle, controller_factory):
     events = eligible_events(bundle, state)
     ids = {event.id for event in events}
     assert "market_correction_shock" in ids
+
+
+def test_modifier_gated_event_chain_targets_follow_up(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    state = controller.state
+    state.current_month = 8
+    state.player.housing.option_id = "roommates"
+    state.player.housing.housing_stability = 50
+    state.active_modifiers.append(
+        ActiveMonthlyModifier(id="roommate_bill_chaos", label="Roommate Bill Chaos", remaining_months=2)
+    )
+    ids = {event.id for event in eligible_events(bundle, state)}
+    assert "roommate_moves_out" in ids
+
+
+def test_month_driver_notes_surface_real_causes(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    state = controller.state
+    state.player.transport.option_id = "financed_car"
+    state.player.transport.reliability_score = 40
+    state.player.housing.housing_stability = 38
+    state.player.wealth_strategy_id = "market_chaser"
+    resolve_month(bundle, state, controller.rng)
+    assert state.month_driver_notes
+    combined = " ".join(state.month_driver_notes).lower()
+    assert "transport" in combined or "housing" in combined or "market" in combined
 
 
 def test_stacked_drag_preserves_game_over_logic(bundle, controller_factory):

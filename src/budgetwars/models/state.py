@@ -103,6 +103,7 @@ class PlayerState(BaseModel):
     academic_strength: int = Field(ge=0, le=100)
     current_city_id: str
     budget_stance_id: str
+    wealth_strategy_id: str
     opening_path_id: str
     selected_focus_action_id: str
     career: CareerState
@@ -153,6 +154,7 @@ class GameState(BaseModel):
     burnout_streak: int = Field(ge=0, default=0)
     log_messages: list[str] = Field(default_factory=list)
     recent_summary: list[str] = Field(default_factory=list)
+    month_driver_notes: list[str] = Field(default_factory=list)
     annual_milestones: list[AnnualMilestoneSummary] = Field(default_factory=list)
     game_over_reason: str | None = None
 

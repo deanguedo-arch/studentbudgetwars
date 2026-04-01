@@ -181,6 +181,48 @@ def _record_annual_milestone(bundle: ContentBundle, state: GameState) -> None:
     append_log(state, f"Year {summary.year} closed. You are now age {summary.age}.")
 
 
+def _build_month_driver_notes(
+    state: GameState,
+    *,
+    regime_name: str,
+    housing_cost: int,
+    transport_cost: int,
+    education_cost: int,
+    wealth_allocations: dict[str, int],
+) -> list[str]:
+    notes: list[str] = []
+    player = state.player
+    if player.career.transition_penalty_months > 0:
+        notes.append("Career transition drag is still cutting reliability and slowing momentum.")
+    if player.education.reentry_drag_months > 0:
+        notes.append("School re-entry drag is still making education progress heavier than usual.")
+    if player.housing.housing_stability <= 45:
+        notes.append("Housing instability is leaking into stress and overall life consistency.")
+    if player.transport.reliability_score <= 45:
+        notes.append("Transport reliability is now turning normal months into scramble months.")
+    if housing_cost >= max(transport_cost * 2, 900):
+        notes.append("Housing is one of the biggest forces shaping your monthly margin right now.")
+    if transport_cost >= 400:
+        notes.append("Transport ownership is eating a meaningful chunk of your monthly cash flow.")
+    if education_cost >= 300 and player.education.is_active:
+        notes.append("Education cost is buying long-term upside, but it is squeezing the present.")
+    if wealth_allocations["growth"] > 0 or wealth_allocations["index"] > 0:
+        notes.append(f"{regime_name} market conditions are now affecting your life through invested money.")
+    if player.housing_id == "parents" and player.family_support <= state.minimum_parent_fallback_support + 10:
+        notes.append("Staying home is still saving money, but the family buffer is starting to wear thin.")
+    if player.housing_id == "roommates" and player.social_stability <= 45:
+        notes.append("Roommate living is amplifying instability because your social footing is weak.")
+    if player.transport_id == "financed_car" and player.monthly_surplus < 0:
+        notes.append("The financed car is acting like a debt trap instead of a mobility win.")
+    if player.career.track_id == "sales" and player.career.promotion_momentum >= 65:
+        notes.append("Sales momentum is compounding. Good months are opening more upside.")
+    if player.career.track_id == "warehouse_logistics" and player.energy <= 30:
+        notes.append("Warehouse fatigue is now affecting the rest of your life, not just the job.")
+    if player.social_stability <= 35:
+        notes.append("Low social stability is making recovery and performance less reliable.")
+    return notes[:5]
+
+
 def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     if state.game_over_reason or state.current_month > state.total_months:
         return
@@ -195,6 +237,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     energy_parts: list[str] = []
     existing_modifier_tokens = {id(modifier) for modifier in state.active_modifiers}
     state.recent_summary = []
+    state.month_driver_notes = []
     append_log(state, f"--- Month {state.current_month} / Year {state.current_year} (Age {state.current_age}) ---")
 
     state.player.energy += bundle.config.baseline_monthly_energy_recovery
@@ -364,6 +407,14 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     state.player.monthly_surplus = end_net - start_net
     _update_momentum_and_drag(state)
     clamp_player_state(state)
+    state.month_driver_notes = _build_month_driver_notes(
+        state,
+        regime_name=regime_name,
+        housing_cost=housing_cost,
+        transport_cost=transport_cost,
+        education_cost=education_cost,
+        wealth_allocations=wealth_allocations,
+    )
     state.recent_summary = [
         f"Income ${income}",
         f"Expenses ${monthly_expenses}",

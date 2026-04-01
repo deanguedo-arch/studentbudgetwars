@@ -55,6 +55,7 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     _ensure_unique_ids(bundle.housing_options, "housing")
     _ensure_unique_ids(bundle.transport_options, "transport")
     _ensure_unique_ids(bundle.focus_actions, "focus action")
+    _ensure_unique_ids(bundle.wealth_strategies, "wealth strategy")
     _ensure_unique_ids(bundle.events, "event")
     _ensure_unique_ids(bundle.presets, "preset")
 
@@ -75,6 +76,7 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     opening_path_ids = {path.id for path in bundle.config.opening_paths}
     budget_stance_ids = {stance.id for stance in bundle.config.budget_stances}
     focus_action_ids = {focus.id for focus in bundle.focus_actions}
+    wealth_strategy_ids = {strategy.id for strategy in bundle.wealth_strategies}
     credential_ids = {program.credential_id for program in bundle.education_programs if program.credential_id}
 
     if not isclose(sum(bundle.scoring_weights.model_dump().values()), 1.0, abs_tol=1e-9):
@@ -155,6 +157,10 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(
                 f"Opening path '{opening_path.id}' references unknown focus action '{opening_path.starting_focus_action_id}'"
             )
+        if opening_path.starting_wealth_strategy_id not in wealth_strategy_ids:
+            raise ValueError(
+                f"Opening path '{opening_path.id}' references unknown wealth strategy '{opening_path.starting_wealth_strategy_id}'"
+            )
 
     for event in bundle.events:
         _validate_effects(event.immediate_effects, f"Event '{event.id}'")
@@ -172,6 +178,10 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Event '{event.id}' references unknown education ids")
         if sorted(set(event.eligible_opening_path_ids) - opening_path_ids):
             raise ValueError(f"Event '{event.id}' references unknown opening paths")
+        if event.eligible_modifier_ids:
+            modifier_ids = {entry.modifier.id for entry in bundle.events if entry.modifier is not None}
+            if sorted(set(event.eligible_modifier_ids) - modifier_ids):
+                raise ValueError(f"Event '{event.id}' references unknown modifier ids")
         if event.eligible_market_regime_ids:
             valid_regime_ids = {regime.id for regime in bundle.config.market_regimes}
             if sorted(set(event.eligible_market_regime_ids) - valid_regime_ids):
@@ -191,6 +201,16 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
         )
         if allocation_total > 1.0:
             raise ValueError(f"Budget stance '{stance.id}' allocates more than 100% of available cash")
+
+    for strategy in bundle.wealth_strategies:
+        allocation_total = (
+            strategy.safe_savings_rate
+            + strategy.index_invest_rate
+            + strategy.growth_invest_rate
+            + strategy.extra_debt_payment_rate
+        )
+        if allocation_total > 1.0:
+            raise ValueError(f"Wealth strategy '{strategy.id}' allocates more than 100% of available cash")
 
     for preset in bundle.presets:
         if preset.starting_energy > bundle.config.max_energy:

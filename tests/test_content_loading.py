@@ -13,7 +13,8 @@ def test_content_bundle_loads_expected_v2_sets(bundle):
     assert len(bundle.housing_options) == 4
     assert len(bundle.transport_options) == 6
     assert len(bundle.focus_actions) == 7
-    assert 12 <= len(bundle.events) <= 16
+    assert len(bundle.wealth_strategies) == 4
+    assert 24 <= len(bundle.events) <= 28
     assert len(bundle.presets) == 7
     assert len(bundle.config.opening_paths) == 6
     assert len(bundle.config.budget_stances) == 4
@@ -52,4 +53,11 @@ def test_invalid_budget_allocation_total_fails_validation(bundle):
     broken.config.budget_stances[0].safe_savings_rate = 0.7
     broken.config.budget_stances[0].index_invest_rate = 0.4
     with pytest.raises(ValueError, match="allocates more than 100%"):
+        validate_content_bundle(broken)
+
+
+def test_invalid_event_modifier_reference_fails_validation(bundle):
+    broken = bundle.model_copy(deep=True)
+    broken.events[0].eligible_modifier_ids = ["missing_modifier"]
+    with pytest.raises(ValueError, match="modifier ids"):
         validate_content_bundle(broken)

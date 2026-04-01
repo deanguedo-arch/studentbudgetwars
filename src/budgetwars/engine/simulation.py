@@ -41,6 +41,12 @@ class SimulationRunResult:
 
 def cautious_policy(controller: GameController) -> None:
     state = controller.state
+    if state.player.wealth_strategy_id != "cushion_first" and (
+        state.player.debt > 12000 or state.player.cash + state.player.savings < 600
+    ):
+        controller.change_wealth_strategy("cushion_first")
+    elif state.player.wealth_strategy_id != "debt_crusher" and state.player.debt > 18000:
+        controller.change_wealth_strategy("debt_crusher")
     if state.player.stress >= 70 or state.player.energy <= 30:
         if state.player.selected_focus_action_id != "recovery_month":
             controller.change_focus_action("recovery_month")
@@ -97,6 +103,10 @@ def cautious_policy(controller: GameController) -> None:
 
 def ambitious_policy(controller: GameController) -> None:
     state = controller.state
+    if state.player.wealth_strategy_id != "market_chaser" and state.player.debt < 8000 and state.player.cash > 700:
+        controller.change_wealth_strategy("market_chaser")
+    elif state.player.debt > 20000 and state.player.wealth_strategy_id != "debt_crusher":
+        controller.change_wealth_strategy("debt_crusher")
     if state.player.stress >= 82 or state.player.energy <= 20:
         if state.player.selected_focus_action_id != "recovery_month":
             controller.change_focus_action("recovery_month")
