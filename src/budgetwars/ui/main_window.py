@@ -230,12 +230,15 @@ class MainWindow(tk.Frame):
             f"Career: {career_track.name}",
             f"Tier: {current_tier.label}",
             f"Promotion Progress: {player.career.promotion_progress}",
+            f"Career Momentum: {player.career.promotion_momentum}",
+            f"Transition Drag: {player.career.transition_penalty_months}m",
             "",
             f"Education: {education.name}",
             f"Active: {'Yes' if player.education.is_active else 'No'}",
             f"Paused: {'Yes' if player.education.is_paused else 'No'}",
             f"Progress: {player.education.months_completed}/{education.duration_months or 0}",
             f"Standing: {player.education.standing}",
+            f"Edu Momentum: {player.education.education_momentum}",
             (
                 f"GPA: {player.education.college_gpa:.2f}"
                 if education.uses_gpa
@@ -245,7 +248,9 @@ class MainWindow(tk.Frame):
             "",
             f"Housing: {housing.name}",
             f"Months There: {player.housing.months_in_place}",
+            f"Housing Stability: {player.housing.housing_stability}",
             f"Transport: {transport.name}",
+            f"Transport Reliability: {player.transport.reliability_score}",
             f"Budget: {stance.name}",
             f"Focus: {focus.name}",
         ]
@@ -267,6 +272,9 @@ class MainWindow(tk.Frame):
         return [
             f"Cash: ${player.cash}",
             f"Savings: ${player.savings}",
+            f"High-Interest: ${player.high_interest_savings}",
+            f"Index Fund: ${player.index_fund}",
+            f"Growth Fund: ${player.aggressive_growth_fund}",
             f"Debt: ${player.debt}",
             f"Income: ${player.monthly_income}",
             f"Expenses: ${player.monthly_expenses}",
@@ -281,8 +289,11 @@ class MainWindow(tk.Frame):
             f"Housing Quality: {housing.quality_score}",
             f"Transport Access: {transport.access_level}",
             f"Housing Risk: {player.housing.missed_payment_streak}/{state.housing_miss_limit}",
+            f"Housing Stability: {player.housing.housing_stability}/100",
             f"Burnout Streak: {state.burnout_streak}/{state.burnout_streak_limit}",
             f"School Failure Streak: {player.education.failure_streak}/{state.academic_failure_streak_limit}",
+            f"Transport Reliability: {player.transport.reliability_score}/100",
+            f"Market Regime: {state.current_market_regime_id.replace('_', ' ').title()}",
             "",
             "Active Modifiers:",
             modifiers,
@@ -353,7 +364,12 @@ class MainWindow(tk.Frame):
         self._after_action()
 
     def change_career(self) -> None:
-        options = [(track.name, track.id, track.description) for track in self.controller.available_careers()]
+        options: list[tuple[str, str, str]] = []
+        for name, track_id, allowed, reason in self.controller.career_entry_statuses():
+            if not allowed:
+                continue
+            description = next(track.description for track in self.controller.bundle.careers if track.id == track_id)
+            options.append((name, track_id, description))
         chosen = self._choose("Career", "Choose your career lane:", options)
         if chosen:
             self._run_action(lambda: self.controller.change_career(chosen))

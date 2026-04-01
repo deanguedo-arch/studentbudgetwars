@@ -24,6 +24,7 @@ from .lookups import (
     get_opening_path,
     get_preset,
     get_savings_band,
+    get_transport_option,
 )
 
 
@@ -95,6 +96,9 @@ def build_new_game_state(
         name=player_name,
         cash=max(0, starting_cash),
         savings=max(0, starting_savings),
+        high_interest_savings=0,
+        index_fund=0,
+        aggressive_growth_fund=0,
         debt=max(0, starting_debt),
         monthly_income=0,
         monthly_expenses=0,
@@ -139,8 +143,13 @@ def build_new_game_state(
         housing_miss_limit=bundle.config.housing_miss_limit,
         minimum_parent_fallback_support=bundle.config.minimum_parent_fallback_support,
         academic_failure_streak_limit=bundle.config.academic_failure_streak_limit,
+        current_market_regime_id=bundle.config.default_market_regime_id,
         player=player,
     )
+    starting_housing = get_housing_option(bundle, housing_id)
+    starting_transport = get_transport_option(bundle, opening_path.starting_transport_id)
+    state.player.housing.housing_stability = starting_housing.quality_score
+    state.player.transport.reliability_score = int(round(starting_transport.reliability * 100))
     clamp_player_state(state)
     append_logs(
         state,

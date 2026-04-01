@@ -1,38 +1,28 @@
 # Active Handoff
 
 ## Current State
-- Branch: `after-grad-life-sim-v2`
-- Status: the repo now runs on the expanded monthly after-grad life-sim branch built from current `main`, not from the old market prototype.
+- Branch: `after-grad-consequence-depth-pass`
+- Status: consequence-depth pass in progress on top of current `main` monthly after-grad runtime.
 - Validation status: `tools/validate_data.py` targets the v2 content bundle.
-- Test status: `25 passed`.
+- Test status: pending final pass run after consequence-depth edits.
 
 ## What Landed In This Pass
-- Expanded setup flow:
-  - preset
-  - city archetype
-  - academics level
-  - family support level
-  - starting savings band
-  - opening path
-  - difficulty
-- Broader monthly engine:
-  - explicit monthly income, expenses, and surplus
-  - nested housing and transport runtime state
-  - broader career roster with distinct logic
-  - broader education roster with GPA or pass-state gating
-  - broader budget stances and focus actions
-  - contextual event roster with carryover modifiers
-  - annual milestone summaries
-  - crisis warning generation
-  - expanded ending labels and scoring
-- Tkinter shell widened to support the fuller state:
-  - setup modals for all startup steps
-  - life setup panel
-  - month outlook panel
-  - finances/progress/pressure panel
-  - milestone dialog
-  - clearer end-state dialog
-- Simulation tooling widened to support the broader setup variables.
+- Career consequence deepening:
+  - switch friction costs and transition drag
+  - track-specific promotion blockers
+  - promotion momentum + performance trend tags
+- Housing/transport consequence deepening:
+  - housing stability and move-instability penalties
+  - transport reliability score and switch friction
+- Education re-entry friction:
+  - late re-entry cash/stress cost and temporary progress drag
+- Financial consequence layer:
+  - wealth allocation each month (safe/index/growth/debt)
+  - market regimes with monthly return variance
+- Contextual pressure events:
+  - added family/social/market-shock events tied to path state
+- UI visibility upgrades:
+  - trajectory lines for momentum, housing stability, transport reliability, and market regime
 
 ## Key Runtime Shape
 - `1 turn = 1 month`
@@ -82,15 +72,12 @@
   - `data/balance/*.json`
 
 ## Known Limits
-- Balance is broader, but not finished.
-- Setup is now fuller and more expressive, but it needs feel-testing for speed.
-- The monthly loop is stronger, but event writing and distinct city personality can still sharpen a lot.
-- Social stability is intentionally lightweight and should stay that way unless a future pass can make it genuinely matter.
+- Social context is still lightweight and event-driven (by design), not a deep relationship sim.
+- Investing is broad-bucket based; no manual portfolio micro-control yet.
+- Some track identity still relies on rules in code rather than fully data-authored gating tables.
 
 ## Recommended Next Pass
-- Do a balance-and-feel pass, not another scope expansion:
-  - tighten early-game pressure across presets and opening paths
-  - sharpen city identity in the first 12 months
-  - improve crisis presentation tone and visibility
-  - tune transport trap severity, especially financed car and beater paths
-  - use simulation to find clearly dominant or dead-end setups
+- Balance audit pass driven by simulation evidence:
+  - verify no single debt-invest strategy dominates
+  - tune financed-car and late-school re-entry trap severity
+  - calibrate career switch friction so pivots are meaningful but still viable

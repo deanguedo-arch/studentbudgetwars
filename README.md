@@ -9,6 +9,7 @@ You start right after graduation, choose the shape of your starting life, then s
 - transport pressure
 - education choices
 - debt and savings
+- wealth allocation (cash vs safe savings vs index vs aggressive growth)
 - burnout risk
 - a small set of concrete life events
 
@@ -36,6 +37,8 @@ Money matters heavily, but the game does not score on cash alone. Your ending we
   - housing
   - transport
   - budget stance
+  - consequence momentum and transition drag
+  - market regime + investing buckets
 - Monthly focus actions:
   - `Overtime`
   - `Side Gig`
@@ -78,6 +81,7 @@ Money matters heavily, but the game does not score on cash alone. Your ending we
 
 College and university lanes track a real GPA that can open or block higher white-collar lanes.
 Trades and certificate lanes use pass-state and credentials instead of GPA.
+Switching career, housing, transport, and late school re-entry now carries explicit friction so early decisions echo into later years.
 
 ## Install
 

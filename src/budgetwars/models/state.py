@@ -13,12 +13,17 @@ class HousingState(BaseModel):
     months_in_place: int = Field(ge=0, default=0)
     missed_payment_streak: int = Field(ge=0, default=0)
     move_pressure: int = Field(ge=0, default=0)
+    housing_stability: int = Field(ge=0, le=100, default=60)
+    recent_move_penalty_months: int = Field(ge=0, default=0)
 
 
 class TransportState(BaseModel):
     option_id: str
     months_owned: int = Field(ge=0, default=0)
     breakdown_pressure: int = Field(ge=0, default=0)
+    reliability_score: int = Field(ge=0, le=100, default=70)
+    recent_repair_flag: bool = False
+    recent_switch_penalty_months: int = Field(ge=0, default=0)
 
 
 class CareerState(BaseModel):
@@ -27,6 +32,9 @@ class CareerState(BaseModel):
     months_in_track: int = Field(ge=0, default=0)
     promotion_progress: int = Field(ge=0, default=0)
     layoff_pressure: int = Field(ge=0, default=0)
+    promotion_momentum: int = Field(ge=0, le=100, default=45)
+    transition_penalty_months: int = Field(ge=0, default=0)
+    recent_performance_tag: str = "steady"
 
 
 class EducationState(BaseModel):
@@ -40,6 +48,8 @@ class EducationState(BaseModel):
     failure_streak: int = Field(ge=0, default=0)
     completed_program_ids: list[str] = Field(default_factory=list)
     earned_credential_ids: list[str] = Field(default_factory=list)
+    reentry_drag_months: int = Field(ge=0, default=0)
+    education_momentum: int = Field(ge=0, le=100, default=45)
 
 
 class ActiveMonthlyModifier(BaseModel):
@@ -78,6 +88,9 @@ class PlayerState(BaseModel):
     name: str
     cash: int
     savings: int
+    high_interest_savings: int = 0
+    index_fund: int = 0
+    aggressive_growth_fund: int = 0
     debt: int
     monthly_income: int = 0
     monthly_expenses: int = 0
@@ -134,6 +147,7 @@ class GameState(BaseModel):
     housing_miss_limit: int = Field(gt=0)
     minimum_parent_fallback_support: int = Field(ge=0)
     academic_failure_streak_limit: int = Field(gt=0)
+    current_market_regime_id: str
     player: PlayerState
     active_modifiers: list[ActiveMonthlyModifier] = Field(default_factory=list)
     burnout_streak: int = Field(ge=0, default=0)
@@ -172,7 +186,7 @@ class FinalScoreSummary(BaseModel):
 
 
 class SaveGamePayload(BaseModel):
-    version: int = 5
+    version: int = 6
     state: GameState
 
 

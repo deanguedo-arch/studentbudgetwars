@@ -50,6 +50,10 @@ class CareerTrackDefinition(BaseModel):
     social_income_factor: float = Field(ge=0, le=0.05, default=0.0)
     layoff_weight: float = Field(ge=0.1, default=1.0)
     promotion_weight: float = Field(ge=0.1, default=1.0)
+    stability_profile: int = Field(ge=0, le=100, default=50)
+    volatility_profile: int = Field(ge=0, le=100, default=50)
+    transport_sensitivity: int = Field(ge=0, le=100, default=50)
+    city_sensitivity: int = Field(ge=0, le=100, default=50)
     tiers: list[CareerTierDefinition]
 
 
@@ -83,6 +87,8 @@ class HousingOptionDefinition(BaseModel):
     roommate_event_weight: float = Field(ge=0)
     quality_score: int = Field(ge=0, le=100)
     flexibility_score: int = Field(ge=0, le=100, default=50)
+    recovery_score: int = Field(ge=0, le=100, default=50)
+    study_compatibility: int = Field(ge=0, le=100, default=50)
     requires_hometown: bool = False
     minimum_family_support: int = Field(ge=0, default=0)
     student_only: bool = False
@@ -102,6 +108,8 @@ class TransportOptionDefinition(BaseModel):
     reliability: float = Field(ge=0, le=1)
     breakdown_risk: float = Field(ge=0, le=1, default=0.0)
     repair_event_weight: float = Field(ge=0)
+    odd_hour_access: int = Field(ge=0, le=100, default=50)
+    liquidity_pressure: int = Field(ge=0, le=100, default=50)
     quality_score: int = Field(ge=0, le=100)
 
 
@@ -148,7 +156,14 @@ class EventDefinition(BaseModel):
     eligible_opening_path_ids: list[str] = Field(default_factory=list)
     minimum_stress: int | None = Field(default=None, ge=0)
     minimum_debt: int | None = Field(default=None, ge=0)
+    minimum_family_support: int | None = Field(default=None, ge=0)
+    maximum_family_support: int | None = Field(default=None, ge=0)
+    minimum_social_stability: int | None = Field(default=None, ge=0)
+    maximum_social_stability: int | None = Field(default=None, ge=0)
+    maximum_transport_reliability: int | None = Field(default=None, ge=0, le=100)
+    maximum_housing_stability: int | None = Field(default=None, ge=0, le=100)
     maximum_life_satisfaction: int | None = Field(default=None, ge=0, le=100)
+    eligible_market_regime_ids: list[str] = Field(default_factory=list)
     immediate_effects: StatEffects = Field(default_factory=dict)
     modifier: ModifierTemplate | None = None
     log_entry: str | None = None

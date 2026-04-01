@@ -27,6 +27,9 @@ class SimulationRunResult:
     game_over_reason: str | None
     ending_cash: int
     ending_savings: int
+    ending_high_interest_savings: int
+    ending_index_fund: int
+    ending_growth_fund: int
     ending_debt: int
     ending_stress: int
     ending_energy: int
@@ -56,6 +59,12 @@ def cautious_policy(controller: GameController) -> None:
             controller.change_budget_stance("survival")
     elif state.player.budget_stance_id != "balanced":
         controller.change_budget_stance("balanced")
+
+    if state.player.transport.reliability_score < 45 and state.player.transport_id == "beater_car":
+        try:
+            controller.change_transport("transit")
+        except ValueError:
+            pass
 
     if (
         state.player.current_city_id == "hometown_low_cost"
@@ -128,6 +137,16 @@ def ambitious_policy(controller: GameController) -> None:
                 break
             except ValueError:
                 continue
+    if (
+        state.player.housing_id == "parents"
+        and state.current_month > 24
+        and state.player.cash + state.player.savings > 1400
+        and state.player.family_support < state.minimum_parent_fallback_support + 12
+    ):
+        try:
+            controller.change_housing("roommates")
+        except ValueError:
+            pass
 
 
 POLICIES = {
@@ -189,6 +208,9 @@ def run_single_simulation(
         game_over_reason=state.game_over_reason,
         ending_cash=state.player.cash,
         ending_savings=state.player.savings,
+        ending_high_interest_savings=state.player.high_interest_savings,
+        ending_index_fund=state.player.index_fund,
+        ending_growth_fund=state.player.aggressive_growth_fund,
         ending_debt=state.player.debt,
         ending_stress=state.player.stress,
         ending_energy=state.player.energy,
@@ -268,6 +290,9 @@ def summarize_runs(results: list[SimulationRunResult]) -> dict[str, object]:
         "average_final_score": round(mean(item.final_score for item in results), 2),
         "average_ending_cash": round(mean(item.ending_cash for item in results), 2),
         "average_ending_savings": round(mean(item.ending_savings for item in results), 2),
+        "average_ending_high_interest_savings": round(mean(item.ending_high_interest_savings for item in results), 2),
+        "average_ending_index_fund": round(mean(item.ending_index_fund for item in results), 2),
+        "average_ending_growth_fund": round(mean(item.ending_growth_fund for item in results), 2),
         "average_ending_debt": round(mean(item.ending_debt for item in results), 2),
         "average_ending_stress": round(mean(item.ending_stress for item in results), 2),
         "average_ending_energy": round(mean(item.ending_energy for item in results), 2),

@@ -44,6 +44,9 @@ def clamp_player_state(state: GameState) -> None:
     player.social_stability = max(0, min(state.max_social_stability, player.social_stability))
     player.cash = int(round(player.cash))
     player.savings = int(round(player.savings))
+    player.high_interest_savings = max(0, int(round(player.high_interest_savings)))
+    player.index_fund = max(0, int(round(player.index_fund)))
+    player.aggressive_growth_fund = max(0, int(round(player.aggressive_growth_fund)))
     player.debt = max(0, int(round(player.debt)))
     player.monthly_income = int(round(player.monthly_income))
     player.monthly_expenses = int(round(player.monthly_expenses))
@@ -57,8 +60,16 @@ def clamp_player_state(state: GameState) -> None:
     player.housing.months_in_place = max(0, int(round(player.housing.months_in_place)))
     player.housing.missed_payment_streak = max(0, int(round(player.housing.missed_payment_streak)))
     player.housing.move_pressure = max(0, int(round(player.housing.move_pressure)))
+    player.housing.housing_stability = max(0, min(100, int(round(player.housing.housing_stability))))
+    player.housing.recent_move_penalty_months = max(0, int(round(player.housing.recent_move_penalty_months)))
     player.transport.months_owned = max(0, int(round(player.transport.months_owned)))
     player.transport.breakdown_pressure = max(0, int(round(player.transport.breakdown_pressure)))
+    player.transport.reliability_score = max(0, min(100, int(round(player.transport.reliability_score))))
+    player.transport.recent_switch_penalty_months = max(0, int(round(player.transport.recent_switch_penalty_months)))
+    player.career.promotion_momentum = max(0, min(100, int(round(player.career.promotion_momentum))))
+    player.career.transition_penalty_months = max(0, int(round(player.career.transition_penalty_months)))
+    player.education.reentry_drag_months = max(0, int(round(player.education.reentry_drag_months)))
+    player.education.education_momentum = max(0, min(100, int(round(player.education.education_momentum))))
 
 
 def _apply_cash_delta(state: GameState, delta: float) -> None:
@@ -77,6 +88,14 @@ def _apply_savings_delta(state: GameState, delta: float) -> None:
         player.savings = 0
 
 
+def _apply_high_interest_savings_delta(state: GameState, delta: float) -> None:
+    player = state.player
+    player.high_interest_savings += int(round(delta))
+    if player.high_interest_savings < 0:
+        player.debt += abs(player.high_interest_savings)
+        player.high_interest_savings = 0
+
+
 def apply_stat_effects(state: GameState, effects: dict[str, float]) -> None:
     player = state.player
     for key, raw_value in effects.items():
@@ -87,6 +106,12 @@ def apply_stat_effects(state: GameState, effects: dict[str, float]) -> None:
             _apply_savings_delta(state, value)
         elif key == "debt":
             player.debt = max(0, player.debt + value)
+        elif key == "high_interest_savings":
+            _apply_high_interest_savings_delta(state, value)
+        elif key == "index_fund":
+            player.index_fund = max(0, player.index_fund + value)
+        elif key == "aggressive_growth_fund":
+            player.aggressive_growth_fund = max(0, player.aggressive_growth_fund + value)
         elif key == "stress":
             player.stress += value
         elif key == "energy":
@@ -122,7 +147,14 @@ def create_modifier(template: ModifierTemplate) -> ActiveMonthlyModifier:
 
 
 def net_worth(state: GameState) -> int:
-    return state.player.cash + state.player.savings - state.player.debt
+    return (
+        state.player.cash
+        + state.player.savings
+        + state.player.high_interest_savings
+        + state.player.index_fund
+        + state.player.aggressive_growth_fund
+        - state.player.debt
+    )
 
 
 def summarize_milestone(

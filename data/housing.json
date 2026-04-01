@@ -11,6 +11,8 @@
     "roommate_event_weight": 0.1,
     "quality_score": 56,
     "flexibility_score": 40,
+    "recovery_score": 45,
+    "study_compatibility": 52,
     "requires_hometown": true,
     "minimum_family_support": 30,
     "student_only": false
@@ -27,6 +29,8 @@
     "roommate_event_weight": 0.5,
     "quality_score": 66,
     "flexibility_score": 58,
+    "recovery_score": 60,
+    "study_compatibility": 78,
     "requires_hometown": false,
     "minimum_family_support": 0,
     "student_only": true
@@ -43,6 +47,8 @@
     "roommate_event_weight": 1.0,
     "quality_score": 64,
     "flexibility_score": 68,
+    "recovery_score": 48,
+    "study_compatibility": 56,
     "requires_hometown": false,
     "minimum_family_support": 0,
     "student_only": false
@@ -59,6 +65,8 @@
     "roommate_event_weight": 0.0,
     "quality_score": 84,
     "flexibility_score": 82,
+    "recovery_score": 78,
+    "study_compatibility": 68,
     "requires_hometown": false,
     "minimum_family_support": 0,
     "student_only": false

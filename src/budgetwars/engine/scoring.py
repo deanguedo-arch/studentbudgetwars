@@ -19,7 +19,15 @@ def _monthly_surplus_score(state: GameState) -> float:
 
 
 def _debt_ratio_score(state: GameState) -> float:
-    available_assets = max(1, state.player.cash + state.player.savings + 1000)
+    available_assets = max(
+        1,
+        state.player.cash
+        + state.player.savings
+        + state.player.high_interest_savings
+        + state.player.index_fund
+        + state.player.aggressive_growth_fund
+        + 1000,
+    )
     ratio = state.player.debt / available_assets
     return _clamp_score(100 - (ratio * 22))
 

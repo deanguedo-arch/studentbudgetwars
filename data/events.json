@@ -468,5 +468,135 @@
     },
     "modifier": null,
     "log_entry": "A short side-hustle window put quick money on the table."
+  },
+  {
+    "id": "parent_tension_spike",
+    "name": "Parent Tension Spike",
+    "description": "Staying home stopped feeling like support and started feeling like conflict.",
+    "weight": 5,
+    "min_month": 5,
+    "eligible_city_ids": [
+      "hometown_low_cost"
+    ],
+    "eligible_housing_ids": [
+      "parents"
+    ],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": 55,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": 60,
+    "maximum_life_satisfaction": 70,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "stress": 5,
+      "family_support": -7,
+      "life_satisfaction": -4,
+      "social_stability": -2
+    },
+    "modifier": {
+      "id": "parent_tension_drag",
+      "label": "Parent Tension",
+      "duration_months": 3,
+      "stat_effects": {
+        "stress": 1,
+        "life_satisfaction": -1
+      },
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -1,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "Home stopped feeling like free stability and started feeling like pressure."
+  },
+  {
+    "id": "social_isolation_slide",
+    "name": "Social Isolation Slide",
+    "description": "You kept grinding and the rest of your life started thinning out.",
+    "weight": 4,
+    "min_month": 6,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "minimum_stress": 60,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": 45,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": 65,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "social_stability": -6,
+      "life_satisfaction": -5,
+      "stress": 3
+    },
+    "modifier": {
+      "id": "isolation_drag",
+      "label": "Isolation Drag",
+      "duration_months": 2,
+      "stat_effects": {
+        "stress": 2,
+        "energy": -1
+      },
+      "income_multiplier": 0.98,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": -1,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "The month felt emptier, and your performance started paying for it."
+  },
+  {
+    "id": "market_correction_shock",
+    "name": "Market Correction Shock",
+    "description": "The market corrected hard this month and punished aggressive exposure.",
+    "weight": 3,
+    "min_month": 10,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [
+      "weak",
+      "correction"
+    ],
+    "immediate_effects": {
+      "aggressive_growth_fund": -260,
+      "index_fund": -120,
+      "stress": 2
+    },
+    "modifier": null,
+    "log_entry": "Risk assets took a hit and your aggressive bucket felt it."
   }
 ]

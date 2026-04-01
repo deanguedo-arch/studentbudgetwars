@@ -30,6 +30,12 @@ def can_enter_career(bundle: ContentBundle, state: GameState, career_id: str) ->
     missing = [credential for credential in track.entry_required_credential_ids if credential not in player.education.earned_credential_ids]
     if missing:
         return False, "You do not have the credential needed for that track yet."
+    if career_id in {"warehouse_logistics", "trades_apprenticeship"} and player.transport.reliability_score < 45:
+        return False, "That lane needs steadier transport reliability than you currently have."
+    if career_id == "sales" and player.social_stability < 35:
+        return False, "Your social stability is too low to hold a sales lane right now."
+    if career_id == "degree_gated_professional" and player.education.college_gpa < 3.0:
+        return False, "That lane requires college momentum and a stronger GPA baseline."
     return True, ""
 
 
@@ -48,7 +54,18 @@ def current_income(bundle: ContentBundle, state: GameState, income_multiplier: f
     career_bias = city.career_income_biases.get(state.player.career.track_id, 1.0)
     social_bonus = 1.0 + (track.social_income_factor * max(0, state.player.social_stability - 50))
     variance = _income_variance_factor(state, track.income_variance)
-    income = tier.monthly_income * career_bias * difficulty.income_multiplier * income_multiplier * social_bonus * variance
+    transition_drag = 0.82 if state.player.career.transition_penalty_months > 0 else 1.0
+    momentum_multiplier = 1.0 + ((state.player.career.promotion_momentum - 50) * 0.003)
+    income = (
+        tier.monthly_income
+        * career_bias
+        * difficulty.income_multiplier
+        * income_multiplier
+        * social_bonus
+        * variance
+        * transition_drag
+        * momentum_multiplier
+    )
     return max(0, int(round(income)))
 
 
@@ -61,6 +78,29 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
     state.player.life_satisfaction += tier.life_satisfaction_delta
     state.player.social_stability += tier.social_stability_delta
     state.player.career.months_in_track += 1
+    if state.player.career.transition_penalty_months > 0:
+        state.player.career.transition_penalty_months -= 1
+        state.player.stress += 2
+        state.player.energy -= 2
+    if state.player.stress >= 80 or state.player.energy <= 25:
+        state.player.career.promotion_momentum = max(0, state.player.career.promotion_momentum - 3)
+    elif state.player.energy >= 60 and state.player.stress <= 65:
+        state.player.career.promotion_momentum = min(100, state.player.career.promotion_momentum + 2)
+    if track.id == "sales":
+        if state.player.social_stability >= 65:
+            state.player.career.promotion_momentum = min(100, state.player.career.promotion_momentum + 2)
+        if state.player.stress >= 82:
+            state.player.career.promotion_momentum = max(0, state.player.career.promotion_momentum - 4)
+    if track.id in {"warehouse_logistics", "trades_apprenticeship"} and state.player.transport.reliability_score <= 50:
+        state.player.career.promotion_momentum = max(0, state.player.career.promotion_momentum - 2)
+    if state.player.housing.housing_stability <= 42:
+        state.player.career.promotion_momentum = max(0, state.player.career.promotion_momentum - 1)
+    if state.player.career.promotion_momentum >= 70:
+        state.player.career.recent_performance_tag = "uptrend"
+    elif state.player.career.promotion_momentum <= 30:
+        state.player.career.recent_performance_tag = "downtrend"
+    else:
+        state.player.career.recent_performance_tag = "steady"
     if track.layoff_weight > 1.0:
         state.player.career.layoff_pressure += 1
     elif state.player.career.layoff_pressure > 0:
@@ -76,26 +116,62 @@ def add_promotion_progress(bundle: ContentBundle, state: GameState, bonus: int) 
         progress_gain -= 1
     if state.player.social_stability >= 60 and track.social_income_factor > 0:
         progress_gain += 1
+    if state.player.career.promotion_momentum >= 68:
+        progress_gain += 1
+    if state.player.career.promotion_momentum <= 30:
+        progress_gain -= 1
+    if state.player.career.transition_penalty_months > 0:
+        progress_gain -= 1
+    if track.id == "delivery_gig" and state.player.transport.reliability_score < 55:
+        progress_gain -= 1
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
     progress_gain = max(0, int(round(progress_gain * difficulty.progress_multiplier * track.promotion_weight)))
     state.player.career.promotion_progress += progress_gain
 
 
-def maybe_promote(bundle: ContentBundle, state: GameState) -> None:
+def promotion_blockers(bundle: ContentBundle, state: GameState) -> list[str]:
     track = get_career_track(bundle, state.player.career.track_id)
     tier = track.tiers[state.player.career.tier_index]
     if state.player.career.tier_index >= len(track.tiers) - 1:
-        return
-    if state.player.career.promotion_progress < tier.promotion_target:
-        return
+        return []
     next_tier = track.tiers[state.player.career.tier_index + 1]
+    blockers: list[str] = []
+    if state.player.career.promotion_progress < tier.promotion_target:
+        blockers.append(f"Needs {tier.promotion_target} progress ({state.player.career.promotion_progress} now).")
     missing = [credential for credential in next_tier.required_credential_ids if credential not in state.player.education.earned_credential_ids]
     if missing:
-        return
+        blockers.append(f"Missing credential: {', '.join(missing)}.")
     if next_tier.required_minimum_gpa is not None and state.player.education.college_gpa < next_tier.required_minimum_gpa:
-        return
+        blockers.append(f"GPA {next_tier.required_minimum_gpa:.1f}+ required.")
     if next_tier.required_pass_state and not state.player.education.training_passed:
+        blockers.append("Training pass-state required.")
+    if track.id == "retail_service" and state.player.housing.housing_stability < 45:
+        blockers.append("Housing instability is slowing reliability-based promotion.")
+    if track.id == "warehouse_logistics" and state.player.energy < 28:
+        blockers.append("Energy is too low for warehouse leadership progression.")
+    if track.id == "delivery_gig" and state.player.transport.reliability_score < 55:
+        blockers.append("Delivery progression needs steadier transport reliability.")
+    if track.id == "office_admin" and state.player.social_stability < 45:
+        blockers.append("Office progression needs stronger social consistency.")
+    if track.id == "trades_apprenticeship" and state.player.transport.reliability_score < 60:
+        blockers.append("Trades progression needs reliable transport access.")
+    if track.id == "healthcare_support" and state.player.stress >= 86:
+        blockers.append("Stress is too high for higher-responsibility care roles.")
+    if track.id == "sales" and state.player.career.promotion_momentum < 55:
+        blockers.append("Sales promotion needs stronger momentum.")
+    if track.id == "degree_gated_professional" and not state.player.education.earned_credential_ids:
+        blockers.append("Professional track progression depends on completed credentials.")
+    return blockers
+
+
+def maybe_promote(bundle: ContentBundle, state: GameState) -> None:
+    track = get_career_track(bundle, state.player.career.track_id)
+    if state.player.career.tier_index >= len(track.tiers) - 1:
         return
+    if promotion_blockers(bundle, state):
+        return
+    next_tier = track.tiers[state.player.career.tier_index + 1]
     state.player.career.tier_index += 1
     state.player.career.promotion_progress = 0
+    state.player.career.promotion_momentum = min(100, state.player.career.promotion_momentum + 7)
     append_log(state, f"You moved up to {next_tier.label} in {track.name}.")

@@ -33,6 +33,20 @@ def apply_housing_effects(bundle: ContentBundle, state: GameState) -> HousingOpt
     state.player.life_satisfaction += housing.life_satisfaction_delta
     state.player.social_stability += housing.social_stability_delta
     state.player.housing.months_in_place += 1
+    state.player.housing.housing_stability = min(
+        100,
+        max(
+            0,
+            state.player.housing.housing_stability
+            + int(round((housing.quality_score - 55) / 12))
+            + (1 if state.player.housing.months_in_place >= 4 else 0),
+        ),
+    )
+    if state.player.housing.recent_move_penalty_months > 0:
+        state.player.housing.recent_move_penalty_months -= 1
+        state.player.housing.housing_stability = max(0, state.player.housing.housing_stability - 3)
+        state.player.stress += 2
+        state.player.social_stability -= 1
     if (
         housing.id == "parents"
         and state.player.current_city_id == "hometown_low_cost"
@@ -42,5 +56,15 @@ def apply_housing_effects(bundle: ContentBundle, state: GameState) -> HousingOpt
         state.player.family_support -= bundle.config.parent_drift_family_penalty
         state.player.life_satisfaction -= bundle.config.parent_drift_satisfaction_penalty
         state.player.social_stability -= bundle.config.parent_drift_social_penalty
+        state.player.housing.housing_stability = max(0, state.player.housing.housing_stability - 2)
         append_log(state, "Living at home saved money, but the sense of drifting hit harder this month.")
+    if housing.id == "roommates":
+        if state.player.social_stability < 45:
+            state.player.housing.housing_stability = max(0, state.player.housing.housing_stability - 2)
+            state.player.stress += 1
+        elif state.player.social_stability >= 65:
+            state.player.housing.housing_stability = min(100, state.player.housing.housing_stability + 1)
+    if housing.id == "solo_rental" and state.player.monthly_surplus < 0:
+        state.player.housing.housing_stability = max(0, state.player.housing.housing_stability - 3)
+        state.player.stress += 2
     return housing

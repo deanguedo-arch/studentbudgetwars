@@ -38,3 +38,18 @@ def test_invalid_event_modifier_duration_fails_validation(bundle):
     broken.events[0].modifier.duration_months = 13
     with pytest.raises(ValueError, match="lasts too long"):
         validate_content_bundle(broken)
+
+
+def test_invalid_market_regime_reference_fails_validation(bundle):
+    broken = bundle.model_copy(deep=True)
+    broken.events[0].eligible_market_regime_ids = ["missing_regime"]
+    with pytest.raises(ValueError, match="market regimes"):
+        validate_content_bundle(broken)
+
+
+def test_invalid_budget_allocation_total_fails_validation(bundle):
+    broken = bundle.model_copy(deep=True)
+    broken.config.budget_stances[0].safe_savings_rate = 0.7
+    broken.config.budget_stances[0].index_invest_rate = 0.4
+    with pytest.raises(ValueError, match="allocates more than 100%"):
+        validate_content_bundle(broken)
