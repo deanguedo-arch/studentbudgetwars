@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import argparse
 
-from .app import run_app
+from .core import StartupOptions
+from .launcher import launch_mode
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="After Grad: The First 10 Years")
+    parser.add_argument("--mode", choices=("classic", "desktop"), default="classic", help="Frontend mode to launch.")
     parser.add_argument("--load", help="Load a save file from the saves directory.")
     parser.add_argument("--name", default="Player", help="Player name for a new game.")
     parser.add_argument("--preset", help="Preset id for a new game.")
@@ -22,17 +24,58 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
-    run_app(
-        player_name=args.name,
-        preset_id=args.preset,
-        difficulty_id=args.difficulty,
-        city_id=args.city,
-        academic_level_id=args.academics,
-        family_support_level_id=args.family_support,
-        savings_band_id=args.savings_band,
-        opening_path_id=args.opening_path,
-        seed=args.seed,
-        load_name=args.load,
+    launch_mode(
+        StartupOptions(
+            mode=args.mode,
+            player_name=args.name,
+            preset_id=args.preset,
+            difficulty_id=args.difficulty,
+            city_id=args.city,
+            academic_level_id=args.academics,
+            family_support_level_id=args.family_support,
+            savings_band_id=args.savings_band,
+            opening_path_id=args.opening_path,
+            seed=args.seed,
+            load_name=args.load,
+        )
+    )
+
+
+def main_classic() -> None:
+    args = build_parser().parse_args()
+    launch_mode(
+        StartupOptions(
+            mode="classic",
+            player_name=args.name,
+            preset_id=args.preset,
+            difficulty_id=args.difficulty,
+            city_id=args.city,
+            academic_level_id=args.academics,
+            family_support_level_id=args.family_support,
+            savings_band_id=args.savings_band,
+            opening_path_id=args.opening_path,
+            seed=args.seed,
+            load_name=args.load,
+        )
+    )
+
+
+def main_desktop() -> None:
+    args = build_parser().parse_args()
+    launch_mode(
+        StartupOptions(
+            mode="desktop",
+            player_name=args.name,
+            preset_id=args.preset,
+            difficulty_id=args.difficulty,
+            city_id=args.city,
+            academic_level_id=args.academics,
+            family_support_level_id=args.family_support,
+            savings_band_id=args.savings_band,
+            opening_path_id=args.opening_path,
+            seed=args.seed,
+            load_name=args.load,
+        )
     )
 
 

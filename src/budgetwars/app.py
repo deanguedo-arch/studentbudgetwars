@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from budgetwars.engine import GameController
-from budgetwars.loaders import load_all_content
-from budgetwars.saves import default_paths, load_game, load_named_game
-from budgetwars.ui import BudgetWarsTkApp
+from budgetwars.core import StartupOptions
+from budgetwars.launcher import launch_mode
 
 
 def run_app(
@@ -18,41 +16,18 @@ def run_app(
     seed: int | None = None,
     load_name: str | None = None,
 ) -> None:
-    paths = default_paths()
-    bundle = load_all_content(paths.root)
-    controller: GameController | None
-    if load_name:
-        save_path = paths.saves_dir / load_name
-        if save_path.exists():
-            state = load_game(save_path)
-        else:
-            state = load_named_game(load_name, root=paths.root)
-        controller = GameController(bundle, state)
-    else:
-        controller = None
-        if preset_id and difficulty_id and city_id and opening_path_id and academic_level_id and family_support_level_id and savings_band_id:
-            controller = GameController.new_game(
-                bundle,
-                player_name=player_name,
-                preset_id=preset_id,
-                difficulty_id=difficulty_id,
-                city_id=city_id,
-                academic_level_id=academic_level_id,
-                family_support_level_id=family_support_level_id,
-                savings_band_id=savings_band_id,
-                opening_path_id=opening_path_id,
-                seed=seed,
-            )
-    BudgetWarsTkApp(
-        bundle,
-        controller,
-        player_name=player_name,
-        preset_id=preset_id,
-        difficulty_id=difficulty_id,
-        city_id=city_id,
-        academic_level_id=academic_level_id,
-        family_support_level_id=family_support_level_id,
-        savings_band_id=savings_band_id,
-        opening_path_id=opening_path_id,
-        seed=seed,
-    ).run()
+    launch_mode(
+        StartupOptions(
+            mode="classic",
+            player_name=player_name,
+            preset_id=preset_id,
+            difficulty_id=difficulty_id,
+            city_id=city_id,
+            academic_level_id=academic_level_id,
+            family_support_level_id=family_support_level_id,
+            savings_band_id=savings_band_id,
+            opening_path_id=opening_path_id,
+            seed=seed,
+            load_name=load_name,
+        )
+    )

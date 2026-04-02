@@ -1,89 +1,73 @@
 # After Grad: The First 10 Years
 
-After Grad is a retro desktop Python life-strategy game about building your position from age 18 to 28.
+After Grad is now organized as a shared simulation platform with two desktop frontends:
 
-You start right after graduation, choose the shape of your starting life, then spend 120 monthly turns juggling:
-- work and career progression
-- GPA or training progress
-- housing pressure
-- transport pressure
-- education choices
-- debt and savings
-- wealth allocation (cash vs safe savings vs index vs aggressive growth)
-- burnout risk
-- a small set of concrete life events
+- `Classic`: the current full game experience
+- `Desktop`: a separate retro-desktop shell built on the same simulation/session core
 
-The goal is:
+The repo still contains one authoritative simulation stack for content, save/load, monthly resolution, scoring, and simulation tooling. Frontends are separate launch paths, not duplicate game engines.
 
-**Reach age 28 in the strongest life position you can build.**
+## Run
 
-Money matters heavily, but the game does not score on cash alone. Your ending weighs net worth, monthly surplus, debt load, career tier, education or credentials, housing stability, life satisfaction, and burnout pressure.
+Canonical launcher:
 
-## Current V2 Shape
+```bash
+budgetwars --mode classic
+budgetwars --mode desktop
+```
 
-- `1 turn = 1 month`
-- `120 turns = 10 years`
-- Start flow:
-  - choose preset
-  - choose city archetype
-  - choose academics level
-  - choose family support level
-  - choose starting savings band
-  - choose opening path
-  - choose difficulty
-- Persistent systems:
-  - career
-  - education
-  - housing
-  - transport
-  - budget stance
-  - wealth strategy
-  - consequence momentum and transition drag
-  - market regime + investing buckets
-- Monthly focus actions:
-  - `Overtime`
-  - `Side Gig`
-  - `Promotion Hunt`
-  - `Study Push`
-  - `Recovery Month`
-  - `Social Maintenance`
-  - `Move Prep`
+Dedicated entry points:
 
-## Core Systems
+```bash
+budgetwars-classic
+budgetwars-desktop
+```
 
-- Housing:
-  - parents
-  - student residence
-  - roommates
-  - solo rental
-- Transport:
-  - none
-  - transit
-  - bike
-  - beater car
-  - financed car
-  - reliable used car
-- Career tracks:
-  - retail/service
-  - warehouse/logistics
-  - delivery/gig
-  - office/admin
-  - trades/apprenticeship
-  - healthcare support
-  - sales
-  - degree-gated professional
-- Education:
-  - none
-  - part-time college
-  - full-time university
-  - apprenticeship
-  - certificate
-  - upgrading
+Examples:
 
-College and university lanes track a real GPA that can open or block higher white-collar lanes.
-Trades and certificate lanes use pass-state and credentials instead of GPA.
-Switching career, housing, transport, and late school re-entry now carries explicit friction so early decisions echo into later years.
-The UI now surfaces a `Why This Month Changed` readout so players can see the main forces tilting the current month.
+```bash
+budgetwars --mode classic --preset supported_student --city hometown_low_cost --academics strong --family-support high --savings-band solid --path college_university --difficulty easy
+budgetwars --mode desktop --load after_grad_autosave.json
+```
+
+## Windows Preview
+
+Repo-root preview scripts:
+
+```bat
+live_preview.bat
+live_preview_classic.bat
+live_preview_desktop.bat
+```
+
+`live_preview.bat` defaults to Classic mode.
+
+See [PREVIEWING.md](PREVIEWING.md) for usage details.
+
+## Repo Layout
+
+- `src/budgetwars/models/`: typed content and runtime state
+- `src/budgetwars/loaders/`: JSON loading and validation
+- `src/budgetwars/engine/`: monthly life-sim rules, scoring, simulation
+- `src/budgetwars/saves/`: local JSON save/load
+- `src/budgetwars/utils/`: shared helpers
+- `src/budgetwars/core/`: mode-aware content/session/bootstrap layer
+- `src/budgetwars/games/classic/`: Classic frontend
+- `src/budgetwars/games/desktop/`: Desktop frontend
+- `data/`: legacy shared content baseline
+- `content/`: shared and mode-specific overlay seams
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for boundary rules and content precedence.
+
+## Content Loading
+
+Mode-aware content resolution uses deterministic file replacement:
+
+1. `content/<mode>/<relative-path>`
+2. `content/shared/<relative-path>`
+3. `data/<relative-path>`
+
+This keeps the current `data/` payload usable while creating a clean seam for mode-specific overrides.
 
 ## Install
 
@@ -93,64 +77,14 @@ python -m venv .venv
 pip install -e .[dev]
 ```
 
-## Run
-
-Desktop app:
-
-```bash
-budgetwars
-```
-
-Windows launcher:
-
-```bash
-live_preview.bat
-```
-
-Example with direct setup values:
-
-```bash
-budgetwars --preset supported_student --city hometown_low_cost --academics strong --family-support high --savings-band solid --path college_university --difficulty easy
-```
-
 ## Simulation Tooling
 
 Run deterministic balance batches against the real monthly loop:
 
 ```bash
-C:\Users\dean.guedo\AppData\Local\Programs\Python\Python312\python.exe tools\simulate_runs.py --preset all --difficulty normal --city mid_size_city --academics average --family-support medium --savings-band some --path full_time_work --policy cautious --runs 20 --seed 42
+python tools/simulate_runs.py --preset all --difficulty normal --city mid_size_city --academics average --family-support medium --savings-band some --path full_time_work --policy cautious --runs 20 --seed 42
 ```
 
 Current policies:
 - `cautious`
 - `ambitious`
-
-## Architecture
-
-- `src/budgetwars/models/`: typed content and runtime state
-- `src/budgetwars/loaders/`: JSON loading and cross-file validation
-- `src/budgetwars/engine/`: monthly life-sim rules, scoring, and simulation
-- `src/budgetwars/ui/`: retro Tkinter desktop shell
-- `src/budgetwars/saves/`: local JSON save/load
-- `data/`: all tunable content and balance data
-
-## What Is In Scope Now
-
-- a playable monthly life loop
-- broader graduation setup
-- housing and transport pressure as first-class systems
-- explicit wealth strategy control separate from budget stance
-- distinct career and education lanes
-- contextual monthly events
-- annual milestone summaries
-- crisis warnings and concrete failure states
-- end-of-run scoring at age 28
-
-## What Is Intentionally Deferred
-
-- partner/shared-relationship systems
-- deep social simulation
-- a full relationship tree
-- fine-grained tax and bureaucracy simulation
-- save migration from older versions
-- huge event libraries or city-specific unlock trees

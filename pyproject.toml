@@ -19,6 +19,8 @@ dev = [
 
 [project.scripts]
 budgetwars = "budgetwars.main:main"
+budgetwars-classic = "budgetwars.main:main_classic"
+budgetwars-desktop = "budgetwars.main:main_desktop"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

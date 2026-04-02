@@ -63,6 +63,21 @@ def test_education_path_changes_finances_and_progress(bundle, controller_factory
     assert controller.state.player.monthly_expenses > 0
 
 
+def test_study_push_improves_school_performance_without_speeding_calendar(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    baseline = controller_factory(opening_path_id="college_university")
+    pushed = controller_factory(opening_path_id="college_university")
+    baseline.state.player.selected_focus_action_id = "social_maintenance"
+    pushed.state.player.selected_focus_action_id = "study_push"
+    resolve_month(quiet_bundle, baseline.state, baseline.rng)
+    resolve_month(quiet_bundle, pushed.state, pushed.rng)
+    assert baseline.state.player.education.months_completed == 1
+    assert pushed.state.player.education.months_completed == 1
+    assert pushed.state.player.education.standing >= baseline.state.player.education.standing
+    assert pushed.state.player.education.college_gpa >= baseline.state.player.education.college_gpa
+
+
 def test_budget_stances_meaningfully_differ(controller_factory):
     balanced = controller_factory()
     payoff = controller_factory()

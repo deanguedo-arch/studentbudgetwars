@@ -3,7 +3,7 @@ from __future__ import annotations
 from budgetwars.models import ContentBundle, EducationProgramDefinition, GameState
 
 from .effects import append_log
-from .lookups import get_education_program
+from .lookups import get_education_program, get_housing_option
 
 
 def can_switch_education(bundle: ContentBundle, state: GameState, program_id: str) -> tuple[bool, str]:
@@ -48,26 +48,40 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
     education = state.player.education
     if not education.is_active or program.id == "none":
         return
+    housing = get_housing_option(bundle, state.player.housing_id)
 
     standing_delta = 0
     if state.player.academic_strength >= 70:
         standing_delta += 2
     elif state.player.academic_strength <= 50:
         standing_delta -= 2
+    if education.education_momentum >= 65:
+        standing_delta += 1
+    elif education.education_momentum <= 30:
+        standing_delta -= 1
     if state.player.stress >= 75:
         standing_delta -= 5
+    elif state.player.stress >= 60:
+        standing_delta -= 2
     if state.player.energy <= 25:
         standing_delta -= 4
+    elif state.player.energy <= 40:
+        standing_delta -= 2
     if state.player.selected_focus_action_id == "study_push":
         standing_delta += 3
     if state.player.selected_focus_action_id == "overtime":
         standing_delta -= 1
     if state.player.selected_focus_action_id == "recovery_month":
         standing_delta -= 1
+    if housing.study_compatibility >= 70:
+        standing_delta += 1
+    elif housing.study_compatibility <= 50:
+        standing_delta -= 1
     if state.player.housing.housing_stability < 45:
         standing_delta -= 2
     if state.player.transport.reliability_score < 45:
         standing_delta -= 1
+    standing_delta += progress_bonus
     if state.player.education.reentry_drag_months > 0:
         standing_delta -= 1
         state.player.education.reentry_drag_months -= 1
@@ -80,6 +94,10 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
             gpa_delta += 0.06
         elif state.player.academic_strength <= 55:
             gpa_delta -= 0.05
+        if education.education_momentum >= 65:
+            gpa_delta += 0.03
+        elif education.education_momentum <= 30:
+            gpa_delta -= 0.03
         if state.player.stress >= 75:
             gpa_delta -= 0.11
         elif state.player.stress >= 60:
@@ -92,6 +110,10 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
             gpa_delta += 0.08
         elif state.player.selected_focus_action_id == "overtime":
             gpa_delta -= 0.04
+        if housing.study_compatibility >= 70:
+            gpa_delta += 0.03
+        elif housing.study_compatibility <= 50:
+            gpa_delta -= 0.03
         if state.player.housing.housing_stability < 45:
             gpa_delta -= 0.04
         if state.player.transport.reliability_score < 45:
@@ -110,13 +132,18 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
         return
 
     education.failure_streak = 0
-    progress_gain = max(0, 1 + progress_bonus)
-    if education.education_momentum >= 65:
-        progress_gain += 1
-    if education.education_momentum <= 30:
-        progress_gain = max(0, progress_gain - 1)
+
+    # School progress is now calendar-bound: strong months help you hold the line,
+    # protect standing, and build momentum, but they do not compress years into weeks.
+    progress_gain = 1
+    if education.standing < 60:
+        progress_gain = 0
+        append_log(state, "You stayed enrolled, but this month was mostly about keeping your footing.")
     education.months_completed += progress_gain
-    if state.player.stress <= 62 and state.player.energy >= 45:
+
+    if progress_gain == 0:
+        education.education_momentum = max(0, education.education_momentum - 2)
+    elif state.player.stress <= 62 and state.player.energy >= 45 and education.standing >= 65:
         education.education_momentum = min(100, education.education_momentum + 3)
     elif state.player.stress >= 80 or state.player.energy <= 20:
         education.education_momentum = max(0, education.education_momentum - 4)

@@ -6,8 +6,8 @@
     "income_multiplier": 1.15,
     "promotion_progress_bonus": 1,
     "education_progress_bonus": 0,
-    "stress_delta": 5,
-    "energy_delta": -7,
+    "stress_delta": 4,
+    "energy_delta": -6,
     "life_satisfaction_delta": -3,
     "social_stability_delta": -1,
     "stat_effects": {}
@@ -34,7 +34,7 @@
     "income_multiplier": 1.02,
     "promotion_progress_bonus": 3,
     "education_progress_bonus": 0,
-    "stress_delta": 4,
+    "stress_delta": 3,
     "energy_delta": -4,
     "life_satisfaction_delta": -1,
     "social_stability_delta": 0,
@@ -46,8 +46,8 @@
     "description": "Lean hard into school this month and let everything else get tighter.",
     "income_multiplier": 0.95,
     "promotion_progress_bonus": 0,
-    "education_progress_bonus": 3,
-    "stress_delta": 3,
+    "education_progress_bonus": 0,
+    "stress_delta": 2,
     "energy_delta": -4,
     "life_satisfaction_delta": -1,
     "social_stability_delta": -1,
@@ -60,9 +60,9 @@
     "income_multiplier": 0.9,
     "promotion_progress_bonus": 0,
     "education_progress_bonus": 0,
-    "stress_delta": -14,
-    "energy_delta": 16,
-    "life_satisfaction_delta": 5,
+    "stress_delta": -11,
+    "energy_delta": 12,
+    "life_satisfaction_delta": 4,
     "social_stability_delta": 2,
     "stat_effects": {}
   },
@@ -73,12 +73,12 @@
     "income_multiplier": 0.97,
     "promotion_progress_bonus": 0,
     "education_progress_bonus": 0,
-    "stress_delta": -5,
-    "energy_delta": 2,
+    "stress_delta": -6,
+    "energy_delta": 3,
     "life_satisfaction_delta": 4,
-    "social_stability_delta": 5,
+    "social_stability_delta": 6,
     "stat_effects": {
-      "family_support": 2
+      "family_support": 3
     }
   },
   {

@@ -19,7 +19,7 @@ from .education import apply_education_effects, education_monthly_cost, update_e
 from .effects import append_log, apply_stat_effects, clamp_player_state, net_worth, summarize_milestone, trim_logs
 from .events import roll_month_events
 from .housing import apply_housing_effects, monthly_housing_cost
-from .lookups import get_current_career_tier, get_focus_action
+from .lookups import get_current_career_tier, get_focus_action, get_housing_option
 from .transport import apply_transport_access_penalty, apply_transport_effects, monthly_transport_cost
 from .wealth import apply_wealth_allocations, apply_wealth_returns
 
@@ -240,10 +240,15 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     state.month_driver_notes = []
     append_log(state, f"--- Month {state.current_month} / Year {state.current_year} (Age {state.current_age}) ---")
 
-    state.player.energy += bundle.config.baseline_monthly_energy_recovery
-    state.player.stress -= bundle.config.baseline_monthly_stress_relief
-    stress_parts.append(f"baseline {-bundle.config.baseline_monthly_stress_relief:+d}")
-    energy_parts.append(f"baseline {bundle.config.baseline_monthly_energy_recovery:+d}")
+    housing = get_housing_option(bundle, state.player.housing_id)
+    housing_energy_recovery = int(round((housing.recovery_score - 50) / 12))
+    housing_stress_relief = int(round((housing.recovery_score - 50) / 18))
+    baseline_energy_recovery = bundle.config.baseline_monthly_energy_recovery + housing_energy_recovery
+    baseline_stress_relief = bundle.config.baseline_monthly_stress_relief + housing_stress_relief
+    state.player.energy += baseline_energy_recovery
+    state.player.stress -= baseline_stress_relief
+    stress_parts.append(f"baseline {-baseline_stress_relief:+d}")
+    energy_parts.append(f"baseline {baseline_energy_recovery:+d}")
 
     before_stress = state.player.stress
     before_energy = state.player.energy
