@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 from .content_loader import load_content_bundle

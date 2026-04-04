@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from random import Random
 
-from budgetwars.models import ContentBundle, FinalScoreSummary, GameState
+from budgetwars.models import ContentBundle, FinalScoreSummary, GameState, LiveScoreSnapshot
 
 from .budgeting import pay_named_cost
 from .careers import can_enter_career, promotion_blockers
@@ -22,7 +22,7 @@ from .lookups import (
     get_wealth_strategy,
 )
 from .month_resolution import resolve_month
-from .scoring import calculate_final_score
+from .scoring import build_live_score_snapshot, calculate_final_score
 from .setup import build_new_game_state
 from .transport import can_switch_transport
 
@@ -65,6 +65,9 @@ class GameController:
 
     def final_score_summary(self) -> FinalScoreSummary:
         return calculate_final_score(self.bundle, self.state)
+
+    def live_score_snapshot(self) -> LiveScoreSnapshot:
+        return build_live_score_snapshot(self.bundle, self.state, warnings=self.build_crisis_warnings())
 
     def resolve_month(self) -> None:
         resolve_month(self.bundle, self.state, self.rng)

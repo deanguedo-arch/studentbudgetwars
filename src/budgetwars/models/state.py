@@ -84,6 +84,13 @@ class AnnualMilestoneSummary(BaseModel):
     summary_lines: list[str] = Field(default_factory=list)
 
 
+class LiveScoreSnapshot(BaseModel):
+    projected_score: float
+    score_tier: str
+    biggest_risk: str
+    breakdown: dict[str, float]
+
+
 class PlayerState(BaseModel):
     name: str
     cash: int

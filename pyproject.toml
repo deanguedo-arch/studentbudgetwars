@@ -7,9 +7,10 @@ name = "student-budget-wars"
 version = "0.1.0"
 description = "Retro desktop after-graduation life strategy game."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
   "pydantic>=2.7,<3.0",
+  "eval-type-backport>=0.3.1",
 ]
 
 [project.optional-dependencies]

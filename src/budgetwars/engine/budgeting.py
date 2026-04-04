@@ -8,7 +8,7 @@ from .effects import append_log
 from .lookups import get_budget_stance, get_city
 
 
-@dataclass(slots=True)
+@dataclass
 class PaymentResult:
     requested: int
     from_cash: int

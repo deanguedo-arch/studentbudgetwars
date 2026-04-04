@@ -10,7 +10,7 @@ from budgetwars.utils.rng import derive_seed
 from .game_loop import GameController
 
 
-@dataclass(slots=True)
+@dataclass
 class SimulationRunResult:
     preset_id: str
     difficulty_id: str

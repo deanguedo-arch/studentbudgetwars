@@ -44,6 +44,19 @@ live_preview_desktop.bat
 
 See [PREVIEWING.md](PREVIEWING.md) for usage details.
 
+## macOS Preview
+
+Repo-root double-click launchers:
+
+```bash
+open_classic.command
+open_desktop.command
+```
+
+The Mac launchers bootstrap a local `.venv` and install the runtime deps on first run.
+
+See [PREVIEWING.md](PREVIEWING.md) for usage details and fallback behavior.
+
 ## Repo Layout
 
 - `src/budgetwars/models/`: typed content and runtime state

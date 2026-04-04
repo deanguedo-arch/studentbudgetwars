@@ -13,14 +13,15 @@ class LogPanel(tk.LabelFrame):
             bg="#efefef",
             relief="sunken",
             bd=1,
-            font=("Consolas", 11),
-            spacing1=1,
-            spacing3=2,
+            font=("Consolas", 10),
+            spacing1=0,
+            spacing3=1,
+            takefocus=0,
         )
         self.text.pack(fill="both", expand=True, padx=6, pady=6)
         self.text.configure(state="disabled")
-        self._normal_font = ("Consolas", 11)
-        self._large_font = ("Consolas", 13)
+        self._normal_font = ("Consolas", 10)
+        self._large_font = ("Consolas", 12)
 
     def render(self, messages: list[str], limit: int = 14) -> None:
         self.text.configure(state="normal")

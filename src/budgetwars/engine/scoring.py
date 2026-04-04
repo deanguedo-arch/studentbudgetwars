@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from budgetwars.models import ContentBundle, FinalScoreSummary, GameState
+from budgetwars.models import ContentBundle, FinalScoreSummary, GameState, LiveScoreSnapshot
 
 from .effects import net_worth
 from .lookups import get_career_track, get_housing_option
@@ -8,6 +8,16 @@ from .lookups import get_career_track, get_housing_option
 
 def _clamp_score(value: float) -> float:
     return max(0.0, min(100.0, value))
+
+
+def _score_tier_label(score: float) -> str:
+    if score >= 80:
+        return "Elite"
+    if score >= 60:
+        return "Gold"
+    if score >= 40:
+        return "Silver"
+    return "Bronze"
 
 
 def _net_worth_score(state: GameState) -> float:
@@ -63,6 +73,27 @@ def _stress_burnout_score(state: GameState) -> float:
     energy = state.player.energy
     burnout_penalty = state.burnout_streak * 10
     return _clamp_score((stress_relief * 0.65) + (energy * 0.35) - burnout_penalty)
+
+
+def _biggest_risk_label(breakdown: dict[str, float], warnings: list[str]) -> str:
+    if warnings:
+        return warnings[0]
+
+    weakest_key = min(breakdown, key=breakdown.get)
+    weakest_value = breakdown[weakest_key]
+    labels = {
+        "net_worth": "Net worth is still the softest part of the run.",
+        "monthly_surplus": "Cash flow is still the softest part of the run.",
+        "debt_ratio": "Debt pressure is still the softest part of the run.",
+        "career_tier": "Career momentum is still the softest part of the run.",
+        "credentials_education": "Education progress is still the softest part of the run.",
+        "housing_stability": "Housing stability is still the softest part of the run.",
+        "life_satisfaction": "Life stability is still the softest part of the run.",
+        "stress_burnout": "Stress and energy are still the softest part of the run.",
+    }
+    if weakest_value >= 75:
+        return "No major crisis is pressing right now."
+    return labels.get(weakest_key, "No major crisis is pressing right now.")
 
 
 def _ending_label(final_score: float, breakdown: dict[str, float], state: GameState) -> str:
@@ -131,4 +162,19 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
         outcome=outcome,
         ending_label=_ending_label(final_score, breakdown, state),
         breakdown=breakdown,
+    )
+
+
+def build_live_score_snapshot(
+    bundle: ContentBundle,
+    state: GameState,
+    *,
+    warnings: list[str] | None = None,
+) -> LiveScoreSnapshot:
+    summary = calculate_final_score(bundle, state)
+    return LiveScoreSnapshot(
+        projected_score=summary.final_score,
+        score_tier=_score_tier_label(summary.final_score),
+        biggest_risk=_biggest_risk_label(summary.breakdown, warnings or []),
+        breakdown=summary.breakdown,
     )

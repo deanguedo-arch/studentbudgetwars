@@ -24,7 +24,7 @@ from .transport import apply_transport_access_penalty, apply_transport_effects, 
 from .wealth import apply_wealth_allocations, apply_wealth_returns
 
 
-@dataclass(slots=True)
+@dataclass
 class ModifierSnapshot:
     income_multiplier: float = 1.0
     housing_cost_delta: int = 0

@@ -11,7 +11,7 @@ from typing import Callable
 from budgetwars.core import GameSession, StartupOptions
 
 
-@dataclass(slots=True)
+@dataclass
 class DesktopMail:
     sender: str
     subject: str
@@ -20,14 +20,14 @@ class DesktopMail:
     unread: bool = False
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class DesktopAction:
     label: str
     icon_name: str
     callback: Callable[[], None]
 
 
-@dataclass(slots=True)
+@dataclass
 class DesktopWindowState:
     app_id: str
     title: str

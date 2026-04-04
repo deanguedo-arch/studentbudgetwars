@@ -6,6 +6,7 @@ from pathlib import Path
 
 from budgetwars.core import GameSession, StartupOptions
 from budgetwars.games.classic import build_classic_session
+from budgetwars.games.classic.ui.main_window import build_setup_summary_lines
 from budgetwars.games.desktop import build_desktop_session
 from budgetwars.loaders import load_all_content
 from budgetwars.main import build_parser
@@ -102,3 +103,57 @@ def test_frontend_builders_create_real_shared_sessions():
     assert desktop.has_active_game is True
     assert classic.mode == "classic"
     assert desktop.mode == "desktop"
+
+
+def test_classic_live_score_snapshot_reports_tier_and_risk():
+    session = GameSession.from_startup_options(
+        StartupOptions(
+            mode="classic",
+            player_name="SnapshotTester",
+            preset_id="supported_student",
+            difficulty_id="normal",
+            city_id="hometown_low_cost",
+            academic_level_id="average",
+            family_support_level_id="medium",
+            savings_band_id="some",
+            opening_path_id="full_time_work",
+        ),
+        root=PROJECT_ROOT,
+    )
+    snapshot = session.live_score_snapshot()
+    assert snapshot.projected_score >= 0
+    assert snapshot.score_tier in {"Bronze", "Silver", "Gold", "Elite"}
+    assert snapshot.biggest_risk
+
+
+def test_classic_setup_summary_includes_starting_identity():
+    session = GameSession.from_startup_options(
+        StartupOptions(
+            mode="classic",
+            player_name="Planner",
+            preset_id="supported_student",
+            difficulty_id="normal",
+            city_id="hometown_low_cost",
+            academic_level_id="average",
+            family_support_level_id="medium",
+            savings_band_id="some",
+            opening_path_id="full_time_work",
+        ),
+        root=PROJECT_ROOT,
+    )
+    lines = build_setup_summary_lines(
+        session.bundle,
+        {
+            "preset_id": "supported_student",
+            "city_id": "hometown_low_cost",
+            "academic_level_id": "average",
+            "family_support_level_id": "medium",
+            "savings_band_id": "some",
+            "opening_path_id": "full_time_work",
+            "difficulty_id": "normal",
+        },
+        "Planner",
+    )
+    assert any(line == "Player: Planner" for line in lines)
+    assert any(line == "Opening Identity" for line in lines)
+    assert any(line.startswith("Difficulty:") for line in lines)

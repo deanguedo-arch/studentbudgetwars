@@ -1,11 +1,76 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import tkinter as tk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox, simpledialog, ttk
 
 from budgetwars.core import GameSession, StartupOptions
 
 from .panes import ActionsPanel, FinancePanel, LifePanel, LogPanel, StatusBar, build_menu_bar
+
+
+@dataclass
+class _SetupGroup:
+    key: str
+    title: str
+    prompt: str
+    options: list[tuple[str, str, str]]
+    initial_id: str | None
+
+
+def _lookup_option(options: list[tuple[str, str, str]], value_id: str | None) -> tuple[str, str, str]:
+    if value_id is not None:
+        for option in options:
+            if option[1] == value_id:
+                return option
+    return options[0]
+
+
+def _money(value: int) -> str:
+    return f"${value:,}"
+
+
+def build_setup_summary_lines(bundle, selections: dict[str, str], player_name: str) -> list[str]:
+    preset = next(item for item in bundle.presets if item.id == selections["preset_id"])
+    city = next(item for item in bundle.cities if item.id == selections["city_id"])
+    academic = next(item for item in bundle.config.academic_levels if item.id == selections["academic_level_id"])
+    support = next(item for item in bundle.config.family_support_levels if item.id == selections["family_support_level_id"])
+    savings = next(item for item in bundle.config.savings_bands if item.id == selections["savings_band_id"])
+    path = next(item for item in bundle.config.opening_paths if item.id == selections["opening_path_id"])
+    difficulty = next(item for item in bundle.difficulties if item.id == selections["difficulty_id"])
+    opening_cash = preset.starting_cash + savings.cash_delta
+    opening_savings = preset.starting_savings + savings.savings_delta
+    opening_debt = preset.starting_debt + savings.debt_delta
+    opening_net = opening_cash + opening_savings - opening_debt
+    return [
+        f"Player: {player_name or 'Player'}",
+        "",
+        "Opening Identity",
+        f"Preset: {preset.name}",
+        preset.description,
+        f"City: {city.name}",
+        city.opportunity_text,
+        city.pressure_text,
+        "",
+        "Opening Lane",
+        f"Path: {path.name}",
+        path.description,
+        f"Academics: {academic.name}",
+        academic.description,
+        f"Family support: {support.name}",
+        support.description,
+        f"Starting cushion: {savings.name}",
+        savings.description,
+        "",
+        "Run Preview",
+        f"Starting cash: {_money(opening_cash)}",
+        f"Starting savings: {_money(opening_savings)}",
+        f"Starting debt: {_money(opening_debt)}",
+        f"Opening net worth: {_money(opening_net)}",
+        f"Difficulty: {difficulty.name}",
+        difficulty.description,
+    ]
 
 
 class SelectionDialog(simpledialog.Dialog):
@@ -53,6 +118,196 @@ class SelectionDialog(simpledialog.Dialog):
             self.result = self.options[self.listbox.curselection()[0]][1]
 
 
+class ClassicSetupDialog(simpledialog.Dialog):
+    def __init__(
+        self,
+        parent: tk.Misc,
+        bundle,
+        *,
+        initial_name: str = "Player",
+        initial_preset_id: str | None = None,
+        initial_city_id: str | None = None,
+        initial_academic_level_id: str | None = None,
+        initial_family_support_level_id: str | None = None,
+        initial_savings_band_id: str | None = None,
+        initial_opening_path_id: str | None = None,
+        initial_difficulty_id: str | None = None,
+    ):
+        self.bundle = bundle
+        self.result: dict[str, str] | None = None
+        self.player_name_var = tk.StringVar(value=initial_name or "Player")
+        self.summary_var = tk.StringVar(value="")
+        self._group_vars: dict[str, tk.StringVar] = {}
+        self._group_desc_vars: dict[str, tk.StringVar] = {}
+        self._value_maps: dict[str, dict[str, tuple[str, str, str]]] = {}
+        self._groups = [
+            _SetupGroup(
+                "preset_id",
+                "Preset",
+                "Choose the background you are starting from:",
+                [(item.name, item.id, item.description) for item in bundle.presets],
+                initial_preset_id,
+            ),
+            _SetupGroup(
+                "city_id",
+                "City",
+                "Choose the city you are trying to make work:",
+                [(item.name, item.id, item.opportunity_text) for item in bundle.cities],
+                initial_city_id,
+            ),
+            _SetupGroup(
+                "academic_level_id",
+                "Academics",
+                "How strong is your academic footing?",
+                [(item.name, item.id, item.description) for item in bundle.config.academic_levels],
+                initial_academic_level_id,
+            ),
+            _SetupGroup(
+                "family_support_level_id",
+                "Family Support",
+                "How much backup do you realistically have?",
+                [(item.name, item.id, item.description) for item in bundle.config.family_support_levels],
+                initial_family_support_level_id,
+            ),
+            _SetupGroup(
+                "savings_band_id",
+                "Starting Cushion",
+                "How much cushion are you really starting with?",
+                [(item.name, item.id, item.description) for item in bundle.config.savings_bands],
+                initial_savings_band_id,
+            ),
+            _SetupGroup(
+                "opening_path_id",
+                "Opening Path",
+                "Pick the lane you are stepping into first:",
+                [(item.name, item.id, item.description) for item in bundle.config.opening_paths],
+                initial_opening_path_id,
+            ),
+            _SetupGroup(
+                "difficulty_id",
+                "Difficulty",
+                "Pick how hard the decade should hit back:",
+                [(item.name, item.id, item.description) for item in bundle.difficulties],
+                initial_difficulty_id,
+            ),
+        ]
+        super().__init__(parent, "Start New Run")
+
+    def body(self, master: tk.Misc):
+        master.columnconfigure(0, weight=3)
+        master.columnconfigure(1, weight=2)
+
+        left = tk.Frame(master)
+        left.grid(row=0, column=0, sticky="nsew", padx=(6, 8), pady=6)
+        left.columnconfigure(0, weight=1)
+
+        name_frame = tk.LabelFrame(left, text="Player Name", padx=8, pady=8)
+        name_frame.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+        self.name_entry = tk.Entry(name_frame, textvariable=self.player_name_var, font=("Segoe UI", 11))
+        self.name_entry.pack(fill="x")
+
+        options_frame = tk.LabelFrame(left, text="Start Setup", padx=8, pady=8)
+        options_frame.grid(row=1, column=0, sticky="nsew")
+        options_frame.columnconfigure(0, weight=1)
+
+        for row, group in enumerate(self._groups):
+            option_map = {label: option for option in group.options for label in [option[0]]}
+            self._value_maps[group.key] = option_map
+            option_labels = list(option_map)
+            default_option = _lookup_option(group.options, group.initial_id)
+            var = tk.StringVar(value=default_option[0])
+            desc_var = tk.StringVar(value=default_option[2])
+            self._group_vars[group.key] = var
+            self._group_desc_vars[group.key] = desc_var
+            frame = tk.LabelFrame(options_frame, text=group.title, padx=8, pady=6)
+            frame.grid(row=row, column=0, sticky="ew", pady=4)
+            frame.columnconfigure(0, weight=1)
+            combo = ttk.Combobox(frame, values=option_labels, textvariable=var, state="readonly")
+            combo.grid(row=0, column=0, sticky="ew")
+            combo.bind("<<ComboboxSelected>>", lambda _event, key=group.key: self._sync_group_description(key))
+            tk.Label(
+                frame,
+                text=group.prompt,
+                justify="left",
+                wraplength=450,
+                fg="#333333",
+                font=("Segoe UI", 9, "bold"),
+            ).grid(row=1, column=0, sticky="w", pady=(6, 0))
+            tk.Label(
+                frame,
+                textvariable=desc_var,
+                justify="left",
+                wraplength=450,
+                fg="#444444",
+                font=("Segoe UI", 9),
+            ).grid(row=2, column=0, sticky="w", pady=(2, 0))
+
+        right = tk.LabelFrame(master, text="Opening Identity", padx=10, pady=10)
+        right.grid(row=0, column=1, sticky="nsew", padx=(0, 6), pady=6)
+        right.rowconfigure(0, weight=1)
+        right.columnconfigure(0, weight=1)
+
+        self.summary_text = tk.Text(
+            right,
+            width=1,
+            height=1,
+            wrap="word",
+            bg="#f8f8f8",
+            relief="sunken",
+            bd=1,
+            font=("Consolas", 10),
+            spacing1=1,
+            spacing3=2,
+        )
+        self.summary_text.grid(row=0, column=0, sticky="nsew")
+        self.summary_text.configure(state="disabled")
+
+        self._refresh_summary()
+        return self.name_entry
+
+    def _sync_group_description(self, key: str) -> None:
+        option = self._current_option(key)
+        self._group_desc_vars[key].set(option[2])
+        self._refresh_summary()
+
+    def _current_option(self, key: str) -> tuple[str, str, str]:
+        selected_label = self._group_vars[key].get()
+        return self._value_maps[key][selected_label]
+
+    def _selected_ids(self) -> dict[str, str]:
+        return {key: self._current_option(key)[1] for key in self._group_vars}
+
+    def _refresh_summary(self) -> None:
+        selections = self._selected_ids()
+        summary_lines = build_setup_summary_lines(self.bundle, selections, self.player_name_var.get().strip())
+        self.summary_text.configure(state="normal")
+        self.summary_text.delete("1.0", "end")
+        self.summary_text.insert("1.0", "\n".join(summary_lines))
+        self.summary_text.configure(state="disabled")
+
+    def validate(self) -> bool:
+        if not self.player_name_var.get().strip():
+            messagebox.showerror("Player Name", "Please enter a player name.")
+            return False
+        return True
+
+    def apply(self) -> None:
+        self.result = {
+            "player_name": self.player_name_var.get().strip() or "Player",
+            **self._selected_ids(),
+        }
+
+    def buttonbox(self):
+        box = tk.Frame(self)
+        start = tk.Button(box, text="Start Run", width=12, command=self.ok, default="active")
+        start.pack(side="left", padx=5, pady=6)
+        cancel = tk.Button(box, text="Cancel", width=10, command=self.cancel)
+        cancel.pack(side="left", padx=5, pady=6)
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+        box.pack()
+
+
 def prompt_new_game_setup(
     parent: tk.Misc,
     bundle,
@@ -66,48 +321,19 @@ def prompt_new_game_setup(
     initial_opening_path_id: str | None = None,
     initial_difficulty_id: str | None = None,
 ) -> dict[str, str] | None:
-    preset_options = [(preset.name, preset.id, preset.description) for preset in bundle.presets]
-    city_options = [(city.name, city.id, city.opportunity_text) for city in bundle.cities]
-    academic_options = [(option.name, option.id, option.description) for option in bundle.config.academic_levels]
-    support_options = [(option.name, option.id, option.description) for option in bundle.config.family_support_levels]
-    savings_options = [(option.name, option.id, option.description) for option in bundle.config.savings_bands]
-    path_options = [(path.name, path.id, path.description) for path in bundle.config.opening_paths]
-    difficulty_options = [(difficulty.name, difficulty.id, difficulty.description) for difficulty in bundle.difficulties]
-
-    preset_id = initial_preset_id or SelectionDialog(parent, "Choose Preset", "Choose the background you are starting from:", preset_options).result
-    if not preset_id:
-        return None
-    city_id = initial_city_id or SelectionDialog(parent, "Choose City", "Choose the kind of city you are entering adulthood in:", city_options).result
-    if not city_id:
-        return None
-    academic_level_id = initial_academic_level_id or SelectionDialog(parent, "Academics", "How strong is your academic footing?", academic_options).result
-    if not academic_level_id:
-        return None
-    family_support_level_id = initial_family_support_level_id or SelectionDialog(parent, "Family Support", "How much backup do you realistically have?", support_options).result
-    if not family_support_level_id:
-        return None
-    savings_band_id = initial_savings_band_id or SelectionDialog(parent, "Starting Cushion", "How much cushion are you really starting with?", savings_options).result
-    if not savings_band_id:
-        return None
-    opening_path_id = initial_opening_path_id or SelectionDialog(parent, "Opening Path", "Pick the first lane you are stepping into:", path_options).result
-    if not opening_path_id:
-        return None
-    difficulty_id = initial_difficulty_id or SelectionDialog(parent, "Difficulty", "Pick how hard the decade should hit back:", difficulty_options).result
-    if not difficulty_id:
-        return None
-    player_name = simpledialog.askstring("Player Name", "Name:", initialvalue=initial_name, parent=parent)
-    if player_name is None:
-        return None
-    return {
-        "player_name": player_name or "Player",
-        "preset_id": preset_id,
-        "city_id": city_id,
-        "academic_level_id": academic_level_id,
-        "family_support_level_id": family_support_level_id,
-        "savings_band_id": savings_band_id,
-        "opening_path_id": opening_path_id,
-        "difficulty_id": difficulty_id,
-    }
+    dialog = ClassicSetupDialog(
+        parent,
+        bundle,
+        initial_name=initial_name,
+        initial_preset_id=initial_preset_id,
+        initial_city_id=initial_city_id,
+        initial_academic_level_id=initial_academic_level_id,
+        initial_family_support_level_id=initial_family_support_level_id,
+        initial_savings_band_id=initial_savings_band_id,
+        initial_opening_path_id=initial_opening_path_id,
+        initial_difficulty_id=initial_difficulty_id,
+    )
+    return dialog.result
 
 
 class MainWindow(tk.Frame):
@@ -118,6 +344,7 @@ class MainWindow(tk.Frame):
         self._result_announced = False
         self._shown_milestone_count = 0
         self._large_text = False
+        self._latest_snapshot = None
         self.pack(fill="both", expand=True)
         self._build_layout()
         self._apply_text_scale()
@@ -134,17 +361,17 @@ class MainWindow(tk.Frame):
         content = tk.Frame(self, bg="#c0c0c0")
         content.pack(fill="both", expand=True, padx=6, pady=(0, 4))
 
-        self.life_panel = LifePanel(content, "Current Life Setup")
+        self.life_panel = LifePanel(content, "Build")
         self.life_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
 
         center = tk.Frame(content, bg="#c0c0c0")
         center.grid(row=0, column=1, sticky="nsew", padx=4)
-        self.outlook_panel = LifePanel(center, "Month Outlook")
+        self.outlook_panel = LifePanel(center, "This Month")
         self.outlook_panel.pack(fill="both", expand=True, pady=(0, 4))
-        self.log_panel = LogPanel(center, "Recent Activity")
+        self.log_panel = LogPanel(center, "Run Feedback")
         self.log_panel.pack(fill="both", expand=True)
 
-        self.finance_panel = FinancePanel(content, "Finances, Progress, and Pressure")
+        self.finance_panel = FinancePanel(content, "Score & Pressure")
         self.finance_panel.grid(row=0, column=2, sticky="nsew", padx=(4, 0))
 
         content.grid_columnconfigure(0, weight=3)
@@ -164,7 +391,6 @@ class MainWindow(tk.Frame):
                 ("Wealth", self.change_wealth),
                 ("Focus", self.change_focus),
                 ("Resolve Month", self.resolve_month),
-                ("Save", self.save_game),
             ]
         )
 
@@ -227,47 +453,40 @@ class MainWindow(tk.Frame):
         focus = next(item for item in self.controller.bundle.focus_actions if item.id == player.selected_focus_action_id)
         wealth = next(item for item in self.controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
         return [
-            f"Name: {player.name}",
-            f"City: {city.name}",
-            f"Path: {player.opening_path_id.replace('_', ' ').title()}",
+            f"{player.name} in {city.name}",
+            f"Opening path: {player.opening_path_id.replace('_', ' ').title()}",
             "",
             f"Career: {career_track.name}",
-            f"Tier: {current_tier.label}",
-            f"Promotion Progress: {player.career.promotion_progress}",
-            f"Career Momentum: {player.career.promotion_momentum}",
-            f"Transition Drag: {player.career.transition_penalty_months}m",
+            f"Lane: {current_tier.label}",
+            f"Momentum: {player.career.promotion_momentum} | Progress: {player.career.promotion_progress}",
             "",
             f"Education: {education.name}",
-            f"Active: {'Yes' if player.education.is_active else 'No'}",
-            f"Paused: {'Yes' if player.education.is_paused else 'No'}",
+            f"Status: {'Active' if player.education.is_active else 'Paused'}",
             f"Progress: {player.education.months_completed}/{education.duration_months or 0}",
             f"Standing: {player.education.standing}",
-            f"Edu Momentum: {player.education.education_momentum}",
-            (
-                f"GPA: {player.education.college_gpa:.2f}"
-                if education.uses_gpa
-                else f"Passed: {'Yes' if player.education.training_passed else 'No'}"
-            ),
-            f"Credentials: {', '.join(player.education.earned_credential_ids) or 'None'}",
             "",
             f"Housing: {housing.name}",
-            f"Months There: {player.housing.months_in_place}",
-            f"Housing Stability: {player.housing.housing_stability}",
             f"Transport: {transport.name}",
-            f"Transport Reliability: {player.transport.reliability_score}",
             f"Budget: {stance.name}",
             f"Wealth: {wealth.name}",
             f"Focus: {focus.name}",
         ]
 
     def _outlook_lines(self) -> list[str]:
-        outlook = self.controller.build_month_outlook()
+        focus = next(item for item in self.controller.bundle.focus_actions if item.id == self.controller.state.player.selected_focus_action_id)
+        outlook = [
+            f"Monthly focus: {focus.name}",
+            focus.description,
+            "",
+            "Resolve the month after checking the pressure cards below.",
+        ]
+        outlook.extend(self.controller.build_month_outlook())
         if self.controller.state.month_driver_notes:
-            outlook = outlook + ["", "Why This Month Changed:"] + self.controller.state.month_driver_notes
+            outlook += ["", "Why this month matters:"] + self.controller.state.month_driver_notes
         summary = self.controller.state.recent_summary
         if summary:
-            outlook = outlook + ["", "Last Month Summary:"] + summary
-        return outlook
+            outlook += ["", "Last month:"] + summary
+        return outlook[:16]
 
     def _finance_lines(self) -> list[str]:
         state = self.controller.state
@@ -275,34 +494,30 @@ class MainWindow(tk.Frame):
         housing = next(item for item in self.controller.bundle.housing_options if item.id == player.housing_id)
         transport = next(item for item in self.controller.bundle.transport_options if item.id == player.transport_id)
         wealth = next(item for item in self.controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
+        snapshot = self._latest_snapshot or self.controller.live_score_snapshot()
         modifiers = ", ".join(f"{modifier.label} ({modifier.remaining_months})" for modifier in state.active_modifiers) or "None"
         warnings = self.controller.build_crisis_warnings()
         return [
-            f"Cash: ${player.cash}",
-            f"Savings: ${player.savings}",
-            f"High-Interest: ${player.high_interest_savings}",
-            f"Index Fund: ${player.index_fund}",
-            f"Growth Fund: ${player.aggressive_growth_fund}",
-            f"Debt: ${player.debt}",
-            f"Income: ${player.monthly_income}",
-            f"Expenses: ${player.monthly_expenses}",
-            f"Monthly Swing: {player.monthly_surplus:+d}",
+            f"Projected Score: {snapshot.projected_score:.2f}",
+            f"Tier: {snapshot.score_tier}",
+            f"Biggest Risk: {snapshot.biggest_risk}",
+            "",
+            f"Cash: {_money(player.cash)}",
+            f"Savings: {_money(player.savings)}",
+            f"Debt: {_money(player.debt)}",
+            f"Income: {_money(player.monthly_income)}",
+            f"Expenses: {_money(player.monthly_expenses)}",
+            f"Monthly Swing: {_money(player.monthly_surplus)}",
             "",
             f"Stress: {player.stress}/{state.max_stress}",
             f"Energy: {player.energy}/{state.max_energy}",
-            f"Life Satisfaction: {player.life_satisfaction}/{state.max_life_satisfaction}",
-            f"Family Support: {player.family_support}/{state.max_family_support}",
-            f"Social Stability: {player.social_stability}/{state.max_social_stability}",
+            f"Life: {player.life_satisfaction}/{state.max_life_satisfaction}",
+            f"Family: {player.family_support}/{state.max_family_support}",
+            f"Social: {player.social_stability}/{state.max_social_stability}",
             "",
-            f"Housing Quality: {housing.quality_score}",
-            f"Transport Access: {transport.access_level}",
-            f"Housing Risk: {player.housing.missed_payment_streak}/{state.housing_miss_limit}",
             f"Housing Stability: {player.housing.housing_stability}/100",
-            f"Burnout Streak: {state.burnout_streak}/{state.burnout_streak_limit}",
-            f"School Failure Streak: {player.education.failure_streak}/{state.academic_failure_streak_limit}",
             f"Transport Reliability: {player.transport.reliability_score}/100",
-            f"Market Regime: {state.current_market_regime_id.replace('_', ' ').title()}",
-            f"Wealth Strategy: {wealth.name}",
+            f"Wealth: {wealth.name}",
             "",
             "Active Modifiers:",
             modifiers,
@@ -313,11 +528,12 @@ class MainWindow(tk.Frame):
 
     def refresh(self) -> None:
         state = self.controller.state
-        self.status_bar.render(state, self.controller.bundle)
+        self._latest_snapshot = self.controller.live_score_snapshot()
+        self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
         self.life_panel.render(self._life_lines())
         self.outlook_panel.render(self._outlook_lines())
         self.finance_panel.render(self._finance_lines())
-        self.log_panel.render(state.log_messages)
+        self.log_panel.render(state.log_messages, limit=10)
         size_tag = "Large Text" if self._large_text else "Normal Text"
         self.master.title(f"{state.game_title} - {state.player.name} ({size_tag})")
 
@@ -393,7 +609,7 @@ class MainWindow(tk.Frame):
 
     def change_housing(self) -> None:
         options = [
-            (f"{option.name} | move ${option.move_in_cost}", option.id, option.description)
+            (f"{option.name} | move {_money(option.move_in_cost)}", option.id, option.description)
             for option in self.controller.available_housing()
         ]
         chosen = self._choose("Housing", "Choose your housing setup:", options)
@@ -406,7 +622,7 @@ class MainWindow(tk.Frame):
         for option in self.controller.available_transport():
             upfront = max(0, option.upfront_cost - discount)
             monthly = option.monthly_payment + option.insurance_cost + option.fuel_maintenance_cost
-            options.append((f"{option.name} | upfront ${upfront} | monthly ${monthly}", option.id, option.description))
+            options.append((f"{option.name} | upfront {_money(upfront)} | monthly {_money(monthly)}", option.id, option.description))
         chosen = self._choose("Transport", "Choose your transport setup:", options)
         if chosen:
             self._run_action(lambda: self.controller.change_transport(chosen))
@@ -442,18 +658,20 @@ class MainWindow(tk.Frame):
 
     def show_score_projection(self) -> None:
         summary = self.controller.final_score_summary()
+        snapshot = self.controller.live_score_snapshot()
         breakdown = "\n".join(f"{key.replace('_', ' ').title()}: {value:.2f}" for key, value in summary.breakdown.items())
         messagebox.showinfo(
             "Projected Ending",
-            f"{summary.ending_label}\nScore: {summary.final_score}\n\n{summary.outcome}\n\n{breakdown}",
+            f"{summary.ending_label}\nTier: {snapshot.score_tier}\nScore: {summary.final_score}\n\n"
+            f"Biggest risk: {snapshot.biggest_risk}\n\n{summary.outcome}\n\n{breakdown}",
         )
 
     def show_help(self) -> None:
         messagebox.showinfo(
             "How To Play",
             "Each turn is one month.\n\n"
-            "Your persistent setup is your career lane, education plan, housing, transport, and budget stance.\n"
-            "You also control a separate wealth strategy for liquidity, debt paydown, and investing posture.\n"
-            "Pick one monthly focus, then resolve the month and react to the pressure that follows.\n\n"
-            "The goal is not just cash. Reach age 28 in the strongest life position you can build.",
+            "Your persistent setup is your career lane, education plan, housing, transport, budget stance, and wealth plan.\n"
+            "You also control a separate monthly focus that shapes the next resolve.\n"
+            "Choose a setup, pick a focus, then resolve the month and react to the pressure that follows.\n\n"
+            "The goal is to chase the strongest score you can build before age 28.",
         )

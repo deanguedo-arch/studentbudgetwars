@@ -12,7 +12,7 @@ def normalize_mode(mode: str | None) -> GameMode:
     return "desktop" if mode == "desktop" else "classic"
 
 
-@dataclass(slots=True)
+@dataclass
 class StartupOptions:
     mode: GameMode = "classic"
     player_name: str = "Player"

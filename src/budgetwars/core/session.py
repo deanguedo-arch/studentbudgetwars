@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from budgetwars.engine import GameController
-from budgetwars.models import ContentBundle, FileSystemPaths, FinalScoreSummary, GameState
+from budgetwars.models import ContentBundle, FileSystemPaths, FinalScoreSummary, GameState, LiveScoreSnapshot
 from budgetwars.saves import default_paths, load_game, load_named_game, save_game, save_named_game
 
 from .content import load_mode_content
@@ -120,3 +120,6 @@ class GameSession:
 
     def final_score_summary(self) -> FinalScoreSummary:
         return self.require_controller().final_score_summary()
+
+    def live_score_snapshot(self) -> LiveScoreSnapshot:
+        return self.require_controller().live_score_snapshot()
