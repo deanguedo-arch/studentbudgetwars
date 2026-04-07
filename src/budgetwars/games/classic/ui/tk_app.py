@@ -4,6 +4,7 @@ import tkinter as tk
 
 from budgetwars.core import GameSession, StartupOptions
 
+from .theme import BG_DARKEST, TEXT_PRIMARY, FONT_BODY
 from .main_window import MainWindow, prompt_new_game_setup
 
 
@@ -17,10 +18,11 @@ class BudgetWarsTkApp:
         self.session = session
         self.startup_options = startup_options or session.options
         self.root = tk.Tk()
-        self.root.configure(bg="#c0c0c0")
-        self.root.geometry("1200x730")
-        self.root.minsize(980, 620)
-        self.root.option_add("*Font", ("Segoe UI", 10))
+        self.root.configure(bg=BG_DARKEST)
+        self.root.geometry("1280x780")
+        self.root.minsize(1040, 660)
+        self.root.option_add("*Font", FONT_BODY)
+        self.root.option_add("*Background", BG_DARKEST)
 
         if not self.session.has_active_game:
             setup = prompt_new_game_setup(

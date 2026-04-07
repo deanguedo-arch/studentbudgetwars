@@ -77,7 +77,9 @@
       "education_progress_delta": 0,
       "transport_switch_discount": 0
     },
-    "log_entry": "Your place turned ugly and the month paid for it."
+    "log_entry": "Your place turned ugly and the month paid for it.",
+    "chained_event_id": "roommate_moves_out",
+    "chained_delay_months": 2
   },
   {
     "id": "job_layoff",
@@ -518,7 +520,9 @@
       "education_progress_delta": 0,
       "transport_switch_discount": 0
     },
-    "log_entry": "Home stopped feeling like free stability and started feeling like pressure."
+    "log_entry": "Home stopped feeling like free stability and started feeling like pressure.",
+    "chained_event_id": "parent_boundary",
+    "chained_delay_months": 3
   },
   {
     "id": "social_isolation_slide",
@@ -836,7 +840,9 @@
       "education_progress_delta": 0,
       "transport_switch_discount": 0
     },
-    "log_entry": "The beater broke down and turned access into a problem instead of a benefit."
+    "log_entry": "The beater broke down and turned access into a problem instead of a benefit.",
+    "chained_event_id": "vehicle_total_loss",
+    "chained_delay_months": 4
   },
   {
     "id": "missed_shift_after_breakdown",
@@ -1028,5 +1034,55 @@
       "transport_switch_discount": 0
     },
     "log_entry": "Sales went cold and reminded you how thin the floor is in this lane."
+  },
+  {
+    "id": "vehicle_total_loss",
+    "name": "Vehicle Total Loss",
+    "description": "The engine finally gave up for good. There is no fixing this one.",
+    "weight": 1,
+    "min_month": 6,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [
+      "beater_car"
+    ],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": null,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": 40,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "cash": -600,
+      "stress": 8,
+      "life_satisfaction": -6,
+      "energy": -5
+    },
+    "modifier": {
+      "id": "total_loss_drag",
+      "label": "Vehicle Total Loss",
+      "duration_months": 3,
+      "stat_effects": {
+        "stress": 3,
+        "energy": -2
+      },
+      "income_multiplier": 0.85,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": -2,
+      "education_progress_delta": -1,
+      "transport_switch_discount": 0
+    },
+    "log_entry": "The engine died. Your car is gone. You are back to transit or worse until you can replace it."
   }
 ]

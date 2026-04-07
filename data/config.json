@@ -50,6 +50,17 @@
   "education_reentry_cash_cost": 220,
   "education_reentry_stress_cost": 4,
   "education_reentry_drag_months": 3,
+  "wealth_milestone_thresholds": [
+    1000,
+    3000,
+    5000,
+    10000,
+    20000,
+    50000
+  ],
+  "emergency_fund_floor": 500,
+  "annual_rent_hike_min": 0.03,
+  "annual_rent_hike_max": 0.08,
   "default_market_regime_id": "normal",
   "market_regimes": [
     {

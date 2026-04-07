@@ -36,7 +36,8 @@
         "promotion_target": 4,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Shift Lead",
@@ -48,7 +49,8 @@
         "promotion_target": 6,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Assistant Manager",
@@ -60,9 +62,40 @@
         "promotion_target": 8,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Store Manager",
+        "monthly_income": 4095,
+        "energy_delta": -15,
+        "stress_delta": 13,
+        "life_satisfaction_delta": 2,
+        "social_stability_delta": 0,
+        "promotion_target": 11,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "Regional Manager",
+        "monthly_income": 5733,
+        "energy_delta": -16,
+        "stress_delta": 16,
+        "life_satisfaction_delta": 4,
+        "social_stability_delta": 1,
+        "promotion_target": 15,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "sales": 0.4,
+      "office_admin": 0.2
+    }
   },
   {
     "id": "warehouse_logistics",
@@ -101,7 +134,8 @@
         "promotion_target": 4,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Team Lead",
@@ -113,7 +147,8 @@
         "promotion_target": 6,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Ops Supervisor",
@@ -125,9 +160,40 @@
         "promotion_target": 8,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Warehouse Manager",
+        "monthly_income": 5174,
+        "energy_delta": -22,
+        "stress_delta": 12,
+        "life_satisfaction_delta": 3,
+        "social_stability_delta": 0,
+        "promotion_target": 11,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "Regional Logistics Director",
+        "monthly_income": 7243,
+        "energy_delta": -23,
+        "stress_delta": 15,
+        "life_satisfaction_delta": 5,
+        "social_stability_delta": 1,
+        "promotion_target": 15,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "delivery_gig": 0.3,
+      "trades_apprenticeship": 0.2
+    }
   },
   {
     "id": "delivery_gig",
@@ -166,7 +232,8 @@
         "promotion_target": 5,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Route Regular",
@@ -178,7 +245,8 @@
         "promotion_target": 7,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Independent Runner",
@@ -190,9 +258,40 @@
         "promotion_target": 9,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Fleet Operator",
+        "monthly_income": 3965,
+        "energy_delta": -17,
+        "stress_delta": 10,
+        "life_satisfaction_delta": 3,
+        "social_stability_delta": 1,
+        "promotion_target": 12,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "Logistics Franchisee",
+        "monthly_income": 5551,
+        "energy_delta": -18,
+        "stress_delta": 13,
+        "life_satisfaction_delta": 5,
+        "social_stability_delta": 2,
+        "promotion_target": 16,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "warehouse_logistics": 0.3,
+      "sales": 0.2
+    }
   },
   {
     "id": "office_admin",
@@ -231,7 +330,8 @@
         "promotion_target": 5,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.3,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Office Coordinator",
@@ -243,7 +343,8 @@
         "promotion_target": 7,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.5,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Operations Coordinator",
@@ -255,9 +356,40 @@
         "promotion_target": 9,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.7,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Office Manager",
+        "monthly_income": 5005,
+        "energy_delta": -12,
+        "stress_delta": 10,
+        "life_satisfaction_delta": 4,
+        "social_stability_delta": 2,
+        "promotion_target": 12,
+        "required_credential_ids": [],
+        "required_minimum_gpa": 2.7,
+        "required_pass_state": false,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "VP of Operations",
+        "monthly_income": 7007,
+        "energy_delta": -13,
+        "stress_delta": 13,
+        "life_satisfaction_delta": 6,
+        "social_stability_delta": 3,
+        "promotion_target": 16,
+        "required_credential_ids": [],
+        "required_minimum_gpa": 2.7,
+        "required_pass_state": false,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "sales": 0.3,
+      "degree_gated_professional": 0.3
+    }
   },
   {
     "id": "trades_apprenticeship",
@@ -296,7 +428,8 @@
         "promotion_target": 8,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Junior Tradesperson",
@@ -310,7 +443,8 @@
           "apprenticeship_certificate"
         ],
         "required_minimum_gpa": null,
-        "required_pass_state": true
+        "required_pass_state": true,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Certified Tradesperson",
@@ -324,9 +458,43 @@
           "apprenticeship_certificate"
         ],
         "required_minimum_gpa": null,
-        "required_pass_state": true
+        "required_pass_state": true,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Master Tradesperson",
+        "monthly_income": 6305,
+        "energy_delta": -19,
+        "stress_delta": 10,
+        "life_satisfaction_delta": 5,
+        "social_stability_delta": 1,
+        "promotion_target": 15,
+        "required_credential_ids": [
+          "apprenticeship_certificate"
+        ],
+        "required_minimum_gpa": null,
+        "required_pass_state": true,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "Shop Owner",
+        "monthly_income": 8827,
+        "energy_delta": -20,
+        "stress_delta": 13,
+        "life_satisfaction_delta": 7,
+        "social_stability_delta": 2,
+        "promotion_target": 19,
+        "required_credential_ids": [
+          "apprenticeship_certificate"
+        ],
+        "required_minimum_gpa": null,
+        "required_pass_state": true,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "warehouse_logistics": 0.3
+    }
   },
   {
     "id": "healthcare_support",
@@ -368,7 +536,8 @@
           "support_certificate"
         ],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Senior Care Aide",
@@ -382,7 +551,8 @@
           "support_certificate"
         ],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Unit Lead",
@@ -396,9 +566,43 @@
           "support_certificate"
         ],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Department Supervisor",
+        "monthly_income": 5304,
+        "energy_delta": -18,
+        "stress_delta": 14,
+        "life_satisfaction_delta": 4,
+        "social_stability_delta": 1,
+        "promotion_target": 12,
+        "required_credential_ids": [
+          "support_certificate"
+        ],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "Facility Administrator",
+        "monthly_income": 7425,
+        "energy_delta": -19,
+        "stress_delta": 17,
+        "life_satisfaction_delta": 6,
+        "social_stability_delta": 2,
+        "promotion_target": 16,
+        "required_credential_ids": [
+          "support_certificate"
+        ],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "office_admin": 0.2
+    }
   },
   {
     "id": "sales",
@@ -436,7 +640,8 @@
         "promotion_target": 5,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Account Rep",
@@ -448,7 +653,8 @@
         "promotion_target": 7,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Senior Rep",
@@ -460,9 +666,40 @@
         "promotion_target": 9,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Sales Manager",
+        "monthly_income": 5915,
+        "energy_delta": -14,
+        "stress_delta": 13,
+        "life_satisfaction_delta": 4,
+        "social_stability_delta": 2,
+        "promotion_target": 12,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "VP of Sales",
+        "monthly_income": 8281,
+        "energy_delta": -15,
+        "stress_delta": 16,
+        "life_satisfaction_delta": 6,
+        "social_stability_delta": 3,
+        "promotion_target": 16,
+        "required_credential_ids": [],
+        "required_minimum_gpa": null,
+        "required_pass_state": false,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "retail_service": 0.3,
+      "office_admin": 0.3
+    }
   },
   {
     "id": "degree_gated_professional",
@@ -504,7 +741,8 @@
           "university_degree"
         ],
         "required_minimum_gpa": 3.0,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 15
       },
       {
         "label": "Specialist",
@@ -518,7 +756,8 @@
           "university_degree"
         ],
         "required_minimum_gpa": 3.1,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 25
       },
       {
         "label": "Manager",
@@ -532,8 +771,43 @@
           "university_degree"
         ],
         "required_minimum_gpa": 3.2,
-        "required_pass_state": false
+        "required_pass_state": false,
+        "seniority_income_bonus": 35
+      },
+      {
+        "label": "Director",
+        "monthly_income": 8970,
+        "energy_delta": -12,
+        "stress_delta": 11,
+        "life_satisfaction_delta": 6,
+        "social_stability_delta": 2,
+        "promotion_target": 13,
+        "required_credential_ids": [
+          "university_degree"
+        ],
+        "required_minimum_gpa": 3.2,
+        "required_pass_state": false,
+        "seniority_income_bonus": 45
+      },
+      {
+        "label": "Executive / Partner",
+        "monthly_income": 12558,
+        "energy_delta": -13,
+        "stress_delta": 14,
+        "life_satisfaction_delta": 8,
+        "social_stability_delta": 3,
+        "promotion_target": 17,
+        "required_credential_ids": [
+          "university_degree"
+        ],
+        "required_minimum_gpa": 3.2,
+        "required_pass_state": false,
+        "seniority_income_bonus": 60
       }
-    ]
+    ],
+    "skill_transfer_map": {
+      "office_admin": 0.5,
+      "sales": 0.4
+    }
   }
 ]

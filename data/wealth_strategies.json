@@ -9,7 +9,8 @@
     "growth_invest_rate": 0.0,
     "extra_debt_payment_rate": 0.04,
     "liquidity_bias": 86,
-    "risk_bias": 18
+    "risk_bias": 18,
+    "rebalance_trigger": "protect_floor"
   },
   {
     "id": "steady_builder",
@@ -21,7 +22,8 @@
     "growth_invest_rate": 0.02,
     "extra_debt_payment_rate": 0.05,
     "liquidity_bias": 62,
-    "risk_bias": 48
+    "risk_bias": 48,
+    "rebalance_trigger": "balanced"
   },
   {
     "id": "debt_crusher",
@@ -33,7 +35,8 @@
     "growth_invest_rate": 0.0,
     "extra_debt_payment_rate": 0.22,
     "liquidity_bias": 55,
-    "risk_bias": 8
+    "risk_bias": 8,
+    "rebalance_trigger": "shift_on_debt_clear"
   },
   {
     "id": "market_chaser",
@@ -45,6 +48,7 @@
     "growth_invest_rate": 0.08,
     "extra_debt_payment_rate": 0.0,
     "liquidity_bias": 24,
-    "risk_bias": 84
+    "risk_bias": 84,
+    "rebalance_trigger": "correction_shift"
   }
 ]

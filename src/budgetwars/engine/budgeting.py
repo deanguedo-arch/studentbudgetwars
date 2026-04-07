@@ -6,6 +6,7 @@ from budgetwars.models import ContentBundle, GameState
 
 from .effects import append_log
 from .lookups import get_budget_stance, get_city
+from .wealth import emergency_liquidation
 
 
 @dataclass
@@ -24,8 +25,23 @@ def pay_amount(state: GameState, amount: int) -> PaymentResult:
     from_savings = min(state.player.savings, remaining)
     state.player.savings -= from_savings
     remaining -= from_savings
+    # Social lifeline: strong networks cover up to $300 once per year
+    if remaining > 0 and state.player.social_stability > 80:
+        current_year = ((state.current_month - 1) // 12) + 1
+        if state.player.last_social_lifeline_year < current_year:
+            bailout = min(remaining, 300)
+            remaining -= bailout
+            state.player.last_social_lifeline_year = current_year
+            state.player.social_stability -= 5
+            append_log(state, f"Your network covered ${bailout} this month. That kind of favor doesn't come twice.")
+    if remaining > 0:
+        raised = emergency_liquidation(state, remaining)
+        remaining -= raised
+        if raised > 0:
+            state.player.credit_score = max(300, state.player.credit_score - 15)
     if remaining > 0:
         state.player.debt += remaining
+        state.player.credit_score = max(300, state.player.credit_score - max(2, remaining // 100))
     return PaymentResult(requested=amount, from_cash=from_cash, from_savings=from_savings, added_to_debt=remaining)
 
 
@@ -48,6 +64,10 @@ def make_debt_payment(state: GameState, amount: int) -> int:
     total_paid = paid_from_cash + paid_from_savings
     if total_paid:
         state.player.debt = max(0, state.player.debt - total_paid)
+        if state.player.debt == 0:
+            state.player.credit_score = min(850, state.player.credit_score + 10)
+        else:
+            state.player.credit_score = min(850, state.player.credit_score + max(1, total_paid // 200))
     append_log(state, f"Debt payment: ${total_paid}" + (f" (short by ${amount - total_paid})" if total_paid < amount else ""))
     return total_paid
 

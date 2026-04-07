@@ -12,9 +12,13 @@ class HousingState(BaseModel):
     option_id: str
     months_in_place: int = Field(ge=0, default=0)
     missed_payment_streak: int = Field(ge=0, default=0)
+    lease_months_remaining: int = Field(ge=0, default=0)
+    base_rent_multiplier: float = Field(ge=1.0, default=1.0)
+    original_quality: int | None = None
     move_pressure: int = Field(ge=0, default=0)
     housing_stability: int = Field(ge=0, le=100, default=60)
     recent_move_penalty_months: int = Field(ge=0, default=0)
+    layout_escalator: float = Field(ge=0.0, default=0.0)
 
 
 class TransportState(BaseModel):
@@ -24,6 +28,8 @@ class TransportState(BaseModel):
     reliability_score: int = Field(ge=0, le=100, default=70)
     recent_repair_flag: bool = False
     recent_switch_penalty_months: int = Field(ge=0, default=0)
+    vehicle_mileage: int = Field(ge=0, default=0)
+    breakdown_escalator: float = Field(ge=1.0, default=1.0)
 
 
 class CareerState(BaseModel):
@@ -35,6 +41,8 @@ class CareerState(BaseModel):
     promotion_momentum: int = Field(ge=0, le=100, default=45)
     transition_penalty_months: int = Field(ge=0, default=0)
     recent_performance_tag: str = "steady"
+    months_at_tier: int = Field(ge=0, default=0)
+    best_performance_streak: int = Field(ge=0, default=0)
 
 
 class EducationState(BaseModel):
@@ -50,6 +58,9 @@ class EducationState(BaseModel):
     earned_credential_ids: list[str] = Field(default_factory=list)
     reentry_drag_months: int = Field(ge=0, default=0)
     education_momentum: int = Field(ge=0, le=100, default=45)
+    intensity_level: str = "standard"
+    graduation_tier: str | None = None
+    exam_stress_active: bool = False
 
 
 class ActiveMonthlyModifier(BaseModel):
@@ -91,6 +102,12 @@ class LiveScoreSnapshot(BaseModel):
     breakdown: dict[str, float]
 
 
+class PendingEvent(BaseModel):
+    event_id: str
+    months_remaining: int = Field(ge=0)
+    source_event_id: str
+
+
 class PlayerState(BaseModel):
     name: str
     cash: int
@@ -113,6 +130,11 @@ class PlayerState(BaseModel):
     wealth_strategy_id: str
     opening_path_id: str
     selected_focus_action_id: str
+    wealth_milestones_hit: list[str] = Field(default_factory=list)
+    consecutive_correction_months: int = 0
+    emergency_liquidation_count: int = 0
+    credit_score: int = Field(ge=300, le=850, default=650)
+    last_social_lifeline_year: int = 0
     career: CareerState
     education: EducationState
     housing: HousingState
@@ -158,6 +180,7 @@ class GameState(BaseModel):
     current_market_regime_id: str
     player: PlayerState
     active_modifiers: list[ActiveMonthlyModifier] = Field(default_factory=list)
+    pending_events: list[PendingEvent] = Field(default_factory=list)
     burnout_streak: int = Field(ge=0, default=0)
     log_messages: list[str] = Field(default_factory=list)
     recent_summary: list[str] = Field(default_factory=list)
@@ -195,7 +218,7 @@ class FinalScoreSummary(BaseModel):
 
 
 class SaveGamePayload(BaseModel):
-    version: int = 6
+    version: int = 9
     state: GameState
 
 

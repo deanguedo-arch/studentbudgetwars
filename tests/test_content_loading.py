@@ -11,7 +11,7 @@ def test_content_bundle_loads_expected_v2_sets(bundle):
     assert len(bundle.careers) == 8
     assert len(bundle.education_programs) == 6
     assert len(bundle.housing_options) == 4
-    assert len(bundle.transport_options) == 6
+    assert len(bundle.transport_options) == 8
     assert len(bundle.focus_actions) == 7
     assert len(bundle.wealth_strategies) == 4
     assert 24 <= len(bundle.events) <= 28

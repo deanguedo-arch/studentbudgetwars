@@ -39,14 +39,17 @@ def _debt_ratio_score(state: GameState) -> float:
         + 1000,
     )
     ratio = state.player.debt / available_assets
-    return _clamp_score(100 - (ratio * 22))
+    credit_factor = (state.player.credit_score - 300) / 5.5
+    return _clamp_score(100 - (ratio * 22) + (credit_factor * 0.3))
 
 
 def _career_tier_score(bundle: ContentBundle, state: GameState) -> float:
     track = get_career_track(bundle, state.player.career.track_id)
     tier_share = 100 * ((state.player.career.tier_index + 1) / len(track.tiers))
     promotion_buffer = min(10, state.player.career.promotion_progress)
-    return _clamp_score(tier_share + promotion_buffer)
+    seniority_buffer = min(5, state.player.career.months_at_tier // 3)
+    streak_bonus = min(5, state.player.career.best_performance_streak)
+    return _clamp_score(tier_share + promotion_buffer + seniority_buffer + streak_bonus)
 
 
 def _credentials_score(state: GameState) -> float:
@@ -54,7 +57,14 @@ def _credentials_score(state: GameState) -> float:
     credentials = len(state.player.education.earned_credential_ids)
     gpa_bonus = max(0.0, (state.player.education.college_gpa - 2.0) * 10)
     pass_bonus = 10 if state.player.education.training_passed else 0
-    return _clamp_score((completed * 18) + (credentials * 15) + gpa_bonus + pass_bonus)
+    grad_bonus = 0
+    if state.player.education.graduation_tier == "distinguished":
+        grad_bonus = 15
+    elif state.player.education.graduation_tier == "strong":
+        grad_bonus = 8
+    elif state.player.education.graduation_tier == "basic":
+        grad_bonus = -5
+    return _clamp_score((completed * 18) + (credentials * 15) + gpa_bonus + pass_bonus + grad_bonus)
 
 
 def _housing_score(bundle: ContentBundle, state: GameState) -> float:
@@ -72,7 +82,8 @@ def _stress_burnout_score(state: GameState) -> float:
     stress_relief = 100 - state.player.stress
     energy = state.player.energy
     burnout_penalty = state.burnout_streak * 10
-    return _clamp_score((stress_relief * 0.65) + (energy * 0.35) - burnout_penalty)
+    liquidation_penalty = state.player.emergency_liquidation_count * 8
+    return _clamp_score((stress_relief * 0.65) + (energy * 0.35) - burnout_penalty - liquidation_penalty)
 
 
 def _biggest_risk_label(breakdown: dict[str, float], warnings: list[str]) -> str:

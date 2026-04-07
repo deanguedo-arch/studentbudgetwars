@@ -6,6 +6,10 @@ from .effects import append_log
 from .lookups import get_education_program, get_housing_option
 
 
+INTENSITY_COST_MULT = {"light": 0.7, "standard": 1.0, "intensive": 1.3}
+INTENSITY_STRESS_MULT = {"light": 0.5, "standard": 1.0, "intensive": 1.5}
+
+
 def can_switch_education(bundle: ContentBundle, state: GameState, program_id: str) -> tuple[bool, str]:
     program = get_education_program(bundle, program_id)
     current = state.player.education
@@ -30,7 +34,8 @@ def education_monthly_cost(bundle: ContentBundle, state: GameState, *, modifier_
         return 0
     city = next(item for item in bundle.cities if item.id == state.player.current_city_id)
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
-    cost = program.monthly_cost * city.education_cost_multiplier * difficulty.education_cost_multiplier
+    intensity_mult = INTENSITY_COST_MULT.get(state.player.education.intensity_level, 1.0)
+    cost = program.monthly_cost * city.education_cost_multiplier * difficulty.education_cost_multiplier * intensity_mult
     return max(0, int(round(cost + modifier_delta)))
 
 
@@ -38,8 +43,12 @@ def apply_education_effects(bundle: ContentBundle, state: GameState) -> Educatio
     program = get_education_program(bundle, state.player.education.program_id)
     if not state.player.education.is_active or program.id == "none":
         return program
-    state.player.stress += program.monthly_stress
-    state.player.energy += program.monthly_energy_delta
+    intensity_mult = INTENSITY_STRESS_MULT.get(state.player.education.intensity_level, 1.0)
+    state.player.stress += int(round(program.monthly_stress * intensity_mult))
+    state.player.energy += int(round(program.monthly_energy_delta * intensity_mult))
+    if state.player.education.exam_stress_active:
+        state.player.stress += 3
+        state.player.energy -= 2
     return program
 
 
@@ -49,6 +58,7 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
     if not education.is_active or program.id == "none":
         return
     housing = get_housing_option(bundle, state.player.housing_id)
+    intensity = state.player.education.intensity_level
 
     standing_delta = 0
     if state.player.academic_strength >= 70:
@@ -81,6 +91,10 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
         standing_delta -= 2
     if state.player.transport.reliability_score < 45:
         standing_delta -= 1
+    if intensity == "light":
+        standing_delta -= 2
+    elif intensity == "intensive":
+        standing_delta += 2
     standing_delta += progress_bonus
     if state.player.education.reentry_drag_months > 0:
         standing_delta -= 1
@@ -118,6 +132,10 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
             gpa_delta -= 0.04
         if state.player.transport.reliability_score < 45:
             gpa_delta -= 0.03
+        if intensity == "light":
+            gpa_delta -= 0.04
+        elif intensity == "intensive":
+            gpa_delta += 0.05
         education.college_gpa = max(0.0, min(4.0, education.college_gpa + gpa_delta))
 
     if education.standing < 45:
@@ -162,6 +180,20 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
             state.player.academic_strength = min(100, state.player.academic_strength + 10)
             education.college_gpa = min(4.0, round(education.college_gpa + 0.2, 2))
         if program.uses_gpa:
-            append_log(state, f"You completed {program.name} with a {education.college_gpa:.2f} GPA.")
+            if education.college_gpa < 2.5:
+                education.graduation_tier = "basic"
+            elif education.college_gpa < 3.2:
+                education.graduation_tier = "standard"
+            elif education.college_gpa < 3.7:
+                education.graduation_tier = "strong"
+            else:
+                education.graduation_tier = "distinguished"
+            
+            if education.graduation_tier == "strong":
+                state.player.life_satisfaction += 2
+            elif education.graduation_tier == "distinguished":
+                state.player.life_satisfaction += 5
+
+            append_log(state, f"You completed {program.name} with a {education.college_gpa:.2f} GPA ({education.graduation_tier}).")
         else:
             append_log(state, f"You completed {program.name} and opened a new credential lane.")

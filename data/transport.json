@@ -15,7 +15,8 @@
     "repair_event_weight": 0.0,
     "odd_hour_access": 15,
     "liquidity_pressure": 10,
-    "quality_score": 45
+    "quality_score": 45,
+    "minimum_credit_score": 300
   },
   {
     "id": "transit",
@@ -33,7 +34,8 @@
     "repair_event_weight": 0.15,
     "odd_hour_access": 52,
     "liquidity_pressure": 34,
-    "quality_score": 66
+    "quality_score": 66,
+    "minimum_credit_score": 300
   },
   {
     "id": "bike",
@@ -51,7 +53,8 @@
     "repair_event_weight": 0.1,
     "odd_hour_access": 38,
     "liquidity_pressure": 18,
-    "quality_score": 58
+    "quality_score": 58,
+    "minimum_credit_score": 300
   },
   {
     "id": "beater_car",
@@ -69,7 +72,8 @@
     "repair_event_weight": 1.0,
     "odd_hour_access": 76,
     "liquidity_pressure": 74,
-    "quality_score": 70
+    "quality_score": 70,
+    "minimum_credit_score": 300
   },
   {
     "id": "financed_car",
@@ -87,7 +91,8 @@
     "repair_event_weight": 0.35,
     "odd_hour_access": 90,
     "liquidity_pressure": 88,
-    "quality_score": 84
+    "quality_score": 84,
+    "minimum_credit_score": 620
   },
   {
     "id": "reliable_used_car",
@@ -105,6 +110,45 @@
     "repair_event_weight": 0.45,
     "odd_hour_access": 86,
     "liquidity_pressure": 61,
-    "quality_score": 80
+    "quality_score": 80,
+    "minimum_credit_score": 550
+  },
+  {
+    "id": "scooter_moped",
+    "name": "Scooter / Moped",
+    "description": "Faster than a bike, cheaper than a car, but vulnerable to bad weather and theft.",
+    "upfront_cost": 800,
+    "monthly_payment": 0,
+    "insurance_cost": 30,
+    "fuel_maintenance_cost": 35,
+    "commute_stress_delta": 0,
+    "commute_time_modifier": 1,
+    "access_level": 2,
+    "reliability": 0.85,
+    "breakdown_risk": 0.05,
+    "repair_event_weight": 0.15,
+    "odd_hour_access": 60,
+    "liquidity_pressure": 25,
+    "quality_score": 62,
+    "minimum_credit_score": 300
+  },
+  {
+    "id": "luxury_financed_car",
+    "name": "Luxury Financed Car",
+    "description": "Incredible comfort and reliability, but the massive payment will strangle your budget.",
+    "upfront_cost": 1500,
+    "monthly_payment": 650,
+    "insurance_cost": 280,
+    "fuel_maintenance_cost": 220,
+    "commute_stress_delta": -1,
+    "commute_time_modifier": -3,
+    "access_level": 5,
+    "reliability": 0.98,
+    "breakdown_risk": 0.02,
+    "repair_event_weight": 0.2,
+    "odd_hour_access": 100,
+    "liquidity_pressure": 95,
+    "quality_score": 95,
+    "minimum_credit_score": 720
   }
 ]

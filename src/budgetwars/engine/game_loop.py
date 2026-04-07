@@ -118,7 +118,10 @@ class GameController:
         self.state.player.career.track_id = career_id
         self.state.player.career.tier_index = 0
         self.state.player.career.months_in_track = 0
-        retained_progress = int(round(previous_progress * (1.0 - self.bundle.config.career_switch_progress_loss_ratio)))
+        self.state.player.career.months_at_tier = 0
+        new_track = get_career_track(self.bundle, career_id)
+        transfer_ratio = new_track.skill_transfer_map.get(previous_track, 0.0)
+        retained_progress = int(round(previous_progress * transfer_ratio))
         self.state.player.career.promotion_progress = max(0, retained_progress)
         self.state.player.career.transition_penalty_months = self.bundle.config.career_switch_transition_months
         self.state.player.career.promotion_momentum = max(20, self.state.player.career.promotion_momentum - 12)
@@ -130,16 +133,20 @@ class GameController:
         )
         trim_logs(self.bundle, self.state)
 
-    def change_education(self, program_id: str) -> None:
+    def change_education(self, program_id: str, intensity: str | None = None) -> None:
         allowed, reason = can_switch_education(self.bundle, self.state, program_id)
         if not allowed:
             raise ValueError(reason)
         program = get_education_program(self.bundle, program_id)
         education = self.state.player.education
         if program_id == education.program_id:
-            education.is_active = not education.is_active if program.can_pause else education.is_active
-            education.is_paused = not education.is_active
-            append_log(self.state, f"Education {'resumed' if education.is_active else 'paused'}: {program.name}")
+            if intensity and intensity != education.intensity_level:
+                education.intensity_level = intensity
+                append_log(self.state, f"Education intensity changed to: {intensity}")
+            else:
+                education.is_active = not education.is_active if program.can_pause else education.is_active
+                education.is_paused = not education.is_active
+                append_log(self.state, f"Education {'resumed' if education.is_active else 'paused'}: {program.name}")
             trim_logs(self.bundle, self.state)
             return
         if education.program_id != "none" and education.months_completed > 0 and education.is_active:
@@ -158,10 +165,11 @@ class GameController:
         education.is_paused = False
         education.months_completed = 0 if program_id != "none" else education.months_completed
         education.failure_streak = 0
+        education.intensity_level = intensity or "standard"
         education.standing = max(40, min(100, 55 + ((self.state.player.academic_strength - 50) // 2)))
         if program.uses_gpa:
             education.college_gpa = max(1.8, min(4.0, round(2.2 + ((self.state.player.academic_strength - 50) * 0.03), 2)))
-        append_log(self.state, f"Education plan changed: {program.name}")
+        append_log(self.state, f"Education plan changed: {program.name} ({education.intensity_level})")
         trim_logs(self.bundle, self.state)
 
     def current_housing_move_discount(self) -> int:
@@ -246,6 +254,8 @@ class GameController:
             warnings.append("Stress is getting close to burnout territory.")
         if player.energy <= self.bundle.config.crisis_warning_energy:
             warnings.append("Energy is dangerously low.")
+        if player.energy < 30:
+            warnings.append("Energy is capping your income — overtime and gig hours are unreliable.")
         if player.housing.missed_payment_streak >= self.bundle.config.crisis_warning_housing_streak:
             warnings.append("Housing stability is wobbling.")
         if player.education.failure_streak >= max(1, self.state.academic_failure_streak_limit - 1):
@@ -256,6 +266,14 @@ class GameController:
             warnings.append("Transport reliability is now threatening your work consistency.")
         if player.career.transition_penalty_months > 0:
             warnings.append("Career transition drag is still active.")
+        if player.social_stability <= 35:
+            warnings.append("Social isolation is dragging down recovery and performance.")
+        if player.social_stability > 80:
+            current_year = ((self.state.current_month - 1) // 12) + 1
+            if player.last_social_lifeline_year < current_year:
+                warnings.append("Your strong network can bail you out once this year if things go bad.")
+        if self.state.pending_events:
+            warnings.append(f"Something is building — {len(self.state.pending_events)} consequence(s) pending.")
         return warnings
 
     def build_month_outlook(self) -> list[str]:

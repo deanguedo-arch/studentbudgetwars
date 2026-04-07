@@ -33,6 +33,7 @@ class CareerTierDefinition(BaseModel):
     required_credential_ids: list[str] = Field(default_factory=list)
     required_minimum_gpa: float | None = Field(default=None, ge=0.0, le=4.0)
     required_pass_state: bool = False
+    seniority_income_bonus: int = 0
 
 
 class CareerTrackDefinition(BaseModel):
@@ -54,6 +55,7 @@ class CareerTrackDefinition(BaseModel):
     volatility_profile: int = Field(ge=0, le=100, default=50)
     transport_sensitivity: int = Field(ge=0, le=100, default=50)
     city_sensitivity: int = Field(ge=0, le=100, default=50)
+    skill_transfer_map: dict[str, float] = Field(default_factory=dict)
     tiers: list[CareerTierDefinition]
 
 
@@ -92,6 +94,7 @@ class HousingOptionDefinition(BaseModel):
     requires_hometown: bool = False
     minimum_family_support: int = Field(ge=0, default=0)
     student_only: bool = False
+    minimum_credit_score: int = Field(ge=0, default=0)
 
 
 class TransportOptionDefinition(BaseModel):
@@ -111,6 +114,7 @@ class TransportOptionDefinition(BaseModel):
     odd_hour_access: int = Field(ge=0, le=100, default=50)
     liquidity_pressure: int = Field(ge=0, le=100, default=50)
     quality_score: int = Field(ge=0, le=100)
+    minimum_credit_score: int = Field(ge=0, default=0)
 
 
 class FocusActionDefinition(BaseModel):
@@ -138,6 +142,7 @@ class WealthStrategyDefinition(BaseModel):
     extra_debt_payment_rate: float = Field(ge=0, le=1, default=0.0)
     liquidity_bias: int = Field(ge=0, le=100, default=50)
     risk_bias: int = Field(ge=0, le=100, default=50)
+    rebalance_trigger: str | None = None
 
 
 class ModifierTemplate(BaseModel):
@@ -181,6 +186,8 @@ class EventDefinition(BaseModel):
     immediate_effects: StatEffects = Field(default_factory=dict)
     modifier: ModifierTemplate | None = None
     log_entry: str | None = None
+    chained_event_id: str | None = None
+    chained_delay_months: int = Field(ge=0, default=1)
 
 
 class PresetDefinition(BaseModel):

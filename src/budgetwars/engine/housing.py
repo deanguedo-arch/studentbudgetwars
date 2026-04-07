@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from budgetwars.models import ContentBundle, GameState, HousingOptionDefinition
 
+import random
+
 from .effects import append_log
 from .lookups import get_city, get_housing_option
 
@@ -10,7 +12,7 @@ def monthly_housing_cost(bundle: ContentBundle, state: GameState, *, modifier_de
     housing = get_housing_option(bundle, state.player.housing_id)
     city = get_city(bundle, state.player.current_city_id)
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
-    cost = housing.base_monthly_cost * city.housing_cost_multiplier * difficulty.housing_cost_multiplier
+    cost = housing.base_monthly_cost * city.housing_cost_multiplier * difficulty.housing_cost_multiplier * state.player.housing.base_rent_multiplier
     return max(0, int(round(cost + modifier_delta)))
 
 
@@ -24,6 +26,8 @@ def can_switch_housing(bundle: ContentBundle, state: GameState, housing_id: str)
         return False, "Your family support is too low for that fallback right now."
     if housing.student_only and (not state.player.education.is_active or state.player.education.program_id == "none"):
         return False, "Student residence only makes sense while you are actively enrolled."
+    if state.player.credit_score < housing.minimum_credit_score:
+        return False, f"Your credit score ({state.player.credit_score}) is too low to secure this lease."
     return True, ""
 
 
@@ -33,12 +37,35 @@ def apply_housing_effects(bundle: ContentBundle, state: GameState) -> HousingOpt
     state.player.life_satisfaction += housing.life_satisfaction_delta
     state.player.social_stability += housing.social_stability_delta
     state.player.housing.months_in_place += 1
+    
+    if state.player.housing.original_quality is None:
+        state.player.housing.original_quality = housing.quality_score
+
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+
+    if housing.id != "parents":
+        if state.player.housing.lease_months_remaining > 0:
+            state.player.housing.lease_months_remaining -= 1
+        elif state.player.housing.months_in_place > 1:
+            hike = random.uniform(bundle.config.annual_rent_hike_min, bundle.config.annual_rent_hike_max)
+            state.player.housing.base_rent_multiplier *= (1.0 + hike)
+            state.player.housing.lease_months_remaining = 11
+            state.player.stress += 3
+            state.player.life_satisfaction -= 2
+            append_log(state, f"Lease renewed. Rent increased by {int(hike*100)}% for the next year.")
+            
+        if state.player.housing.months_in_place > 0 and state.player.housing.months_in_place % 6 == 0:
+            state.player.housing.layout_escalator += 1
+            if int(state.player.housing.layout_escalator) % 3 == 0:
+                append_log(state, "The apartment is showing its age. Living with the unfixed issues is draining.")
+                state.player.life_satisfaction -= 1
+
     state.player.housing.housing_stability = min(
         100,
         max(
             0,
             state.player.housing.housing_stability
-            + int(round((housing.quality_score - 55) / 12))
+            + int(round((current_quality - 55) / 12))
             + (1 if state.player.housing.months_in_place >= 4 else 0),
         ),
     )

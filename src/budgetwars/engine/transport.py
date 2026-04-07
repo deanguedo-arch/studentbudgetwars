@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from budgetwars.models import ContentBundle, GameState, TransportOptionDefinition
 
+import random
+
+from .budgeting import pay_named_cost
 from .effects import append_log
 from .lookups import get_city, get_transport_option
 
@@ -22,6 +25,8 @@ def can_switch_transport(bundle: ContentBundle, state: GameState, transport_id: 
     transport = get_transport_option(bundle, transport_id)
     if transport.id == state.player.transport_id:
         return False, "You already use that transport setup."
+    if state.player.credit_score < transport.minimum_credit_score:
+        return False, f"Your credit score ({state.player.credit_score}) is too low to finance this option."
     return True, ""
 
 
@@ -33,6 +38,26 @@ def apply_transport_effects(bundle: ContentBundle, state: GameState) -> Transpor
     if transport.reliability < 0.7:
         state.player.life_satisfaction -= 1
     state.player.transport.months_owned += 1
+    
+    if transport.id in {"beater_car", "reliable_used_car", "financed_car", "luxury_financed_car"}:
+        state.player.transport.vehicle_mileage += random.randint(800, 1500)
+        
+        if transport.id == "beater_car":
+            state.player.transport.breakdown_escalator += 0.03
+        elif transport.id == "reliable_used_car":
+            state.player.transport.breakdown_escalator += 0.015
+        elif transport.id in {"financed_car", "luxury_financed_car"}:
+            state.player.transport.breakdown_escalator += 0.005
+            
+        if state.player.transport.breakdown_escalator > 1.5:
+            if random.random() < (state.player.transport.breakdown_escalator - 1.5) * 0.1:
+                repair_bill = random.randint(1800, 2500)
+                pay_named_cost(state, repair_bill, "Fatal Vehicle Breakdown")
+                state.player.stress += 15
+                state.player.transport.breakdown_escalator = max(1.0, state.player.transport.breakdown_escalator - 0.5)
+                state.player.transport.reliability_score = max(0, state.player.transport.reliability_score - 20)
+                append_log(state, f"FATAL BREAKDOWN: The engine block died. A devastating ${repair_bill} repair bill just nuked your budget.")
+
     base_reliability = int(round(transport.reliability * 100))
     drift = 0
     if transport.id == "beater_car":

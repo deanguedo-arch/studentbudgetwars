@@ -35,6 +35,7 @@ def test_promotion_blockers_surface_track_gates(controller_factory):
 def test_housing_switch_creates_instability_penalty(controller_factory):
     controller = controller_factory(city_id="mid_size_city", opening_path_id="move_out_immediately")
     state = controller.state
+    state.player.credit_score = 700  # clear the solo_rental gate (needs 680)
     start_stability = state.player.housing.housing_stability
     controller.change_housing("solo_rental")
     assert state.player.housing.recent_move_penalty_months > 0

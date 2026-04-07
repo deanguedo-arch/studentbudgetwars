@@ -131,6 +131,10 @@ class AppConfig(BaseModel):
     education_reentry_cash_cost: int = Field(ge=0)
     education_reentry_stress_cost: int = Field(ge=0)
     education_reentry_drag_months: int = Field(ge=0)
+    wealth_milestone_thresholds: list[int] = Field(default_factory=list)
+    emergency_fund_floor: int = Field(ge=0, default=500)
+    annual_rent_hike_min: float = Field(default=0.03)
+    annual_rent_hike_max: float = Field(default=0.08)
     default_market_regime_id: str
     market_regimes: list[MarketRegimeDefinition]
     budget_stances: list[BudgetStanceDefinition]

@@ -7,7 +7,20 @@ from tkinter import messagebox, simpledialog, ttk
 
 from budgetwars.core import GameSession, StartupOptions
 
-from .panes import ActionsPanel, FinancePanel, LifePanel, LogPanel, StatusBar, build_menu_bar
+from .theme import (
+    BG_CARD, BG_DARK, BG_DARKEST, BG_ELEVATED, BG_HOVER, BORDER,
+    TEXT_HEADING, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
+    ACCENT_RESOLVE,
+    FONT_HEADING, FONT_HEADING_LG, FONT_SUBHEADING, FONT_BODY, FONT_SMALL,
+    FONT_MONO, FONT_BUTTON,
+    PAD_S, PAD_M, PAD_L, PAD_XL,
+    money_str,
+)
+from .panes import (
+    ActionsPanel, FinancePanel, LifePanel, LogPanel, OutlookPanel,
+    ScoreStrip, StatusBar, build_menu_bar,
+    show_milestone_popup, show_endgame_popup,
+)
 
 
 @dataclass
@@ -74,6 +87,8 @@ def build_setup_summary_lines(bundle, selections: dict[str, str], player_name: s
 
 
 class SelectionDialog(simpledialog.Dialog):
+    """Dark-themed selection dialog for choosing game options."""
+
     def __init__(self, parent: tk.Misc, title: str, prompt: str, options: list[tuple[str, str, str]]):
         self.prompt = prompt
         self.options = options
@@ -82,28 +97,36 @@ class SelectionDialog(simpledialog.Dialog):
         super().__init__(parent, title)
 
     def body(self, master: tk.Misc):
-        tk.Label(master, text=self.prompt, justify="left", wraplength=540, font=("Segoe UI", 10, "bold")).pack(
-            anchor="w", padx=6, pady=(6, 2)
+        master.configure(bg=BG_DARKEST)
+        self.configure(bg=BG_DARKEST)
+
+        tk.Label(master, text=self.prompt, justify="left", wraplength=540,
+                 font=FONT_SUBHEADING, bg=BG_DARKEST, fg=TEXT_HEADING).pack(
+            anchor="w", padx=PAD_M, pady=(PAD_M, PAD_S)
         )
-        self.listbox = tk.Listbox(master, width=56, height=min(9, max(4, len(self.options))))
-        self.listbox.configure(font=("Segoe UI", 11))
-        self.listbox.pack(fill="both", expand=True, padx=6, pady=6)
+        self.listbox = tk.Listbox(
+            master, width=56, height=min(9, max(4, len(self.options))),
+            font=FONT_BODY,
+            bg=BG_ELEVATED, fg=TEXT_PRIMARY,
+            selectbackground=BG_HOVER, selectforeground=TEXT_HEADING,
+            relief="flat", bd=0,
+            highlightbackground=BORDER, highlightthickness=1,
+        )
+        self.listbox.pack(fill="both", expand=True, padx=PAD_M, pady=PAD_S)
         for label, _, _ in self.options:
             self.listbox.insert("end", label)
         self.listbox.bind("<<ListboxSelect>>", self._on_select)
+
         tk.Label(
             master,
             textvariable=self._desc_var,
-            justify="left",
-            anchor="w",
-            wraplength=540,
-            bg="#f0f0f0",
-            relief="sunken",
-            bd=1,
-            padx=6,
-            pady=5,
-            font=("Segoe UI", 10),
-        ).pack(fill="x", padx=6, pady=(0, 6))
+            justify="left", anchor="w", wraplength=540,
+            bg=BG_CARD, fg=TEXT_SECONDARY,
+            relief="flat", bd=0,
+            padx=PAD_M, pady=PAD_S,
+            font=FONT_SMALL,
+        ).pack(fill="x", padx=PAD_M, pady=(0, PAD_M))
+
         if self.options:
             self.listbox.selection_set(0)
             self._desc_var.set(self.options[0][2])
@@ -116,6 +139,22 @@ class SelectionDialog(simpledialog.Dialog):
     def apply(self):
         if self.listbox.curselection():
             self.result = self.options[self.listbox.curselection()[0]][1]
+
+    def buttonbox(self):
+        box = tk.Frame(self, bg=BG_DARKEST)
+        ok_btn = tk.Button(box, text="OK", width=10, command=self.ok, default="active",
+                           bg=BG_ELEVATED, fg=TEXT_PRIMARY, activebackground=BG_HOVER,
+                           font=FONT_BUTTON, relief="flat", cursor="hand2",
+                           highlightbackground=BORDER, highlightthickness=1)
+        ok_btn.pack(side="left", padx=5, pady=PAD_M)
+        cancel_btn = tk.Button(box, text="Cancel", width=10, command=self.cancel,
+                               bg=BG_DARK, fg=TEXT_SECONDARY, activebackground=BG_ELEVATED,
+                               font=FONT_BUTTON, relief="flat", cursor="hand2",
+                               highlightbackground=BORDER, highlightthickness=1)
+        cancel_btn.pack(side="left", padx=5, pady=PAD_M)
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+        box.pack()
 
 
 class ClassicSetupDialog(simpledialog.Dialog):
@@ -142,50 +181,43 @@ class ClassicSetupDialog(simpledialog.Dialog):
         self._value_maps: dict[str, dict[str, tuple[str, str, str]]] = {}
         self._groups = [
             _SetupGroup(
-                "preset_id",
-                "Preset",
+                "preset_id", "Preset",
                 "Choose the background you are starting from:",
                 [(item.name, item.id, item.description) for item in bundle.presets],
                 initial_preset_id,
             ),
             _SetupGroup(
-                "city_id",
-                "City",
+                "city_id", "City",
                 "Choose the city you are trying to make work:",
                 [(item.name, item.id, item.opportunity_text) for item in bundle.cities],
                 initial_city_id,
             ),
             _SetupGroup(
-                "academic_level_id",
-                "Academics",
+                "academic_level_id", "Academics",
                 "How strong is your academic footing?",
                 [(item.name, item.id, item.description) for item in bundle.config.academic_levels],
                 initial_academic_level_id,
             ),
             _SetupGroup(
-                "family_support_level_id",
-                "Family Support",
+                "family_support_level_id", "Family Support",
                 "How much backup do you realistically have?",
                 [(item.name, item.id, item.description) for item in bundle.config.family_support_levels],
                 initial_family_support_level_id,
             ),
             _SetupGroup(
-                "savings_band_id",
-                "Starting Cushion",
+                "savings_band_id", "Starting Cushion",
                 "How much cushion are you really starting with?",
                 [(item.name, item.id, item.description) for item in bundle.config.savings_bands],
                 initial_savings_band_id,
             ),
             _SetupGroup(
-                "opening_path_id",
-                "Opening Path",
+                "opening_path_id", "Opening Path",
                 "Pick the lane you are stepping into first:",
                 [(item.name, item.id, item.description) for item in bundle.config.opening_paths],
                 initial_opening_path_id,
             ),
             _SetupGroup(
-                "difficulty_id",
-                "Difficulty",
+                "difficulty_id", "Difficulty",
                 "Pick how hard the decade should hit back:",
                 [(item.name, item.id, item.description) for item in bundle.difficulties],
                 initial_difficulty_id,
@@ -194,21 +226,46 @@ class ClassicSetupDialog(simpledialog.Dialog):
         super().__init__(parent, "Start New Run")
 
     def body(self, master: tk.Misc):
+        master.configure(bg=BG_DARKEST)
+        self.configure(bg=BG_DARKEST)
         master.columnconfigure(0, weight=3)
         master.columnconfigure(1, weight=2)
 
-        left = tk.Frame(master)
-        left.grid(row=0, column=0, sticky="nsew", padx=(6, 8), pady=6)
+        left = tk.Frame(master, bg=BG_DARKEST)
+        left.grid(row=0, column=0, sticky="nsew", padx=(PAD_M, PAD_M), pady=PAD_M)
         left.columnconfigure(0, weight=1)
 
-        name_frame = tk.LabelFrame(left, text="Player Name", padx=8, pady=8)
-        name_frame.grid(row=0, column=0, sticky="ew", pady=(0, 8))
-        self.name_entry = tk.Entry(name_frame, textvariable=self.player_name_var, font=("Segoe UI", 11))
+        name_frame = tk.LabelFrame(left, text="Player Name", padx=PAD_M, pady=PAD_M,
+                                   bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING,
+                                   bd=1, relief="solid", highlightbackground=BORDER,
+                                   highlightthickness=1)
+        name_frame.grid(row=0, column=0, sticky="ew", pady=(0, PAD_M))
+        self.name_entry = tk.Entry(name_frame, textvariable=self.player_name_var,
+                                   font=FONT_BODY, bg=BG_ELEVATED, fg=TEXT_PRIMARY,
+                                   insertbackground=TEXT_PRIMARY, relief="flat",
+                                   highlightbackground=BORDER, highlightthickness=1)
         self.name_entry.pack(fill="x")
 
-        options_frame = tk.LabelFrame(left, text="Start Setup", padx=8, pady=8)
-        options_frame.grid(row=1, column=0, sticky="nsew")
+        # Scrollable options
+        options_outer = tk.LabelFrame(left, text="Start Setup", padx=PAD_M, pady=PAD_M,
+                                      bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING,
+                                      bd=1, relief="solid", highlightbackground=BORDER,
+                                      highlightthickness=1)
+        options_outer.grid(row=1, column=0, sticky="nsew")
+        options_outer.columnconfigure(0, weight=1)
+        left.rowconfigure(1, weight=1)
+
+        canvas = tk.Canvas(options_outer, bg=BG_CARD, highlightthickness=0, bd=0)
+        scrollbar = tk.Scrollbar(options_outer, orient="vertical", command=canvas.yview)
+        options_frame = tk.Frame(canvas, bg=BG_CARD)
         options_frame.columnconfigure(0, weight=1)
+
+        options_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=options_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
         for row, group in enumerate(self._groups):
             option_map = {label: option for option in group.options for label in [option[0]]}
@@ -219,45 +276,40 @@ class ClassicSetupDialog(simpledialog.Dialog):
             desc_var = tk.StringVar(value=default_option[2])
             self._group_vars[group.key] = var
             self._group_desc_vars[group.key] = desc_var
-            frame = tk.LabelFrame(options_frame, text=group.title, padx=8, pady=6)
-            frame.grid(row=row, column=0, sticky="ew", pady=4)
+
+            frame = tk.LabelFrame(options_frame, text=group.title, padx=PAD_M, pady=PAD_S,
+                                  bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_SMALL,
+                                  bd=0, relief="flat")
+            frame.grid(row=row, column=0, sticky="ew", pady=3)
             frame.columnconfigure(0, weight=1)
+
             combo = ttk.Combobox(frame, values=option_labels, textvariable=var, state="readonly")
             combo.grid(row=0, column=0, sticky="ew")
             combo.bind("<<ComboboxSelected>>", lambda _event, key=group.key: self._sync_group_description(key))
+
             tk.Label(
-                frame,
-                text=group.prompt,
-                justify="left",
-                wraplength=450,
-                fg="#333333",
-                font=("Segoe UI", 9, "bold"),
-            ).grid(row=1, column=0, sticky="w", pady=(6, 0))
+                frame, text=group.prompt, justify="left", wraplength=400,
+                fg=TEXT_SECONDARY, bg=BG_ELEVATED, font=("Segoe UI", 9, "bold"),
+            ).grid(row=1, column=0, sticky="w", pady=(PAD_S, 0))
             tk.Label(
-                frame,
-                textvariable=desc_var,
-                justify="left",
-                wraplength=450,
-                fg="#444444",
-                font=("Segoe UI", 9),
+                frame, textvariable=desc_var, justify="left", wraplength=400,
+                fg=TEXT_MUTED, bg=BG_ELEVATED, font=FONT_SMALL,
             ).grid(row=2, column=0, sticky="w", pady=(2, 0))
 
-        right = tk.LabelFrame(master, text="Opening Identity", padx=10, pady=10)
-        right.grid(row=0, column=1, sticky="nsew", padx=(0, 6), pady=6)
+        right = tk.LabelFrame(master, text="Opening Identity", padx=PAD_L, pady=PAD_L,
+                              bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING,
+                              bd=1, relief="solid", highlightbackground=BORDER,
+                              highlightthickness=1)
+        right.grid(row=0, column=1, sticky="nsew", padx=(0, PAD_M), pady=PAD_M)
         right.rowconfigure(0, weight=1)
         right.columnconfigure(0, weight=1)
 
         self.summary_text = tk.Text(
-            right,
-            width=1,
-            height=1,
-            wrap="word",
-            bg="#f8f8f8",
-            relief="sunken",
-            bd=1,
-            font=("Consolas", 10),
-            spacing1=1,
-            spacing3=2,
+            right, width=1, height=1, wrap="word",
+            bg=BG_ELEVATED, fg=TEXT_PRIMARY,
+            relief="flat", bd=0,
+            font=FONT_MONO, spacing1=1, spacing3=2,
+            insertbackground=BG_ELEVATED,
         )
         self.summary_text.grid(row=0, column=0, sticky="nsew")
         self.summary_text.configure(state="disabled")
@@ -298,11 +350,17 @@ class ClassicSetupDialog(simpledialog.Dialog):
         }
 
     def buttonbox(self):
-        box = tk.Frame(self)
-        start = tk.Button(box, text="Start Run", width=12, command=self.ok, default="active")
-        start.pack(side="left", padx=5, pady=6)
-        cancel = tk.Button(box, text="Cancel", width=10, command=self.cancel)
-        cancel.pack(side="left", padx=5, pady=6)
+        box = tk.Frame(self, bg=BG_DARKEST)
+        start = tk.Button(box, text="Start Run", width=14, command=self.ok, default="active",
+                          bg="#4a4520", fg=ACCENT_RESOLVE, activebackground="#5a5528",
+                          font=("Segoe UI", 12, "bold"), relief="flat", cursor="hand2",
+                          highlightbackground=ACCENT_RESOLVE, highlightthickness=2)
+        start.pack(side="left", padx=5, pady=PAD_M)
+        cancel = tk.Button(box, text="Cancel", width=10, command=self.cancel,
+                           bg=BG_DARK, fg=TEXT_SECONDARY, activebackground=BG_ELEVATED,
+                           font=FONT_BUTTON, relief="flat", cursor="hand2",
+                           highlightbackground=BORDER, highlightthickness=1)
+        cancel.pack(side="left", padx=5, pady=PAD_M)
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
         box.pack()
@@ -338,7 +396,7 @@ def prompt_new_game_setup(
 
 class MainWindow(tk.Frame):
     def __init__(self, master: tk.Tk, session: GameSession):
-        super().__init__(master, bg="#c0c0c0")
+        super().__init__(master, bg=BG_DARKEST)
         self.master = master
         self.session = session
         self._result_announced = False
@@ -355,32 +413,42 @@ class MainWindow(tk.Frame):
         return self.session.require_controller()
 
     def _build_layout(self) -> None:
+        # ── Status bar (top) ──
         self.status_bar = StatusBar(self)
-        self.status_bar.pack(fill="x", padx=6, pady=(6, 4))
+        self.status_bar.pack(fill="x", padx=PAD_M, pady=(PAD_M, PAD_S))
 
-        content = tk.Frame(self, bg="#c0c0c0")
-        content.pack(fill="both", expand=True, padx=6, pady=(0, 4))
+        # ── Score strip ──
+        self.score_strip = ScoreStrip(self, on_click=self.show_score_projection)
+        self.score_strip.pack(fill="x", padx=PAD_M, pady=(0, PAD_S))
 
+        # ── Main content area ──
+        content = tk.Frame(self, bg=BG_DARKEST)
+        content.pack(fill="both", expand=True, padx=PAD_M, pady=(0, PAD_S))
+
+        # Left: life panel
         self.life_panel = LifePanel(content, "Build")
-        self.life_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        self.life_panel.grid(row=0, column=0, sticky="nsew", padx=(0, PAD_S))
 
-        center = tk.Frame(content, bg="#c0c0c0")
-        center.grid(row=0, column=1, sticky="nsew", padx=4)
-        self.outlook_panel = LifePanel(center, "This Month")
-        self.outlook_panel.pack(fill="both", expand=True, pady=(0, 4))
+        # Center: outlook + log
+        center = tk.Frame(content, bg=BG_DARKEST)
+        center.grid(row=0, column=1, sticky="nsew", padx=PAD_S)
+        self.outlook_panel = OutlookPanel(center, "This Month")
+        self.outlook_panel.pack(fill="both", expand=True, pady=(0, PAD_S))
         self.log_panel = LogPanel(center, "Run Feedback")
         self.log_panel.pack(fill="both", expand=True)
 
+        # Right: finance panel
         self.finance_panel = FinancePanel(content, "Score & Pressure")
-        self.finance_panel.grid(row=0, column=2, sticky="nsew", padx=(4, 0))
+        self.finance_panel.grid(row=0, column=2, sticky="nsew", padx=(PAD_S, 0))
 
         content.grid_columnconfigure(0, weight=3)
         content.grid_columnconfigure(1, weight=4)
         content.grid_columnconfigure(2, weight=3)
         content.grid_rowconfigure(0, weight=1)
 
+        # ── Actions bar (bottom) ──
         self.actions_panel = ActionsPanel(self)
-        self.actions_panel.pack(fill="x", padx=6, pady=(0, 6))
+        self.actions_panel.pack(fill="x", padx=PAD_M, pady=(0, PAD_M))
         self.actions_panel.set_actions(
             [
                 ("Career", self.change_career),
@@ -458,15 +526,18 @@ class MainWindow(tk.Frame):
             "",
             f"Career: {career_track.name}",
             f"Lane: {current_tier.label}",
-            f"Momentum: {player.career.promotion_momentum} | Progress: {player.career.promotion_progress}",
+            f"Seniority: {player.career.months_at_tier // 12}yrs {player.career.months_at_tier % 12}mo",
+            f"Momentum: {player.career.promotion_momentum} | Streak: {player.career.best_performance_streak}",
             "",
             f"Education: {education.name}",
-            f"Status: {'Active' if player.education.is_active else 'Paused'}",
+            f"Status: {'Active' if player.education.is_active else 'Paused'} ({player.education.intensity_level.title()})",
             f"Progress: {player.education.months_completed}/{education.duration_months or 0}",
             f"Standing: {player.education.standing}",
             "",
             f"Housing: {housing.name}",
+            f"Lease: {player.housing.lease_months_remaining}mo remaining" if housing.id != "parents" else "Lease: None",
             f"Transport: {transport.name}",
+            f"Mileage: {player.transport.vehicle_mileage}mi" if transport.id not in ["none", "bike", "transit", "scooter_moped"] else "Mileage: N/A",
             f"Budget: {stance.name}",
             f"Wealth: {wealth.name}",
             f"Focus: {focus.name}",
@@ -505,6 +576,7 @@ class MainWindow(tk.Frame):
             f"Cash: {_money(player.cash)}",
             f"Savings: {_money(player.savings)}",
             f"Debt: {_money(player.debt)}",
+            f"Credit Score: {player.credit_score}",
             f"Income: {_money(player.monthly_income)}",
             f"Expenses: {_money(player.monthly_expenses)}",
             f"Monthly Swing: {_money(player.monthly_surplus)}",
@@ -518,6 +590,7 @@ class MainWindow(tk.Frame):
             f"Housing Stability: {player.housing.housing_stability}/100",
             f"Transport Reliability: {player.transport.reliability_score}/100",
             f"Wealth: {wealth.name}",
+            f"Portfolio: {_money(player.high_interest_savings + player.index_fund + player.aggressive_growth_fund)}",
             "",
             "Active Modifiers:",
             modifiers,
@@ -530,6 +603,7 @@ class MainWindow(tk.Frame):
         state = self.controller.state
         self._latest_snapshot = self.controller.live_score_snapshot()
         self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
+        self.score_strip.render(self._latest_snapshot)
         self.life_panel.render(self._life_lines())
         self.outlook_panel.render(self._outlook_lines())
         self.finance_panel.render(self._finance_lines())
@@ -544,6 +618,7 @@ class MainWindow(tk.Frame):
         self.finance_panel.set_large_text(self._large_text)
         self.log_panel.set_large_text(self._large_text)
         self.actions_panel.set_large_text(self._large_text)
+        self.score_strip.set_large_text(self._large_text)
 
     def toggle_large_text(self) -> None:
         self._large_text = not self._large_text
@@ -554,17 +629,19 @@ class MainWindow(tk.Frame):
         if len(self.controller.state.annual_milestones) <= self._shown_milestone_count:
             return
         latest = self.controller.state.annual_milestones[-1]
-        messagebox.showinfo("Annual Milestone", "\n".join(latest.summary_lines))
+        show_milestone_popup(self.master, latest.summary_lines)
         self._shown_milestone_count = len(self.controller.state.annual_milestones)
 
     def _check_end_state(self) -> None:
         if self._result_announced or not self.controller.is_finished():
             return
         summary = self.controller.final_score_summary()
-        breakdown = "\n".join(f"{key.replace('_', ' ').title()}: {value:.2f}" for key, value in summary.breakdown.items())
-        messagebox.showinfo(
-            "Life Position",
-            f"{summary.ending_label}\n\n{summary.outcome}\n\nFinal Score: {summary.final_score}\n\n{breakdown}",
+        show_endgame_popup(
+            self.master,
+            ending_label=summary.ending_label,
+            outcome=summary.outcome,
+            final_score=summary.final_score,
+            breakdown=summary.breakdown,
         )
         self._result_announced = True
 
@@ -605,7 +682,20 @@ class MainWindow(tk.Frame):
         options = [(program.name, program.id, program.description) for program in self.controller.available_education_programs()]
         chosen = self._choose("Education", "Choose your education plan. Picking the current plan toggles pause/resume.", options)
         if chosen:
-            self._run_action(lambda: self.controller.change_education(chosen))
+            if chosen != "none":
+                intensity = self._choose(
+                    "Education Intensity", 
+                    "How hard are you pushing this month?", 
+                    [
+                        ("Standard", "standard", "Normal pace and stress (1.0x)."), 
+                        ("Intensive", "intensive", "Higher cost, higher stress, better GPA trend (1.3x, 1.5x)."), 
+                        ("Light", "light", "Lower cost, lower stress, risk of slipping GPA (0.7x, 0.5x).")
+                    ]
+                )
+                if intensity:
+                    self._run_action(lambda: self.controller.change_education(chosen, intensity))
+            else:
+                self._run_action(lambda: self.controller.change_education(chosen))
 
     def change_housing(self) -> None:
         options = [
@@ -658,12 +748,12 @@ class MainWindow(tk.Frame):
 
     def show_score_projection(self) -> None:
         summary = self.controller.final_score_summary()
-        snapshot = self.controller.live_score_snapshot()
-        breakdown = "\n".join(f"{key.replace('_', ' ').title()}: {value:.2f}" for key, value in summary.breakdown.items())
-        messagebox.showinfo(
-            "Projected Ending",
-            f"{summary.ending_label}\nTier: {snapshot.score_tier}\nScore: {summary.final_score}\n\n"
-            f"Biggest risk: {snapshot.biggest_risk}\n\n{summary.outcome}\n\n{breakdown}",
+        show_endgame_popup(
+            self.master,
+            ending_label=summary.ending_label,
+            outcome=summary.outcome,
+            final_score=summary.final_score,
+            breakdown=summary.breakdown,
         )
 
     def show_help(self) -> None:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from random import Random
 
-from budgetwars.models import ContentBundle, EventDefinition, GameState
+from budgetwars.models import ContentBundle, EventDefinition, GameState, PendingEvent
 
 from .effects import append_log, apply_stat_effects, create_modifier
 from .lookups import get_city, get_housing_option, get_transport_option
@@ -143,13 +143,50 @@ def resolve_event(bundle: ContentBundle, state: GameState, event: EventDefinitio
     if event.modifier is not None:
         state.active_modifiers.append(create_modifier(event.modifier))
         append_log(state, f"Modifier gained: {event.modifier.label} ({event.modifier.duration_months} months)")
+    if event.chained_event_id:
+        state.pending_events.append(
+            PendingEvent(
+                event_id=event.chained_event_id,
+                months_remaining=max(1, event.chained_delay_months),
+                source_event_id=event.id,
+            )
+        )
+        append_log(state, f"Something worse may follow from this ({event.chained_delay_months}mo)...")
     append_log(state, event.log_entry or event.name)
+
+
+def _tick_pending_events(bundle: ContentBundle, state: GameState) -> list[EventDefinition]:
+    """Decrement pending event timers and force-trigger any that have matured."""
+    triggered: list[EventDefinition] = []
+    remaining: list[PendingEvent] = []
+    for pending in state.pending_events:
+        pending.months_remaining -= 1
+        if pending.months_remaining <= 0:
+            event_def = next(
+                (e for e in bundle.events if e.id == pending.event_id), None
+            )
+            if event_def:
+                resolve_event(bundle, state, event_def)
+                triggered.append(event_def)
+                append_log(state, f"A consequence of {pending.source_event_id.replace('_', ' ')} arrived.")
+            # Drop it whether or not we found the definition
+        else:
+            remaining.append(pending)
+    state.pending_events = remaining
+    return triggered
 
 
 def roll_month_events(bundle: ContentBundle, state: GameState, rng: Random) -> list[EventDefinition]:
     rolled: list[EventDefinition] = []
     excluded: set[str] = set()
-    if rng.random() < bundle.config.primary_event_chance:
+
+    # Force-trigger any matured pending (chained) events first
+    forced = _tick_pending_events(bundle, state)
+    rolled.extend(forced)
+    excluded.update(e.id for e in forced)
+
+    # Normal random event rolls (skip if a forced event already fired)
+    if not forced and rng.random() < bundle.config.primary_event_chance:
         event = pick_event(bundle, state, rng, excluded)
         if event:
             resolve_event(bundle, state, event)

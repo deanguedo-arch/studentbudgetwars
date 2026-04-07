@@ -56,8 +56,14 @@ def current_income(bundle: ContentBundle, state: GameState, income_multiplier: f
     variance = _income_variance_factor(state, track.income_variance)
     transition_drag = 0.82 if state.player.career.transition_penalty_months > 0 else 1.0
     momentum_multiplier = 1.0 + ((state.player.career.promotion_momentum - 50) * 0.003)
+    seniority_bonus = (state.player.career.months_at_tier // 6) * tier.seniority_income_bonus
+    # Energy cap: exhausted workers cannot sustain overtime or gig-economy hours
+    if state.player.energy < 30:
+        energy_cap = 0.6 if track.income_variance > 0 or track.id in {"delivery_gig", "warehouse_logistics"} else 0.8
+    else:
+        energy_cap = 1.0
     income = (
-        tier.monthly_income
+        (tier.monthly_income + seniority_bonus)
         * career_bias
         * difficulty.income_multiplier
         * income_multiplier
@@ -65,6 +71,7 @@ def current_income(bundle: ContentBundle, state: GameState, income_multiplier: f
         * variance
         * transition_drag
         * momentum_multiplier
+        * energy_cap
     )
     return max(0, int(round(income)))
 
@@ -78,6 +85,7 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
     state.player.life_satisfaction += tier.life_satisfaction_delta
     state.player.social_stability += tier.social_stability_delta
     state.player.career.months_in_track += 1
+    state.player.career.months_at_tier += 1
     if state.player.career.transition_penalty_months > 0:
         state.player.career.transition_penalty_months -= 1
         state.player.stress += 2
@@ -97,10 +105,13 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
         state.player.career.promotion_momentum = max(0, state.player.career.promotion_momentum - 1)
     if state.player.career.promotion_momentum >= 70:
         state.player.career.recent_performance_tag = "uptrend"
+        state.player.career.best_performance_streak += 1
     elif state.player.career.promotion_momentum <= 30:
         state.player.career.recent_performance_tag = "downtrend"
+        state.player.career.best_performance_streak = 0
     else:
         state.player.career.recent_performance_tag = "steady"
+        state.player.career.best_performance_streak = 0
     if track.layoff_weight > 1.0:
         state.player.career.layoff_pressure += 1
     elif state.player.career.layoff_pressure > 0:
@@ -110,6 +121,10 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
 def add_promotion_progress(bundle: ContentBundle, state: GameState, bonus: int) -> None:
     track = get_career_track(bundle, state.player.career.track_id)
     progress_gain = 1 + max(0, bonus)
+    if state.player.career.recent_performance_tag == "uptrend":
+        progress_gain += 1
+    elif state.player.career.recent_performance_tag == "downtrend":
+        progress_gain -= 1
     if state.player.energy >= 55:
         progress_gain += 1
     if state.player.stress >= 80:
@@ -173,5 +188,6 @@ def maybe_promote(bundle: ContentBundle, state: GameState) -> None:
     next_tier = track.tiers[state.player.career.tier_index + 1]
     state.player.career.tier_index += 1
     state.player.career.promotion_progress = 0
+    state.player.career.months_at_tier = 0
     state.player.career.promotion_momentum = min(100, state.player.career.promotion_momentum + 7)
     append_log(state, f"You moved up to {next_tier.label} in {track.name}.")

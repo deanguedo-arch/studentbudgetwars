@@ -15,7 +15,8 @@
     "study_compatibility": 52,
     "requires_hometown": true,
     "minimum_family_support": 30,
-    "student_only": false
+    "student_only": false,
+    "minimum_credit_score": 300
   },
   {
     "id": "student_residence",
@@ -33,7 +34,8 @@
     "study_compatibility": 78,
     "requires_hometown": false,
     "minimum_family_support": 0,
-    "student_only": true
+    "student_only": true,
+    "minimum_credit_score": 300
   },
   {
     "id": "roommates",
@@ -51,7 +53,8 @@
     "study_compatibility": 56,
     "requires_hometown": false,
     "minimum_family_support": 0,
-    "student_only": false
+    "student_only": false,
+    "minimum_credit_score": 550
   },
   {
     "id": "solo_rental",
@@ -69,6 +72,7 @@
     "study_compatibility": 68,
     "requires_hometown": false,
     "minimum_family_support": 0,
-    "student_only": false
+    "student_only": false,
+    "minimum_credit_score": 680
   }
 ]
