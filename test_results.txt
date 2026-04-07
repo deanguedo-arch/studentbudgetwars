@@ -1,0 +1,239 @@
+..FF.....FF.........................FFFFFF....FF.FFFFF                   [100%]
+================================== FAILURES ===================================
+_______________ test_housing_switch_creates_instability_penalty _______________
+tests\test_consequence_depth.py:39: in test_housing_switch_creates_instability_penalty
+    controller.change_housing("solo_rental")
+src\budgetwars\engine\game_loop.py:184: in change_housing
+    raise ValueError(reason)
+E   ValueError: Your credit score (650) is too low to secure this lease.
+__________________ test_transport_reliability_impacts_access __________________
+tests\test_consequence_depth.py:51: in test_transport_reliability_impacts_access
+    resolve_month(bundle, state, controller.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+_________________ test_month_driver_notes_surface_real_causes _________________
+tests\test_consequence_depth.py:116: in test_month_driver_notes_surface_real_causes
+    resolve_month(bundle, state, controller.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+_________________ test_stacked_drag_preserves_game_over_logic _________________
+tests\test_consequence_depth.py:134: in test_stacked_drag_preserves_game_over_logic
+    resolve_month(bundle, state, controller.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+______________ test_education_path_changes_finances_and_progress ______________
+tests\test_month_resolution.py:60: in test_education_path_changes_finances_and_progress
+    controller.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+____ test_study_push_improves_school_performance_without_speeding_calendar ____
+tests\test_month_resolution.py:73: in test_study_push_improves_school_performance_without_speeding_calendar
+    resolve_month(quiet_bundle, baseline.state, baseline.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+___________________ test_budget_stances_meaningfully_differ ___________________
+tests\test_month_resolution.py:85: in test_budget_stances_meaningfully_differ
+    balanced.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+___________________ test_focus_actions_meaningfully_differ ____________________
+tests\test_month_resolution.py:95: in test_focus_actions_meaningfully_differ
+    overtime.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+__________ test_recovery_month_can_lower_stress_in_supportive_setup ___________
+tests\test_month_resolution.py:108: in test_recovery_month_can_lower_stress_in_supportive_setup
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+__________ test_recent_summary_includes_stress_and_energy_breakdown ___________
+tests\test_month_resolution.py:116: in test_recent_summary_includes_stress_and_energy_breakdown
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+_____________________ test_housing_loss_failure_triggers ______________________
+tests\test_month_resolution.py:173: in test_housing_loss_failure_triggers
+    controller.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+________________ test_annual_milestone_records_every_12_months ________________
+tests\test_month_resolution.py:192: in test_annual_milestone_records_every_12_months
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+____________________ test_scoring_returns_weighted_summary ____________________
+tests\test_month_resolution.py:214: in test_scoring_returns_weighted_summary
+    controller.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+__________________________ test_save_load_round_trip __________________________
+tests\test_save_load.py:10: in test_save_load_round_trip
+    controller.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+______________________ test_simulation_is_deterministic _______________________
+tests\test_simulation.py:7: in test_simulation_is_deterministic
+    first = run_simulation(
+src\budgetwars\engine\simulation.py:265: in run_simulation
+    run_single_simulation(
+src\budgetwars\engine\simulation.py:202: in run_single_simulation
+    apply_policy_action(controller, policy_name)
+src\budgetwars\engine\simulation.py:172: in apply_policy_action
+    controller.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+_________________ test_cautious_policy_can_finish_a_full_run __________________
+tests\test_simulation.py:38: in test_cautious_policy_can_finish_a_full_run
+    result = run_simulation(
+src\budgetwars\engine\simulation.py:265: in run_simulation
+    run_single_simulation(
+src\budgetwars\engine\simulation.py:202: in run_single_simulation
+    apply_policy_action(controller, policy_name)
+src\budgetwars\engine\simulation.py:172: in apply_policy_action
+    controller.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+_________________ test_ambitious_policy_can_finish_a_full_run _________________
+tests\test_simulation.py:56: in test_ambitious_policy_can_finish_a_full_run
+    result = run_simulation(
+src\budgetwars\engine\simulation.py:265: in run_simulation
+    run_single_simulation(
+src\budgetwars\engine\simulation.py:202: in run_single_simulation
+    apply_policy_action(controller, policy_name)
+src\budgetwars\engine\simulation.py:172: in apply_policy_action
+    controller.resolve_month()
+src\budgetwars\engine\game_loop.py:73: in resolve_month
+    resolve_month(self.bundle, self.state, self.rng)
+src\budgetwars\engine\month_resolution.py:314: in resolve_month
+    apply_housing_effects(bundle, state)
+src\budgetwars\engine\housing.py:44: in apply_housing_effects
+    current_quality = housing.quality_score - int(state.player.housing.layout_escalator)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\main.py:1026: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'HousingState' object has no attribute 'layout_escalator'
+=========================== short test summary info ===========================
+FAILED tests/test_consequence_depth.py::test_housing_switch_creates_instability_penalty
+FAILED tests/test_consequence_depth.py::test_transport_reliability_impacts_access
+FAILED tests/test_consequence_depth.py::test_month_driver_notes_surface_real_causes
+FAILED tests/test_consequence_depth.py::test_stacked_drag_preserves_game_over_logic
+FAILED tests/test_month_resolution.py::test_education_path_changes_finances_and_progress
+FAILED tests/test_month_resolution.py::test_study_push_improves_school_performance_without_speeding_calendar
+FAILED tests/test_month_resolution.py::test_budget_stances_meaningfully_differ
+FAILED tests/test_month_resolution.py::test_focus_actions_meaningfully_differ
+FAILED tests/test_month_resolution.py::test_recovery_month_can_lower_stress_in_supportive_setup
+FAILED tests/test_month_resolution.py::test_recent_summary_includes_stress_and_energy_breakdown
+FAILED tests/test_month_resolution.py::test_housing_loss_failure_triggers - A...
+FAILED tests/test_month_resolution.py::test_annual_milestone_records_every_12_months
+FAILED tests/test_month_resolution.py::test_scoring_returns_weighted_summary
+FAILED tests/test_save_load.py::test_save_load_round_trip - AttributeError: '...
+FAILED tests/test_simulation.py::test_simulation_is_deterministic - Attribute...
+FAILED tests/test_simulation.py::test_cautious_policy_can_finish_a_full_run
+FAILED tests/test_simulation.py::test_ambitious_policy_can_finish_a_full_run
+17 failed, 37 passed in 6.18s
