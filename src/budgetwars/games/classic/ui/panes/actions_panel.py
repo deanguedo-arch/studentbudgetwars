@@ -43,58 +43,80 @@ class ActionsPanel(tk.Frame):
         super().__init__(master, bg=BG_CARD, bd=1, relief="solid",
                          highlightbackground=BORDER, highlightthickness=1)
         self._buttons: list[tk.Button] = []
+        self._section_frames: list[tk.Frame] = []
         self._large_text_enabled = False
 
     def set_actions(self, actions: list[tuple[str, object]]) -> None:
+        self.set_grouped_actions([("Actions", actions)])
+
+    def set_grouped_actions(self, groups: list[tuple[str, list[tuple[str, object]]]]) -> None:
         for button in self._buttons:
             button.destroy()
         self._buttons.clear()
+        for frame in self._section_frames:
+            frame.destroy()
+        self._section_frames.clear()
 
-        regular_actions = [a for a in actions if a[0].lower() != "resolve month"]
-        resolve_action = next((a for a in actions if a[0].lower() == "resolve month"), None)
+        for section_title, actions in groups:
+            section = tk.Frame(self, bg=BG_CARD)
+            section.pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+            self._section_frames.append(section)
 
-        for index, (label, callback) in enumerate(regular_actions):
-            row = index // 4
-            column = index % 4
+            tk.Label(
+                section,
+                text=section_title,
+                bg=BG_CARD,
+                fg=TEXT_HEADING,
+                font=FONT_BUTTON_LG if self._large_text_enabled else FONT_BUTTON,
+                anchor="w",
+            ).pack(fill="x", pady=(0, PAD_S))
 
-            accent = _button_fg(label)
-            font = FONT_BUTTON_LG if self._large_text_enabled else FONT_BUTTON
+            buttons_frame = tk.Frame(section, bg=BG_CARD)
+            buttons_frame.pack(fill="x")
 
-            btn = tk.Button(
-                self, text=label, command=callback,
-                bg=BG_ELEVATED, fg=accent,
-                activebackground=BG_HOVER, activeforeground=TEXT_HEADING,
-                relief="flat", bd=0, font=font,
-                padx=PAD_M, pady=PAD_S,
-                cursor="hand2",
-                highlightbackground=BORDER, highlightthickness=1,
-            )
-            btn.grid(row=row, column=column, padx=3, pady=3, sticky="ew")
-            # Hover effects
-            btn.bind("<Enter>", lambda e, b=btn: b.configure(bg=BG_HOVER))
-            btn.bind("<Leave>", lambda e, b=btn: b.configure(bg=BG_ELEVATED))
-            self._buttons.append(btn)
+            regular_actions = [a for a in actions if a[0].lower() != "resolve month"]
+            resolve_action = next((a for a in actions if a[0].lower() == "resolve month"), None)
 
-        if resolve_action:
-            label, callback = resolve_action
-            resolve_font = FONT_RESOLVE_LG if self._large_text_enabled else FONT_RESOLVE
-            resolve_btn = tk.Button(
-                self, text=label, command=callback,
-                bg="#4a4520", fg=ACCENT_RESOLVE,
-                activebackground="#5a5528", activeforeground="#fff8d0",
-                relief="flat", bd=0, font=resolve_font,
-                pady=PAD_M, cursor="hand2",
-                highlightbackground=ACCENT_RESOLVE, highlightthickness=2,
-            )
-            resolve_row = (len(regular_actions) - 1) // 4 + 1
-            resolve_btn.grid(row=resolve_row, column=0, columnspan=4,
-                             padx=PAD_S, pady=(PAD_M, PAD_S), sticky="ew")
-            resolve_btn.bind("<Enter>", lambda e: resolve_btn.configure(bg="#5a5528"))
-            resolve_btn.bind("<Leave>", lambda e: resolve_btn.configure(bg="#4a4520"))
-            self._buttons.append(resolve_btn)
+            for index, (label, callback) in enumerate(regular_actions):
+                row = index // 4
+                column = index % 4
+                accent = _button_fg(label)
+                font = FONT_BUTTON_LG if self._large_text_enabled else FONT_BUTTON
+                btn = tk.Button(
+                    buttons_frame, text=label, command=callback,
+                    bg=BG_ELEVATED, fg=accent,
+                    activebackground=BG_HOVER, activeforeground=TEXT_HEADING,
+                    relief="flat", bd=0, font=font,
+                    padx=PAD_M, pady=PAD_S,
+                    cursor="hand2",
+                    highlightbackground=BORDER, highlightthickness=1,
+                    wraplength=160,
+                )
+                btn.grid(row=row, column=column, padx=3, pady=3, sticky="ew")
+                btn.bind("<Enter>", lambda e, b=btn: b.configure(bg=BG_HOVER))
+                btn.bind("<Leave>", lambda e, b=btn: b.configure(bg=BG_ELEVATED))
+                self._buttons.append(btn)
 
-        for i in range(4):
-            self.grid_columnconfigure(i, weight=1)
+            if resolve_action:
+                label, callback = resolve_action
+                resolve_font = FONT_RESOLVE_LG if self._large_text_enabled else FONT_RESOLVE
+                resolve_btn = tk.Button(
+                    buttons_frame, text=label, command=callback,
+                    bg="#4a4520", fg=ACCENT_RESOLVE,
+                    activebackground="#5a5528", activeforeground="#fff8d0",
+                    relief="flat", bd=0, font=resolve_font,
+                    pady=PAD_M, cursor="hand2",
+                    highlightbackground=ACCENT_RESOLVE, highlightthickness=2,
+                )
+                resolve_row = (len(regular_actions) - 1) // 4 + 1
+                resolve_btn.grid(row=resolve_row, column=0, columnspan=4,
+                                 padx=PAD_S, pady=(PAD_M, PAD_S), sticky="ew")
+                resolve_btn.bind("<Enter>", lambda e: resolve_btn.configure(bg="#5a5528"))
+                resolve_btn.bind("<Leave>", lambda e: resolve_btn.configure(bg="#4a4520"))
+                self._buttons.append(resolve_btn)
+
+            for i in range(4):
+                buttons_frame.grid_columnconfigure(i, weight=1)
 
     def set_large_text(self, enabled: bool) -> None:
         self._large_text_enabled = enabled

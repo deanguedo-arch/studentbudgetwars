@@ -19,8 +19,13 @@ class BudgetWarsTkApp:
         self.startup_options = startup_options or session.options
         self.root = tk.Tk()
         self.root.configure(bg=BG_DARKEST)
-        self.root.geometry("1280x780")
-        self.root.minsize(1040, 660)
+        self.root.update_idletasks()
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        width = min(max(1280, int(screen_w * 0.92)), max(1180, screen_w - 40))
+        height = min(max(700, int(screen_h * 0.9)), max(660, screen_h - 60))
+        self.root.geometry(f"{width}x{height}")
+        self.root.minsize(min(1180, width), min(660, height))
         self.root.option_add("*Font", FONT_BODY)
         self.root.option_add("*Background", BG_DARKEST)
 

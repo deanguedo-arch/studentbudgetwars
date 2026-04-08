@@ -67,5 +67,60 @@ class OutlookPanel(tk.Frame):
             lbl.pack(fill="x", anchor="w", pady=1)
             self._widgets.append(lbl)
 
+    def render_forecast(self, forecast) -> None:
+        for w in self._widgets:
+            w.destroy()
+        self._widgets.clear()
+
+        grid = tk.Frame(self._content, bg=BG_CARD)
+        grid.pack(fill="x")
+        self._widgets.append(grid)
+
+        cards = [
+            ("Main Threat", forecast.main_threat, COLOR_NEGATIVE),
+            ("Best Opportunity", forecast.best_opportunity, COLOR_POSITIVE),
+            ("Chosen Focus", forecast.chosen_focus, ACCENT_FOCUS),
+            ("Expected Swing", forecast.expected_swing, TEXT_HEADING),
+        ]
+        for i, (title, value, accent) in enumerate(cards):
+            card = tk.Frame(grid, bg=BG_ELEVATED, highlightbackground=accent, highlightthickness=1)
+            card.grid(row=i // 2, column=i % 2, sticky="nsew", padx=3, pady=3)
+            tk.Label(card, text=title, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x")
+            tk.Label(card, text=value, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_SMALL if not self._large else ("Segoe UI", 11), anchor="w", justify="left", wraplength=200).pack(fill="x")
+
+        grid.grid_columnconfigure(0, weight=1)
+        grid.grid_columnconfigure(1, weight=1)
+
+        focus = tk.Label(
+            self._content,
+            text=forecast.monthly_focus,
+            bg=BG_CARD,
+            fg=ACCENT_FOCUS,
+            font=FONT_SMALL if not self._large else ("Segoe UI", 11, "bold"),
+            anchor="w",
+            justify="left",
+            wraplength=420,
+        )
+        focus.pack(fill="x", pady=(PAD_S, 0))
+        self._widgets.append(focus)
+
+        if forecast.driver_notes:
+            notes_header = tk.Label(self._content, text="Why this month matters", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w")
+            notes_header.pack(fill="x", pady=(PAD_S, 0))
+            self._widgets.append(notes_header)
+            for note in forecast.driver_notes[:3]:
+                note_lbl = tk.Label(self._content, text=note, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=420)
+                note_lbl.pack(fill="x", anchor="w", pady=1)
+                self._widgets.append(note_lbl)
+
+        if forecast.recent_summary:
+            recap_header = tk.Label(self._content, text="Last month", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w")
+            recap_header.pack(fill="x", pady=(PAD_S, 0))
+            self._widgets.append(recap_header)
+            for line in forecast.recent_summary[:3]:
+                recap = tk.Label(self._content, text=line, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=420)
+                recap.pack(fill="x", anchor="w", pady=1)
+                self._widgets.append(recap)
+
     def set_large_text(self, enabled: bool) -> None:
         self._large = enabled

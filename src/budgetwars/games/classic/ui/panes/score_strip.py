@@ -53,6 +53,15 @@ class ScoreStrip(tk.Frame):
                                     font=FONT_SCORE_TIER, anchor="w", padx=PAD_S)
         self._tier_label.pack(side="left")
 
+        self._detail_frame = tk.Frame(left, bg=BG_CARD)
+        self._detail_frame.pack(fill="x", pady=(PAD_S, 0))
+        self._delta_label = tk.Label(self._detail_frame, text="", bg=BG_CARD, fg=TEXT_SECONDARY,
+                                     font=FONT_SMALL, anchor="w")
+        self._delta_label.pack(side="left")
+        self._category_label = tk.Label(self._detail_frame, text="", bg=BG_CARD, fg=TEXT_SECONDARY,
+                                        font=FONT_SMALL, anchor="w", padx=PAD_S)
+        self._category_label.pack(side="left")
+
         # Risk label
         self._risk_label = tk.Label(self, text="", bg=BG_CARD, fg=COLOR_WARNING,
                                     font=FONT_SMALL, anchor="w", wraplength=300, justify="left")
@@ -81,11 +90,22 @@ class ScoreStrip(tk.Frame):
                 widget.bind("<Button-1>", lambda e: on_click())
                 widget.configure(cursor="hand2")
 
-    def render(self, snapshot: LiveScoreSnapshot) -> None:
+    def render(self, snapshot: LiveScoreSnapshot, delta=None) -> None:
         tc = tier_color(snapshot.score_tier)
         self._score_label.configure(text=f"{snapshot.projected_score:.1f}", fg=tc)
         self._tier_label.configure(text=snapshot.score_tier, fg=tc)
         self._risk_label.configure(text=snapshot.biggest_risk)
+
+        if delta is not None:
+            delta_fg = "#48d878" if delta.delta >= 0 else "#e85050"
+            self._delta_label.configure(text=f"Delta {delta.delta:+.2f}", fg=delta_fg)
+            self._category_label.configure(
+                text=f"Best {delta.strongest_category} | Weakest {delta.weakest_category}",
+                fg=TEXT_SECONDARY,
+            )
+        else:
+            self._delta_label.configure(text="")
+            self._category_label.configure(text="")
 
         for key, canvas in self._bar_canvases.items():
             canvas.delete("all")

@@ -383,33 +383,40 @@ def build_setup_summary_lines(bundle, selections: dict[str, str], player_name: s
     opening_savings = preset.starting_savings + savings.savings_delta
     opening_debt = preset.starting_debt + savings.debt_delta
     opening_net = opening_cash + opening_savings - opening_debt
+    tags: list[str] = []
+    if opening_net >= 0:
+        tags.append("Safe Start")
+    if opening_debt > opening_cash + opening_savings:
+        tags.append("Debt Risk")
+    if support.name.lower() in {"high", "strong", "best", "excellent"} or support.description.lower().find("family") >= 0:
+        tags.append("Beginner Friendly")
+    if academic.name.lower() in {"average", "strong", "excellent"}:
+        tags.append("High Upside")
+    if not tags:
+        tags.append("Rough Start")
+    forecast = "You can likely absorb a mistake early." if opening_net >= 0 else "You will need to protect cash flow early."
     return [
         f"Player: {player_name or 'Player'}",
         "",
         "Opening Identity",
+        "Your Start",
         f"Preset: {preset.name}",
-        preset.description,
         f"City: {city.name}",
-        city.opportunity_text,
-        city.pressure_text,
         "",
         "Opening Lane",
+        "Your Pressure",
         f"Path: {path.name}",
-        path.description,
         f"Academics: {academic.name}",
-        academic.description,
         f"Family support: {support.name}",
-        support.description,
         f"Starting cushion: {savings.name}",
-        savings.description,
         "",
         "Run Preview",
-        f"Starting cash: {_money(opening_cash)}",
-        f"Starting savings: {_money(opening_savings)}",
-        f"Starting debt: {_money(opening_debt)}",
+        "Your Best Edge",
+        f"Cash: {_money(opening_cash)} | Savings: {_money(opening_savings)} | Debt: {_money(opening_debt)}",
         f"Opening net worth: {_money(opening_net)}",
+        f"Forecast: {forecast}",
+        f"Tags: {', '.join(tags)}",
         f"Difficulty: {difficulty.name}",
-        difficulty.description,
     ]
 
 
@@ -434,10 +441,12 @@ class SelectionDialog(simpledialog.Dialog):
         self.listbox = tk.Listbox(
             master, width=56, height=min(9, max(4, len(self.options))),
             font=FONT_BODY,
-            bg=BG_ELEVATED, fg=TEXT_PRIMARY,
-            selectbackground=BG_HOVER, selectforeground=TEXT_HEADING,
+            bg=BG_ELEVATED, fg=TEXT_HEADING,
+            selectbackground=ACCENT_RESOLVE, selectforeground=BG_DARKEST,
             relief="flat", bd=0,
             highlightbackground=BORDER, highlightthickness=1,
+            activestyle="none",
+            exportselection=False,
         )
         self.listbox.pack(fill="both", expand=True, padx=PAD_M, pady=PAD_S)
         for label, _, _ in self.options:
@@ -555,8 +564,8 @@ class ClassicSetupDialog(simpledialog.Dialog):
     def body(self, master: tk.Misc):
         master.configure(bg=BG_DARKEST)
         self.configure(bg=BG_DARKEST)
-        master.columnconfigure(0, weight=3)
-        master.columnconfigure(1, weight=2)
+        master.columnconfigure(0, weight=5)
+        master.columnconfigure(1, weight=4)
 
         left = tk.Frame(master, bg=BG_DARKEST)
         left.grid(row=0, column=0, sticky="nsew", padx=(PAD_M, PAD_M), pady=PAD_M)
@@ -640,6 +649,14 @@ class ClassicSetupDialog(simpledialog.Dialog):
         )
         self.summary_text.grid(row=0, column=0, sticky="nsew")
         self.summary_text.configure(state="disabled")
+
+        self.update_idletasks()
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        width = min(max(1100, int(screen_w * 0.9)), max(960, screen_w - 40))
+        height = min(max(700, int(screen_h * 0.9)), max(660, screen_h - 40))
+        self.geometry(f"{width}x{height}")
+        self.minsize(min(1100, max(960, screen_w - 120)), min(700, max(660, screen_h - 120)))
 
         self._refresh_summary()
         return self.name_entry
@@ -777,18 +794,7 @@ class MainWindow(tk.Frame):
         # ── Actions bar (bottom) ──
         self.actions_panel = ActionsPanel(self)
         self.actions_panel.pack(fill="x", padx=PAD_M, pady=(0, PAD_M))
-        self.actions_panel.set_actions(
-            [
-                ("Career", self.change_career),
-                ("Education", self.change_education),
-                ("Housing", self.change_housing),
-                ("Transport", self.change_transport),
-                ("Budget", self.change_budget),
-                ("Wealth", self.change_wealth),
-                ("Focus", self.change_focus),
-                ("Resolve Month", self.resolve_month),
-            ]
-        )
+        self.actions_panel.set_grouped_actions(self._build_action_groups())
 
         self.master.config(
             menu=build_menu_bar(
@@ -818,6 +824,24 @@ class MainWindow(tk.Frame):
             return None
         dialog = SelectionDialog(self.master, title, prompt, options)
         return dialog.result
+
+    def _build_action_groups(self) -> list[tuple[str, list[tuple[str, object]]]]:
+        return [
+            ("Build", [
+                ("Career", self.change_career),
+                ("Education", self.change_education),
+                ("Housing", self.change_housing),
+                ("Transport", self.change_transport),
+            ]),
+            ("Policy", [
+                ("Budget", self.change_budget),
+                ("Wealth", self.change_wealth),
+            ]),
+            ("This Month", [
+                ("Focus", self.change_focus),
+                ("Resolve Month", self.resolve_month),
+            ]),
+        ]
 
     def _auto_save(self) -> None:
         self.session.autosave()
@@ -888,14 +912,27 @@ class MainWindow(tk.Frame):
         state = self.controller.state
         self._previous_snapshot = self._latest_snapshot
         self._latest_snapshot = self.controller.live_score_snapshot()
+        delta_vm = build_score_delta_vm(self._previous_snapshot, self._latest_snapshot)
         self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
-        self.score_strip.render(self._latest_snapshot)
-        self.life_panel.render(self._life_lines())
-        self.outlook_panel.render(self._outlook_lines())
-        self.finance_panel.render(self._finance_lines())
-        self.log_panel.render(state.log_messages, limit=10)
+        self.score_strip.render(self._latest_snapshot, delta_vm)
+        self.life_panel.render_snapshot(build_build_snapshot_vm(self.controller))
+        self.outlook_panel.render_forecast(build_monthly_forecast_vm(self.controller))
+        self.finance_panel.render_summary(build_pressure_summary_vm(self.controller, snapshot=self._latest_snapshot), delta_vm)
+        self.log_panel.render(self._run_feedback_lines(), limit=10)
         size_tag = "Large Text" if self._large_text else "Normal Text"
         self.master.title(f"{state.game_title} - {state.player.name} ({size_tag})")
+
+    def _run_feedback_lines(self) -> list[str]:
+        state = self.controller.state
+        crisis = self.controller.build_crisis_warnings()
+        next_best_move = _current_focus_name(self.controller)
+        return [
+            f"Big Win: {state.recent_summary[0]}" if state.recent_summary else "Big Win: Holding steady.",
+            f"Big Hit: {state.recent_summary[1]}" if len(state.recent_summary) > 1 else "Big Hit: No major hit this month.",
+            f"Score Change: {self._latest_snapshot.projected_score:.1f}" if self._latest_snapshot else "Score Change: Pending.",
+            f"New Threat: {crisis[0]}" if crisis else "New Threat: None right now.",
+            f"Next Best Move: {next_best_move}",
+        ] + state.log_messages
 
     def _apply_text_scale(self) -> None:
         self.status_bar.set_large_text(self._large_text)

@@ -59,15 +59,17 @@ class LogPanel(tk.Frame):
         self.text.delete("1.0", "end")
         visible = messages[-limit:]
         for i, msg in enumerate(visible):
-            tag = "latest" if i == len(visible) - 1 else None
-            if not tag:
-                lower = msg.lower()
-                if any(kw in lower for kw in _POSITIVE_KEYWORDS):
-                    tag = "positive"
-                elif any(kw in lower for kw in _NEGATIVE_KEYWORDS):
-                    tag = "negative"
-                else:
-                    tag = "neutral"
+            lower = msg.lower()
+            if lower.startswith("big win:") or lower.startswith("big hit:") or lower.startswith("score change:") or lower.startswith("new threat:") or lower.startswith("next best move:"):
+                tag = "latest"
+            elif i == len(visible) - 1:
+                tag = "latest"
+            elif any(kw in lower for kw in _POSITIVE_KEYWORDS):
+                tag = "positive"
+            elif any(kw in lower for kw in _NEGATIVE_KEYWORDS):
+                tag = "negative"
+            else:
+                tag = "neutral"
             self.text.insert("end", msg + "\n", tag)
         self.text.configure(state="disabled")
         self.text.see("end")

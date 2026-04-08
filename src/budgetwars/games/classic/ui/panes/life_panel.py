@@ -55,11 +55,7 @@ class LifePanel(tk.Frame):
         self._cards: list[tk.Frame] = []
 
     def render(self, lines: list[str]) -> None:
-        """Accept structured lines and render as cards.
-
-        Expected line format (from main_window): plain text lines grouped by blank lines.
-        We parse these into card groups and render with accent colors.
-        """
+        """Backward-compatible line renderer."""
         for card in self._cards:
             card.destroy()
         self._cards.clear()
@@ -110,6 +106,72 @@ class LifePanel(tk.Frame):
                     fg = TEXT_SECONDARY
                 lbl = _label(inner, text=line, fg=fg, font=font)
                 lbl.pack(fill="x", anchor="w")
+
+    def render_snapshot(self, snapshot) -> None:
+        """Render a structured build snapshot view-model."""
+        for card in self._cards:
+            card.destroy()
+        self._cards.clear()
+
+        headline = tk.Label(
+            self._scroll_frame,
+            text=snapshot.headline,
+            bg=BG_CARD,
+            fg=TEXT_HEADING,
+            font=FONT_SUBHEADING if not self._large else ("Segoe UI", 12, "bold"),
+            anchor="w",
+        )
+        headline.pack(fill="x", pady=(0, PAD_S))
+        self._cards.append(headline)
+
+        for system in snapshot.systems:
+            accent = BORDER
+            tone = getattr(system, "tone", "neutral")
+            if tone == "career":
+                accent = ACCENT_CAREER
+            elif tone == "education":
+                accent = ACCENT_EDUCATION
+            elif tone == "housing":
+                accent = ACCENT_HOUSING
+            elif tone == "transport":
+                accent = ACCENT_TRANSPORT
+            elif tone == "budget":
+                accent = ACCENT_BUDGET
+            elif tone == "wealth":
+                accent = ACCENT_WEALTH
+            elif tone == "focus":
+                accent = ACCENT_FOCUS
+
+            outer, inner = _card(self._scroll_frame, accent)
+            outer.pack(fill="x", pady=2)
+            self._cards.append(outer)
+
+            tk.Label(
+                inner,
+                text=system.system,
+                bg=BG_ELEVATED,
+                fg=TEXT_HEADING,
+                font=FONT_SMALL if not self._large else ("Segoe UI", 11, "bold"),
+                anchor="w",
+            ).pack(fill="x")
+            tk.Label(
+                inner,
+                text=system.primary,
+                bg=BG_ELEVATED,
+                fg=TEXT_PRIMARY,
+                font=FONT_SMALL if not self._large else ("Segoe UI", 11),
+                anchor="w",
+            ).pack(fill="x")
+            if system.detail:
+                tk.Label(
+                    inner,
+                    text=system.detail,
+                    bg=BG_ELEVATED,
+                    fg=TEXT_SECONDARY,
+                    font=FONT_TINY if not self._large else ("Segoe UI", 10),
+                    anchor="w",
+                    wraplength=280,
+                ).pack(fill="x")
 
     def set_large_text(self, enabled: bool) -> None:
         self._large = enabled

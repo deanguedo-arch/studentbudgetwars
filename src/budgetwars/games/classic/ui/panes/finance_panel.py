@@ -101,5 +101,87 @@ class FinancePanel(tk.Frame):
             lbl.pack(fill="x", anchor="w", pady=1)
             self._widgets.append(lbl)
 
+    def render_summary(self, summary, delta=None) -> None:
+        for w in self._widgets:
+            w.destroy()
+        self._widgets.clear()
+
+        top = tk.Frame(self._content, bg=BG_CARD)
+        top.pack(fill="x", pady=(0, PAD_S))
+        self._widgets.append(top)
+
+        left = tk.Frame(top, bg=BG_CARD)
+        left.pack(side="left", fill="y", padx=(0, PAD_M))
+        tk.Label(left, text=f"{summary.projected_score:.1f}", bg=BG_CARD, fg=TEXT_HEADING, font=("Segoe UI", 18, "bold"), anchor="w").pack(anchor="w")
+        tk.Label(left, text=summary.tier, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SUBHEADING, anchor="w").pack(anchor="w")
+        tk.Label(
+            left,
+            text=f"Risk: {summary.biggest_risk}",
+            bg=BG_CARD,
+            fg=COLOR_WARNING,
+            font=FONT_SMALL,
+            anchor="w",
+            justify="left",
+            wraplength=300,
+        ).pack(anchor="w", pady=(PAD_S, 0))
+
+        if delta is not None:
+            delta_color = COLOR_POSITIVE if delta.delta >= 0 else COLOR_NEGATIVE
+            tk.Label(
+                left,
+                text=f"Delta: {delta.delta:+.2f}",
+                bg=BG_CARD,
+                fg=delta_color,
+                font=FONT_SUBHEADING,
+                anchor="w",
+            ).pack(anchor="w", pady=(PAD_S, 0))
+            tk.Label(
+                left,
+                text=f"Best: {delta.strongest_category}  Worst: {delta.weakest_category}",
+                bg=BG_CARD,
+                fg=TEXT_SECONDARY,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w")
+
+        right = tk.Frame(top, bg=BG_CARD)
+        right.pack(side="left", fill="both", expand=True)
+        self._widgets.append(right)
+
+        tk.Label(right, text="Pressure Cards", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING, anchor="w").pack(fill="x")
+        primary_row = tk.Frame(right, bg=BG_CARD)
+        primary_row.pack(fill="x", pady=(PAD_S, PAD_S))
+        for metric in summary.primary_metrics:
+            card = tk.Frame(primary_row, bg=BG_ELEVATED, bd=0, highlightbackground=BORDER, highlightthickness=1)
+            card.pack(side="left", fill="both", expand=True, padx=(0, PAD_S))
+            tk.Label(card, text=metric.label, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x")
+            tk.Label(card, text=metric.primary, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_BODY, anchor="w").pack(fill="x")
+
+        secondary = tk.Frame(right, bg=BG_CARD)
+        secondary.pack(fill="x", pady=(PAD_S, 0))
+        for metric in summary.secondary_metrics[:6]:
+            row = tk.Frame(secondary, bg=BG_CARD)
+            row.pack(fill="x", pady=1)
+            fg = TEXT_SECONDARY
+            if metric.tone == "positive":
+                fg = COLOR_POSITIVE
+            elif metric.tone == "negative":
+                fg = COLOR_NEGATIVE
+            elif metric.label in {"Stress", "Energy"}:
+                fg = COLOR_WARNING
+            tk.Label(row, text=f"{metric.label}:", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w", width=16).pack(side="left")
+            tk.Label(row, text=metric.primary, bg=BG_CARD, fg=fg, font=FONT_SMALL, anchor="w").pack(side="left")
+
+        if summary.active_modifiers:
+            tk.Label(right, text="Active Modifiers", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
+            tk.Label(right, text=", ".join(summary.active_modifiers), bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
+
+        if summary.crisis_watch:
+            tk.Label(right, text="Crisis Watch", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
+            for warning in summary.crisis_watch[:3]:
+                tk.Label(right, text=warning, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x", anchor="w")
+
     def set_large_text(self, enabled: bool) -> None:
         self._large = enabled
