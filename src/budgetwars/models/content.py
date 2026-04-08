@@ -160,6 +160,13 @@ class ModifierTemplate(BaseModel):
     transport_switch_discount: int = 0
 
 
+class EventChoice(BaseModel):
+    id: str
+    label: str
+    description: str
+    stat_effects: StatEffects = Field(default_factory=dict)
+
+
 class EventDefinition(BaseModel):
     id: str
     name: str
@@ -182,12 +189,39 @@ class EventDefinition(BaseModel):
     maximum_transport_reliability: int | None = Field(default=None, ge=0, le=100)
     maximum_housing_stability: int | None = Field(default=None, ge=0, le=100)
     maximum_life_satisfaction: int | None = Field(default=None, ge=0, le=100)
+    minimum_credit_score: int | None = Field(default=None, ge=300, le=850)
+    maximum_credit_score: int | None = Field(default=None, ge=300, le=850)
     eligible_market_regime_ids: list[str] = Field(default_factory=list)
     immediate_effects: StatEffects = Field(default_factory=dict)
+    choices: list[EventChoice] = Field(default_factory=list)
     modifier: ModifierTemplate | None = None
     log_entry: str | None = None
     chained_event_id: str | None = None
     chained_delay_months: int = Field(ge=0, default=1)
+
+
+class WinStateDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    ending_label: str
+    minimum_score: float = Field(ge=0, default=0.0)
+    minimum_cash: int = Field(ge=0, default=0)
+    minimum_savings: int = Field(ge=0, default=0)
+    minimum_net_worth: int = Field(default=0)
+    maximum_debt: int | None = Field(default=None, ge=0)
+    minimum_career_tier_index: int = Field(ge=0, default=0)
+    minimum_career_track_ids: list[str] = Field(default_factory=list)
+    score_multiplier: float = Field(gt=0, default=1.0)
+
+
+class LearnTopicDefinition(BaseModel):
+    id: str
+    title: str
+    what_it_is: str
+    how_to_raise: list[str] = Field(default_factory=list)
+    how_to_lower: list[str] = Field(default_factory=list)
+    why_it_matters: list[str] = Field(default_factory=list)
 
 
 class PresetDefinition(BaseModel):
@@ -217,4 +251,6 @@ class ContentBundle(BaseModel):
     focus_actions: list[FocusActionDefinition]
     wealth_strategies: list[WealthStrategyDefinition]
     events: list[EventDefinition]
+    win_states: list[WinStateDefinition]
+    learn_topics: list[LearnTopicDefinition]
     presets: list[PresetDefinition]

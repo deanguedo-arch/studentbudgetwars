@@ -21,7 +21,9 @@ from budgetwars.models import (
     ScoringWeights,
     TransportOptionDefinition,
     WealthStrategyDefinition,
+    WinStateDefinition,
 )
+from budgetwars.models.content import LearnTopicDefinition
 
 from .validators import validate_content_bundle
 
@@ -58,6 +60,8 @@ def load_content_bundle(data_dir: Path | None = None, *, content_files: Mapping[
             "focus_actions.json": data_dir / "focus_actions.json",
             "wealth_strategies.json": data_dir / "wealth_strategies.json",
             "events.json": data_dir / "events.json",
+            "win_states.json": data_dir / "win_states.json",
+            "learn_topics.json": data_dir / "learn_topics.json",
             "presets.json": data_dir / "presets.json",
         }
     bundle = ContentBundle(
@@ -72,6 +76,8 @@ def load_content_bundle(data_dir: Path | None = None, *, content_files: Mapping[
         focus_actions=_load_model_list(content_files["focus_actions.json"], FocusActionDefinition),
         wealth_strategies=_load_model_list(content_files["wealth_strategies.json"], WealthStrategyDefinition),
         events=_load_model_list(content_files["events.json"], EventDefinition),
+        win_states=_load_model_list(content_files["win_states.json"], WinStateDefinition),
+        learn_topics=_load_model_list(content_files["learn_topics.json"], LearnTopicDefinition),
         presets=_load_model_list(content_files["presets.json"], PresetDefinition),
     )
     validate_content_bundle(bundle)

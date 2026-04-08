@@ -13,13 +13,23 @@ from ..theme import (
 )
 
 
+def _progress_bar(parent: tk.Misc, fraction: float) -> tk.Frame:
+    frame = tk.Frame(parent, bg=BG_ELEVATED)
+    canvas = tk.Canvas(frame, width=120, height=8, bg=BG_DARK, bd=0, highlightthickness=0)
+    canvas.pack(side="left")
+    fill = max(0, min(120, int(120 * max(0.0, min(1.0, fraction)))))
+    canvas.create_rectangle(0, 0, fill, 8, fill=ACCENT_FOCUS, outline="")
+    return frame
+
+
 class OutlookPanel(tk.Frame):
     """Focus + pressure + driver notes + last-month recap."""
 
-    def __init__(self, master: tk.Misc, title: str = "This Month"):
+    def __init__(self, master: tk.Misc, title: str = "This Month", resolve_callback=None):
         super().__init__(master, bg=BG_CARD, bd=1, relief="solid",
                          highlightbackground=BORDER, highlightthickness=1)
         self._large = False
+        self._resolve_callback = resolve_callback
 
         header = tk.Label(self, text=f"  {title}  ", bg=BG_CARD, fg=TEXT_HEADING,
                           font=FONT_SUBHEADING, anchor="w")
@@ -67,7 +77,7 @@ class OutlookPanel(tk.Frame):
             lbl.pack(fill="x", anchor="w", pady=1)
             self._widgets.append(lbl)
 
-    def render_forecast(self, forecast) -> None:
+    def render_forecast(self, forecast, *, compact: bool = False) -> None:
         for w in self._widgets:
             w.destroy()
         self._widgets.clear()
@@ -86,10 +96,71 @@ class OutlookPanel(tk.Frame):
             card = tk.Frame(grid, bg=BG_ELEVATED, highlightbackground=accent, highlightthickness=1)
             card.grid(row=i // 2, column=i % 2, sticky="nsew", padx=3, pady=3)
             tk.Label(card, text=title, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x")
-            tk.Label(card, text=value, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_SMALL if not self._large else ("Segoe UI", 11), anchor="w", justify="left", wraplength=200).pack(fill="x")
+            tk.Label(card, text=value, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_SMALL if not self._large else ("Segoe UI", 11), anchor="w", justify="left", wraplength=180 if compact else 200).pack(fill="x")
 
         grid.grid_columnconfigure(0, weight=1)
         grid.grid_columnconfigure(1, weight=1)
+
+        progress = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=ACCENT_FOCUS, highlightthickness=1)
+        progress.pack(fill="x", pady=(PAD_S, 0))
+        self._widgets.append(progress)
+        tk.Label(progress, text=forecast.progress_label, bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x")
+        tk.Label(progress, text=forecast.progress_detail, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x")
+        _progress_bar(progress, forecast.progress_fraction).pack(anchor="w", pady=(PAD_S, 0))
+
+        focus_frame = tk.Frame(self._content, bg=BG_CARD)
+        focus_frame.pack(fill="x", pady=(PAD_S, 0))
+        self._widgets.append(focus_frame)
+        tk.Label(
+            focus_frame,
+            text=f"Situation family: {forecast.situation_family}",
+            bg=BG_CARD,
+            fg=TEXT_HEADING,
+            font=FONT_SMALL if not self._large else ("Segoe UI", 11, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            focus_frame,
+            text=forecast.credit_status,
+            bg=BG_CARD,
+            fg=ACCENT_FOCUS,
+            font=FONT_SMALL if not self._large else ("Segoe UI", 11),
+            anchor="w",
+            wraplength=420,
+            justify="left",
+        ).pack(fill="x", pady=(1, 0))
+
+        resolve_frame = tk.Frame(self._content, bg=BG_CARD)
+        resolve_frame.pack(fill="x", pady=(PAD_S, 0))
+        self._widgets.append(resolve_frame)
+        tk.Label(
+            resolve_frame,
+            text="Commit the month once the pressure cards make sense.",
+            bg=BG_CARD,
+            fg=TEXT_SECONDARY,
+            font=FONT_TINY if not self._large else ("Segoe UI", 10),
+            anchor="w",
+            justify="left",
+            wraplength=420,
+        ).pack(fill="x", pady=(0, PAD_S // 2))
+        resolve_btn = tk.Button(
+            resolve_frame,
+            text="Resolve Month",
+            command=self._resolve_callback,
+            bg="#4a4520",
+            fg=ACCENT_FOCUS,
+            activebackground="#5a5528",
+            activeforeground="#fff8d0",
+            relief="flat",
+            bd=0,
+            font=FONT_SUBHEADING if not self._large else ("Segoe UI", 11, "bold"),
+            padx=PAD_M,
+            pady=PAD_S,
+            cursor="hand2",
+            highlightbackground=ACCENT_FOCUS,
+            highlightthickness=2,
+        )
+        resolve_btn.pack(fill="x")
 
         focus = tk.Label(
             self._content,
@@ -108,12 +179,12 @@ class OutlookPanel(tk.Frame):
             notes_header = tk.Label(self._content, text="Why this month matters", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w")
             notes_header.pack(fill="x", pady=(PAD_S, 0))
             self._widgets.append(notes_header)
-            for note in forecast.driver_notes[:3]:
+            for note in forecast.driver_notes[: (2 if compact else 3)]:
                 note_lbl = tk.Label(self._content, text=note, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=420)
                 note_lbl.pack(fill="x", anchor="w", pady=1)
                 self._widgets.append(note_lbl)
 
-        if forecast.recent_summary:
+        if forecast.recent_summary and not compact:
             recap_header = tk.Label(self._content, text="Last month", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w")
             recap_header.pack(fill="x", pady=(PAD_S, 0))
             self._widgets.append(recap_header)

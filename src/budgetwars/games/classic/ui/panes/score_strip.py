@@ -4,6 +4,7 @@ from __future__ import annotations
 import tkinter as tk
 
 from budgetwars.models import LiveScoreSnapshot
+from budgetwars.engine.scoring import credit_progress_summary, credit_tier_label
 
 from ..theme import (
     BG_CARD, BG_DARK, BG_DARKEST, BG_ELEVATED, BORDER,
@@ -37,6 +38,16 @@ _CATEGORY_LABELS = {
 }
 
 
+def _next_tier(score: float) -> tuple[str | None, float | None]:
+    if score < 40:
+        return "Silver", 40 - score
+    if score < 60:
+        return "Gold", 60 - score
+    if score < 80:
+        return "Elite", 80 - score
+    return None, None
+
+
 class ScoreStrip(tk.Frame):
     def __init__(self, master: tk.Misc, on_click=None):
         super().__init__(master, bg=BG_CARD, bd=1, relief="solid",
@@ -61,6 +72,12 @@ class ScoreStrip(tk.Frame):
         self._category_label = tk.Label(self._detail_frame, text="", bg=BG_CARD, fg=TEXT_SECONDARY,
                                         font=FONT_SMALL, anchor="w", padx=PAD_S)
         self._category_label.pack(side="left")
+        self._tier_progress_label = tk.Label(self._detail_frame, text="", bg=BG_CARD, fg=TEXT_MUTED,
+                                             font=FONT_SMALL, anchor="w", padx=PAD_S)
+        self._tier_progress_label.pack(side="left")
+        self._credit_label = tk.Label(self._detail_frame, text="", bg=BG_CARD, fg=TEXT_SECONDARY,
+                                      font=FONT_SMALL, anchor="w", padx=PAD_S)
+        self._credit_label.pack(side="left")
 
         # Risk label
         self._risk_label = tk.Label(self, text="", bg=BG_CARD, fg=COLOR_WARNING,
@@ -72,6 +89,7 @@ class ScoreStrip(tk.Frame):
         self._bars_frame.pack(side="right", fill="y", padx=PAD_M, pady=PAD_S)
         self._bar_canvases: dict[str, tk.Canvas] = {}
         self._bar_labels: dict[str, tk.Label] = {}
+        self._flash_job: str | None = None
 
         for i, (key, label) in enumerate(_CATEGORY_LABELS.items()):
             row_frame = tk.Frame(self._bars_frame, bg=BG_CARD)
@@ -90,7 +108,7 @@ class ScoreStrip(tk.Frame):
                 widget.bind("<Button-1>", lambda e: on_click())
                 widget.configure(cursor="hand2")
 
-    def render(self, snapshot: LiveScoreSnapshot, delta=None) -> None:
+    def render(self, snapshot: LiveScoreSnapshot, delta=None, *, credit_score: int | None = None, credit_delta: int | None = None) -> None:
         tc = tier_color(snapshot.score_tier)
         self._score_label.configure(text=f"{snapshot.projected_score:.1f}", fg=tc)
         self._tier_label.configure(text=snapshot.score_tier, fg=tc)
@@ -107,6 +125,21 @@ class ScoreStrip(tk.Frame):
             self._delta_label.configure(text="")
             self._category_label.configure(text="")
 
+        next_tier, points = _next_tier(snapshot.projected_score)
+        if next_tier is None:
+            self._tier_progress_label.configure(text="Top tier reached", fg=TEXT_MUTED)
+        else:
+            self._tier_progress_label.configure(text=f"{points:.1f} to {next_tier}", fg=TEXT_MUTED)
+        if credit_score is not None:
+            credit_label = credit_tier_label(credit_score)
+            credit_progress_label, credit_progress_detail, _ = credit_progress_summary(credit_score)
+            credit_text = f"Credit {credit_score} {credit_label} | {credit_progress_label}: {credit_progress_detail}"
+            if credit_delta is not None:
+                credit_text += f" | Trend {credit_delta:+d}"
+            self._credit_label.configure(text=credit_text, fg=TEXT_SECONDARY)
+        else:
+            self._credit_label.configure(text="")
+
         for key, canvas in self._bar_canvases.items():
             canvas.delete("all")
             value = snapshot.breakdown.get(key, 0)
@@ -114,5 +147,23 @@ class ScoreStrip(tk.Frame):
             color = _CATEGORY_COLORS.get(key, TEXT_SECONDARY)
             canvas.create_rectangle(0, 0, fill_w, 6, fill=color, outline="")
 
+        if delta is not None and abs(delta.delta) >= 0.25:
+            self._flash(delta.delta)
+
     def set_large_text(self, enabled: bool) -> None:
         pass  # Score strip stays fixed size
+
+    def _flash(self, delta: float) -> None:
+        if self._flash_job is not None:
+            try:
+                self.after_cancel(self._flash_job)
+            except tk.TclError:
+                pass
+        flash_color = "#284032" if delta >= 0 else "#4a2222"
+        self.configure(highlightbackground=flash_color)
+
+        def _reset() -> None:
+            self.configure(highlightbackground=BORDER)
+            self._flash_job = None
+
+        self._flash_job = self.after(180, _reset)

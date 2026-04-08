@@ -190,9 +190,10 @@
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
     "eligible_transport_ids": [
-      "none",
-      "transit",
-      "bike"
+      "beater_car",
+      "financed_car",
+      "reliable_used_car",
+      "luxury_financed_car"
     ],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
@@ -204,6 +205,27 @@
       "life_satisfaction": 1,
       "stress": -1
     },
+    "choices": [
+      {
+        "id": "take_the_deal",
+        "label": "Take the deal",
+        "description": "Commit to the upgrade and accept the extra pressure.",
+        "stat_effects": {
+          "cash": -600,
+          "stress": 2,
+          "life_satisfaction": 1
+        }
+      },
+      {
+        "id": "walk_away",
+        "label": "Walk away",
+        "description": "Keep your current setup and protect your margin.",
+        "stat_effects": {
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
     "modifier": {
       "id": "used_car_window",
       "label": "Used Car Deal",
@@ -282,6 +304,29 @@
       "family_support": -6,
       "social_stability": -2
     },
+    "choices": [
+      {
+        "id": "cover_it",
+        "label": "Cover it",
+        "description": "Send money and absorb the hit to your own runway.",
+        "stat_effects": {
+          "cash": -240,
+          "savings": -120,
+          "family_support": 3,
+          "social_stability": 1
+        }
+      },
+      {
+        "id": "set_boundary",
+        "label": "Set boundary",
+        "description": "Protect your own month and let the tension settle.",
+        "stat_effects": {
+          "stress": 2,
+          "family_support": -3,
+          "social_stability": -1
+        }
+      }
+    ],
     "modifier": null,
     "log_entry": "Family trouble pulled money and focus out of your month."
   },
@@ -929,6 +974,128 @@
       "transport_switch_discount": 0
     },
     "log_entry": "Insurance jumped, and now the financed car feels a lot less clever."
+  },
+  {
+    "id": "credit_limit_review",
+    "name": "Credit Limit Review",
+    "description": "The credit bureau notice makes it clear that your borrowing story is under review.",
+    "weight": 4,
+    "min_month": 4,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": 1200,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "minimum_credit_score": 300,
+    "maximum_credit_score": 660,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "stress": 2,
+      "life_satisfaction": -1
+    },
+    "choices": [
+      {
+        "id": "tighten_up",
+        "label": "Tighten up",
+        "description": "Trim the balance and protect your credit story.",
+        "stat_effects": {
+          "cash": -180,
+          "debt": -220,
+          "credit_score": 10,
+          "stress": -1
+        }
+      },
+      {
+        "id": "coast",
+        "label": "Coast",
+        "description": "Protect cash now and accept the credit drag.",
+        "stat_effects": {
+          "debt": 140,
+          "credit_score": -8,
+          "stress": 2
+        }
+      }
+    ],
+    "modifier": null,
+    "log_entry": "The bureau review made the month feel a lot less optional."
+  },
+  {
+    "id": "refinance_window",
+    "name": "Refinance Window",
+    "description": "Strong credit cracked open a rare chance to clean up expensive debt terms.",
+    "weight": 3,
+    "min_month": 6,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": 2000,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "minimum_credit_score": 700,
+    "maximum_credit_score": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "life_satisfaction": 1,
+      "stress": -1
+    },
+    "choices": [
+      {
+        "id": "refinance_now",
+        "label": "Refinance now",
+        "description": "Swap expensive debt terms for a cleaner monthly lane.",
+        "stat_effects": {
+          "cash": 160,
+          "debt": -450,
+          "credit_score": 4,
+          "stress": 1
+        }
+      },
+      {
+        "id": "wait_for_better_rate",
+        "label": "Wait",
+        "description": "Keep your current terms and protect your breathing room.",
+        "stat_effects": {
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "modifier": {
+      "id": "refinance_relief",
+      "label": "Refinance Relief",
+      "duration_months": 3,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": -40,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 150
+    },
+    "log_entry": "Your credit opened a rare chance to make debt less ugly."
   },
   {
     "id": "sales_hot_streak",

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "steady_builder",
+    "name": "Steady Builder",
+    "description": "You built a real cushion and kept your life from wobbling apart.",
+    "ending_label": "Steady Builder",
+    "minimum_score": 55,
+    "minimum_cash": 25000,
+    "minimum_savings": 5000,
+    "minimum_net_worth": 40000,
+    "maximum_debt": 15000,
+    "minimum_career_tier_index": 3,
+    "minimum_career_track_ids": [],
+    "score_multiplier": 1.05
+  },
+  {
+    "id": "financial_anchor",
+    "name": "Financial Anchor",
+    "description": "You turned steady income into durable stability and a stronger runway.",
+    "ending_label": "Financial Anchor",
+    "minimum_score": 65,
+    "minimum_cash": 60000,
+    "minimum_savings": 15000,
+    "minimum_net_worth": 90000,
+    "maximum_debt": 8000,
+    "minimum_career_tier_index": 4,
+    "minimum_career_track_ids": [],
+    "score_multiplier": 1.15
+  },
+  {
+    "id": "life_position",
+    "name": "Life Position",
+    "description": "You finished the run with a genuinely strong position and room to keep building.",
+    "ending_label": "Life Position",
+    "minimum_score": 78,
+    "minimum_cash": 90000,
+    "minimum_savings": 20000,
+    "minimum_net_worth": 120000,
+    "maximum_debt": 5000,
+    "minimum_career_tier_index": 4,
+    "minimum_career_track_ids": [],
+    "score_multiplier": 1.3
+  }
+]

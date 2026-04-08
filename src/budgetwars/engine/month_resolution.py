@@ -19,9 +19,10 @@ from .education import apply_education_effects, education_monthly_cost, update_e
 from .effects import append_log, apply_stat_effects, clamp_player_state, net_worth, summarize_milestone, trim_logs
 from .events import roll_month_events
 from .housing import apply_housing_effects, monthly_housing_cost
-from .lookups import get_current_career_tier, get_focus_action, get_housing_option
+from .lookups import get_current_career_tier, get_difficulty, get_focus_action, get_housing_option
 from .transport import apply_transport_access_penalty, apply_transport_effects, monthly_transport_cost
 from .wealth import apply_wealth_allocations, apply_wealth_returns
+from .scoring import credit_tier_label, dominant_pressure_family
 
 
 @dataclass
@@ -200,6 +201,10 @@ def _build_month_driver_notes(
         notes.append("Housing instability is leaking into stress and overall life consistency.")
     if player.transport.reliability_score <= 45:
         notes.append("Transport reliability is now turning normal months into scramble months.")
+    if player.credit_score < 580:
+        notes.append("Credit is now blocking some housing and transport moves.")
+    elif player.credit_score < 670:
+        notes.append("Credit is fair, but it still narrows the finance and housing lane.")
     if housing_cost >= max(transport_cost * 2, 900):
         notes.append("Housing is one of the biggest forces shaping your monthly margin right now.")
     if transport_cost >= 400:
@@ -233,6 +238,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     start_net = net_worth(state)
     stress_start = state.player.stress
     energy_start = state.player.energy
+    credit_start = state.player.credit_score
     stress_parts: list[str] = []
     energy_parts: list[str] = []
     existing_modifier_tokens = {id(modifier) for modifier in state.active_modifiers}
@@ -241,10 +247,13 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     append_log(state, f"--- Month {state.current_month} / Year {state.current_year} (Age {state.current_age}) ---")
 
     housing = get_housing_option(bundle, state.player.housing_id)
+    difficulty = get_difficulty(bundle, state.difficulty_id)
+    debt_start = state.player.debt
     housing_energy_recovery = int(round((housing.recovery_score - 50) / 12))
     housing_stress_relief = int(round((housing.recovery_score - 50) / 18))
+    difficulty_stress_relief = max(0, int(round((1.0 - difficulty.stress_multiplier) * 20)))
     baseline_energy_recovery = bundle.config.baseline_monthly_energy_recovery + housing_energy_recovery
-    baseline_stress_relief = bundle.config.baseline_monthly_stress_relief + housing_stress_relief
+    baseline_stress_relief = bundle.config.baseline_monthly_stress_relief + housing_stress_relief + difficulty_stress_relief
     state.player.energy += baseline_energy_recovery
     state.player.stress -= baseline_stress_relief
     stress_parts.append(f"baseline {-baseline_stress_relief:+d}")
@@ -411,6 +420,26 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     end_net = net_worth(state)
     state.player.monthly_surplus = end_net - start_net
     _update_momentum_and_drag(state)
+    credit_adjustment = 0
+    credit_parts: list[str] = []
+    if debt_paid >= debt_due and debt_due > 0:
+        credit_adjustment += 1
+        credit_parts.append("on-time payment +1")
+    if state.player.debt >= 18000:
+        credit_adjustment -= 4
+        credit_parts.append("heavy debt -4")
+    elif state.player.debt >= 6000:
+        credit_adjustment -= 3
+        credit_parts.append("debt load -3")
+    elif state.player.debt >= 3000:
+        credit_adjustment -= 1
+        credit_parts.append("carried debt -1")
+    if state.player.monthly_surplus > 300 and state.player.debt <= debt_start:
+        credit_adjustment += 1
+        credit_parts.append("healthy surplus +1")
+    if credit_adjustment:
+        state.player.credit_score = max(300, min(850, state.player.credit_score + credit_adjustment))
+        append_log(state, f"Credit drift: {credit_adjustment:+d} ({', '.join(credit_parts)})")
     clamp_player_state(state)
     state.month_driver_notes = _build_month_driver_notes(
         state,
@@ -440,6 +469,9 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
             f"growth {growth_gain:+d}"
         ),
         f"Month swing {state.player.monthly_surplus:+d}",
+        f"Credit {credit_start}->{state.player.credit_score} ({state.player.credit_score - credit_start:+d})",
+        f"Credit tier: {credit_tier_label(state.player.credit_score)}",
+        f"Situation family: {dominant_pressure_family(state)}",
         f"Stress {stress_start}->{state.player.stress} ({state.player.stress - stress_start:+d})",
         "Stress drivers: " + (", ".join(stress_parts) if stress_parts else "steady"),
         f"Energy {energy_start}->{state.player.energy} ({state.player.energy - energy_start:+d})",

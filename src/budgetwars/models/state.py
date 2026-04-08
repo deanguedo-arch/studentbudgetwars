@@ -4,6 +4,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field, computed_field, field_validator
 
+from .content import EventDefinition
+
 
 StatEffects = dict[str, float]
 
@@ -181,6 +183,9 @@ class GameState(BaseModel):
     player: PlayerState
     active_modifiers: list[ActiveMonthlyModifier] = Field(default_factory=list)
     pending_events: list[PendingEvent] = Field(default_factory=list)
+    pending_user_choice_event_id: str | None = None
+    pending_user_choice_event: EventDefinition | None = None
+    victory_state_id: str | None = None
     burnout_streak: int = Field(ge=0, default=0)
     log_messages: list[str] = Field(default_factory=list)
     recent_summary: list[str] = Field(default_factory=list)

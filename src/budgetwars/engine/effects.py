@@ -9,6 +9,7 @@ NUMERIC_PLAYER_KEYS = {
     "cash",
     "savings",
     "debt",
+    "credit_score",
     "stress",
     "energy",
     "life_satisfaction",
@@ -106,6 +107,8 @@ def apply_stat_effects(state: GameState, effects: dict[str, float]) -> None:
             _apply_savings_delta(state, value)
         elif key == "debt":
             player.debt = max(0, player.debt + value)
+        elif key == "credit_score":
+            player.credit_score = max(300, min(850, player.credit_score + value))
         elif key == "high_interest_savings":
             _apply_high_interest_savings_delta(state, value)
         elif key == "index_fund":

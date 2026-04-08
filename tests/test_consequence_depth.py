@@ -120,6 +120,57 @@ def test_month_driver_notes_surface_real_causes(bundle, controller_factory):
     assert "transport" in combined or "housing" in combined or "market" in combined
 
 
+def test_credit_driven_events_change_with_credit_state(bundle, controller_factory):
+    low_credit = controller_factory()
+    low_credit.state.current_month = 6
+    low_credit.state.player.credit_score = 540
+    low_credit.state.player.debt = 2400
+
+    high_credit = controller_factory()
+    high_credit.state.current_month = 6
+    high_credit.state.player.credit_score = 760
+    high_credit.state.player.debt = 2400
+
+    low_ids = {event.id for event in eligible_events(bundle, low_credit.state)}
+    high_ids = {event.id for event in eligible_events(bundle, high_credit.state)}
+
+    assert "credit_limit_review" in low_ids
+    assert "refinance_window" in high_ids
+
+
+def test_used_car_window_requires_actual_vehicle(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="stay_home_stack_cash")
+    controller.state.current_month = 6
+
+    controller.state.player.transport.option_id = "transit"
+    transit_events = {event.id for event in eligible_events(bundle, controller.state)}
+    assert "used_car_window" not in transit_events
+
+    controller.state.player.transport.option_id = "beater_car"
+    car_events = {event.id for event in eligible_events(bundle, controller.state)}
+    assert "used_car_window" in car_events
+
+
+def test_heavy_debt_month_can_lower_credit(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(
+        difficulty_id="hard",
+        city_id="mid_size_city",
+        family_support_level_id="low",
+        savings_band_id="none",
+        opening_path_id="move_out_immediately",
+    )
+    controller.state.player.cash = 0
+    controller.state.player.savings = 0
+    controller.state.player.debt = 8000
+    starting_credit = controller.state.player.credit_score
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert controller.state.player.credit_score < starting_credit
+
+
 def test_stacked_drag_preserves_game_over_logic(bundle, controller_factory):
     controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
     state = controller.state

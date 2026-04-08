@@ -37,6 +37,26 @@ _BAR_LABELS = {
 }
 
 
+def preview_choice_detail(detail: str, stat_effects: dict[str, float] | None = None) -> str:
+    effects = stat_effects or {}
+    if not effects:
+        return detail
+    pieces: list[str] = []
+    for key in ("cash", "savings", "debt", "stress", "energy", "life_satisfaction", "family_support", "social_stability", "credit_score"):
+        if key not in effects:
+            continue
+        value = effects[key]
+        if value == 0:
+            continue
+        if key == "credit_score":
+            pieces.append(f"credit {value:+.0f}")
+        else:
+            pieces.append(f"{key.replace('_', ' ')} {value:+.0f}")
+    if not pieces:
+        return detail
+    return f"{detail} Likely changes: {', '.join(pieces)}."
+
+
 class _DarkDialog(tk.Toplevel):
     """Base class for dark-themed modal dialogs."""
 
@@ -71,6 +91,101 @@ class _DarkDialog(tk.Toplevel):
             cursor="hand2", highlightbackground=BORDER, highlightthickness=1,
         )
         btn.pack(side="right")
+
+
+def show_event_choice_popup(
+    parent: tk.Misc,
+    *,
+    title: str,
+    prompt: str,
+    choices: list[tuple[str, str, str] | tuple[str, str, str, dict[str, float]]],
+) -> str | None:
+    """Show a modal dialog with 2-3 choices and return the chosen choice_id."""
+    if not choices:
+        return None
+
+    dialog = _DarkDialog(parent, title, width=560, height=420)
+    dialog.result: str | None = None  # type: ignore[attr-defined]
+
+    tk.Label(dialog._content, text=title, bg=BG_DARKEST, fg=TEXT_HEADING, font=FONT_HEADING_LG).pack(
+        anchor="w", pady=(0, PAD_S)
+    )
+    tk.Label(
+        dialog._content,
+        text=prompt,
+        bg=BG_DARKEST,
+        fg=TEXT_PRIMARY,
+        font=FONT_BODY,
+        wraplength=500,
+        justify="left",
+        anchor="w",
+    ).pack(fill="x", pady=(0, PAD_M))
+
+    for choice in choices[:3]:
+        if len(choice) == 4:
+            label, choice_id, detail, stat_effects = choice
+            detail = preview_choice_detail(detail, stat_effects)
+        else:
+            label, choice_id, detail = choice
+        card = tk.Frame(dialog._content, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=1)
+        card.pack(fill="x", pady=4)
+        tk.Label(card, text=label, bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_SUBHEADING, anchor="w").pack(
+            fill="x", padx=PAD_M, pady=(PAD_S, 0)
+        )
+        if detail:
+            tk.Label(
+                card,
+                text=detail,
+                bg=BG_ELEVATED,
+                fg=TEXT_SECONDARY,
+                font=FONT_SMALL,
+                wraplength=500,
+                justify="left",
+                anchor="w",
+            ).pack(fill="x", padx=PAD_M, pady=(2, PAD_S))
+
+        def _choose(_choice_id: str = choice_id) -> None:
+            dialog.result = _choice_id  # type: ignore[attr-defined]
+            dialog._close()
+
+        btn = tk.Button(
+            dialog._button_frame,
+            text=label,
+            command=_choose,
+            bg=BG_ELEVATED,
+            fg=TEXT_PRIMARY,
+            activebackground=BG_DARK,
+            font=FONT_BODY,
+            relief="flat",
+            bd=0,
+            padx=PAD_L,
+            pady=PAD_S,
+            cursor="hand2",
+            highlightbackground=BORDER,
+            highlightthickness=1,
+        )
+        btn.pack(side="left", padx=(0, PAD_S))
+
+    cancel = tk.Button(
+        dialog._button_frame,
+        text="Cancel",
+        command=dialog._close,
+        bg=BG_DARK,
+        fg=TEXT_SECONDARY,
+        activebackground=BG_ELEVATED,
+        font=FONT_BODY,
+        relief="flat",
+        bd=0,
+        padx=PAD_L,
+        pady=PAD_S,
+        cursor="hand2",
+        highlightbackground=BORDER,
+        highlightthickness=1,
+    )
+    cancel.pack(side="right")
+
+    dialog.wait_window()
+    return getattr(dialog, "result", None)
 
 
 def show_milestone_popup(parent: tk.Misc, summary_lines: list[str]) -> None:

@@ -26,6 +26,10 @@ def _mini_bar(parent: tk.Misc, value: int, max_val: int, color: str,
     return frame
 
 
+def _progress_bar(parent: tk.Misc, fraction: float, color: str) -> tk.Frame:
+    return _mini_bar(parent, int(max(0.0, min(1.0, fraction)) * 100), 100, color, width=120)
+
+
 class FinancePanel(tk.Frame):
     def __init__(self, master: tk.Misc, title: str = "Score & Pressure"):
         super().__init__(master, bg=BG_CARD, bd=1, relief="solid",
@@ -101,7 +105,7 @@ class FinancePanel(tk.Frame):
             lbl.pack(fill="x", anchor="w", pady=1)
             self._widgets.append(lbl)
 
-    def render_summary(self, summary, delta=None) -> None:
+    def render_summary(self, summary, delta=None, *, credit_delta: int | None = None, compact: bool = False) -> None:
         for w in self._widgets:
             w.destroy()
         self._widgets.clear()
@@ -146,6 +150,50 @@ class FinancePanel(tk.Frame):
                 wraplength=300,
             ).pack(anchor="w")
 
+        credit_frame = tk.Frame(left, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=1)
+        credit_frame.pack(fill="x", pady=(PAD_S, 0))
+        tk.Label(credit_frame, text="Credit", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x")
+        tk.Label(
+            credit_frame,
+            text=f"{summary.credit_score} {summary.credit_tier}",
+            bg=BG_ELEVATED,
+            fg=TEXT_PRIMARY,
+            font=FONT_SUBHEADING,
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            credit_frame,
+            text=summary.credit_progress_label,
+            bg=BG_ELEVATED,
+            fg=TEXT_SECONDARY,
+            font=FONT_SMALL,
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            credit_frame,
+            text=summary.credit_progress_detail,
+            bg=BG_ELEVATED,
+            fg=TEXT_MUTED,
+            font=FONT_SMALL,
+            anchor="w",
+        ).pack(fill="x")
+        _progress_bar(credit_frame, summary.credit_progress_fraction, COLOR_WARNING).pack(anchor="w", pady=(PAD_S, 0))
+        if credit_delta is not None:
+            tk.Label(
+                credit_frame,
+                text=f"Trend: {credit_delta:+d}",
+                bg=BG_ELEVATED,
+                fg=COLOR_POSITIVE if credit_delta >= 0 else COLOR_NEGATIVE,
+                font=FONT_SMALL,
+                anchor="w",
+            ).pack(fill="x", pady=(1, 0))
+
+        progress_frame = tk.Frame(left, bg=BG_CARD)
+        progress_frame.pack(fill="x", pady=(PAD_S, 0))
+        tk.Label(progress_frame, text=summary.progress_label, bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x")
+        tk.Label(progress_frame, text=summary.progress_detail, bg=BG_CARD, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x")
+        _progress_bar(progress_frame, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", pady=(PAD_S, 0))
+
         right = tk.Frame(top, bg=BG_CARD)
         right.pack(side="left", fill="both", expand=True)
         self._widgets.append(right)
@@ -153,15 +201,21 @@ class FinancePanel(tk.Frame):
         tk.Label(right, text="Pressure Cards", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING, anchor="w").pack(fill="x")
         primary_row = tk.Frame(right, bg=BG_CARD)
         primary_row.pack(fill="x", pady=(PAD_S, PAD_S))
-        for metric in summary.primary_metrics:
+        for metric in summary.primary_metrics[: (3 if compact else len(summary.primary_metrics))]:
             card = tk.Frame(primary_row, bg=BG_ELEVATED, bd=0, highlightbackground=BORDER, highlightthickness=1)
             card.pack(side="left", fill="both", expand=True, padx=(0, PAD_S))
             tk.Label(card, text=metric.label, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x")
             tk.Label(card, text=metric.primary, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_BODY, anchor="w").pack(fill="x")
 
+        progress_card = tk.Frame(right, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=1)
+        progress_card.pack(fill="x", pady=(0, PAD_S))
+        tk.Label(progress_card, text=summary.progress_label, bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x")
+        tk.Label(progress_card, text=summary.progress_detail, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x")
+        _progress_bar(progress_card, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", padx=0, pady=(PAD_S, 0))
+
         secondary = tk.Frame(right, bg=BG_CARD)
         secondary.pack(fill="x", pady=(PAD_S, 0))
-        for metric in summary.secondary_metrics[:6]:
+        for metric in summary.secondary_metrics[: (4 if compact else 6)]:
             row = tk.Frame(secondary, bg=BG_CARD)
             row.pack(fill="x", pady=1)
             fg = TEXT_SECONDARY
@@ -174,13 +228,13 @@ class FinancePanel(tk.Frame):
             tk.Label(row, text=f"{metric.label}:", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w", width=16).pack(side="left")
             tk.Label(row, text=metric.primary, bg=BG_CARD, fg=fg, font=FONT_SMALL, anchor="w").pack(side="left")
 
-        if summary.active_modifiers:
+        if summary.active_modifiers and not compact:
             tk.Label(right, text="Active Modifiers", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
             tk.Label(right, text=", ".join(summary.active_modifiers), bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
 
         if summary.crisis_watch:
             tk.Label(right, text="Crisis Watch", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
-            for warning in summary.crisis_watch[:3]:
+            for warning in summary.crisis_watch[: (2 if compact else 3)]:
                 tk.Label(right, text=warning, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x", anchor="w")
 
     def set_large_text(self, enabled: bool) -> None:

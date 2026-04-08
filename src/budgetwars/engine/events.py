@@ -2,10 +2,33 @@ from __future__ import annotations
 
 from random import Random
 
-from budgetwars.models import ContentBundle, EventDefinition, GameState, PendingEvent
+from budgetwars.models import ContentBundle, EventChoice, EventDefinition, GameState, PendingEvent
 
 from .effects import append_log, apply_stat_effects, create_modifier
 from .lookups import get_city, get_housing_option, get_transport_option
+
+
+def event_family(event: EventDefinition) -> str:
+    event_id = event.id.lower()
+    event_name = event.name.lower()
+    combined = f"{event_id} {event_name}"
+    if any(token in combined for token in ("credit", "refinance", "bureau", "loan")):
+        return "Credit pressure"
+    if any(token in combined for token in ("rent", "roommate", "housing", "lease", "apartment")):
+        return "Housing squeeze"
+    if any(token in combined for token in ("car", "vehicle", "transport", "commute", "bike", "breakdown")):
+        return "Transport friction"
+    if any(token in combined for token in ("school", "education", "scholarship", "academic", "study")):
+        return "Education pressure"
+    if any(token in combined for token in ("layoff", "promotion", "sales", "job", "career", "gig", "work")):
+        return "Career turbulence"
+    if any(token in combined for token in ("family", "parent")):
+        return "Family pressure"
+    if any(token in combined for token in ("burnout", "stress", "energy", "health")):
+        return "Wellbeing strain"
+    if any(token in combined for token in ("market", "regime", "economic", "recession")):
+        return "Market shock"
+    return "General pressure"
 
 
 def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefinition) -> bool:
@@ -45,6 +68,10 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         return False
     if event.maximum_life_satisfaction is not None and player.life_satisfaction > event.maximum_life_satisfaction:
         return False
+    if event.minimum_credit_score is not None and player.credit_score < event.minimum_credit_score:
+        return False
+    if event.maximum_credit_score is not None and player.credit_score > event.maximum_credit_score:
+        return False
     if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
         return False
     return True
@@ -75,6 +102,8 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         weight *= max(0.05, transport.repair_event_weight * 0.8)
     if event.id == "used_car_window" and transport.access_level >= 3:
         weight *= 0.2
+    if event.id == "used_car_window" and state.player.credit_score >= 700:
+        weight *= 0.45
     if event.id == "promotion_window":
         track = next(track for track in bundle.careers if track.id == state.player.career.track_id)
         weight *= track.promotion_weight
@@ -126,6 +155,20 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         weight *= 1.35
     if event.id == "financed_car_insurance_spike" and state.player.monthly_surplus < 0:
         weight *= 1.2
+    if event.id == "credit_limit_review":
+        if state.player.credit_score < 620:
+            weight *= 1.7
+        if state.player.debt >= 2000:
+            weight *= 1.15
+    if event.id == "refinance_window":
+        if state.player.credit_score >= 700:
+            weight *= 1.8
+        elif state.player.credit_score >= 670:
+            weight *= 1.2
+        else:
+            weight *= 0.25
+        if state.player.debt >= 2500:
+            weight *= 1.15
 
     return max(0.05, weight * difficulty.event_weight_multiplier)
 
@@ -139,6 +182,12 @@ def pick_event(bundle: ContentBundle, state: GameState, rng: Random, excluded_id
 
 
 def resolve_event(bundle: ContentBundle, state: GameState, event: EventDefinition) -> None:
+    append_log(state, f"Situation family: {event_family(event)}")
+    if event.choices:
+        state.pending_user_choice_event_id = event.id
+        state.pending_user_choice_event = event.model_copy(deep=True)
+        append_log(state, event.log_entry or f"Choice pending: {event.name}")
+        return
     apply_stat_effects(state, event.immediate_effects)
     if event.modifier is not None:
         state.active_modifiers.append(create_modifier(event.modifier))
@@ -153,6 +202,34 @@ def resolve_event(bundle: ContentBundle, state: GameState, event: EventDefinitio
         )
         append_log(state, f"Something worse may follow from this ({event.chained_delay_months}mo)...")
     append_log(state, event.log_entry or event.name)
+
+
+def resolve_event_choice(
+    bundle: ContentBundle,
+    state: GameState,
+    event_id: str,
+    choice_id: str,
+) -> EventChoice:
+    event = state.pending_user_choice_event
+    if event is None or event.id != event_id:
+        event = next((item for item in bundle.events if item.id == event_id), None)
+    if event is None:
+        raise ValueError(f"Unknown event '{event_id}'.")
+    if not event.choices:
+        raise ValueError(f"Event '{event_id}' does not have any choices.")
+    if state.pending_user_choice_event_id not in {None, event_id}:
+        raise ValueError("A different event choice is already pending.")
+    choice = next((item for item in event.choices if item.id == choice_id), None)
+    if choice is None:
+        raise ValueError(f"Unknown choice '{choice_id}' for event '{event_id}'.")
+
+    apply_stat_effects(state, choice.stat_effects)
+    state.pending_user_choice_event_id = None
+    state.pending_user_choice_event = None
+    append_log(state, f"Choice made: {event.name} -> {choice.label}")
+    if choice.description:
+        append_log(state, choice.description)
+    return choice
 
 
 def _tick_pending_events(bundle: ContentBundle, state: GameState) -> list[EventDefinition]:
@@ -192,9 +269,13 @@ def roll_month_events(bundle: ContentBundle, state: GameState, rng: Random) -> l
             resolve_event(bundle, state, event)
             rolled.append(event)
             excluded.add(event.id)
+            if event.choices:
+                return rolled
     if rng.random() < bundle.config.secondary_event_chance:
         event = pick_event(bundle, state, rng, excluded)
         if event:
             resolve_event(bundle, state, event)
             rolled.append(event)
+            if event.choices:
+                return rolled
     return rolled

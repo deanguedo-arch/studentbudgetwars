@@ -20,6 +20,45 @@ def _score_tier_label(score: float) -> str:
     return "Bronze"
 
 
+def credit_tier_label(credit_score: int) -> str:
+    if credit_score >= 740:
+        return "Prime"
+    if credit_score >= 670:
+        return "Strong"
+    if credit_score >= 580:
+        return "Fair"
+    return "Fragile"
+
+
+def credit_progress_summary(credit_score: int) -> tuple[str, str, float]:
+    if credit_score < 580:
+        return "Credit to Fair", f"{580 - credit_score:.0f} points", _clamp_score((credit_score - 300) / 280)
+    if credit_score < 670:
+        return "Credit to Strong", f"{670 - credit_score:.0f} points", _clamp_score((credit_score - 580) / 90)
+    if credit_score < 740:
+        return "Credit to Prime", f"{740 - credit_score:.0f} points", _clamp_score((credit_score - 670) / 70)
+    return "Top-tier credit", "Prime doors already open", 1.0
+
+
+def dominant_pressure_family(state: GameState) -> str:
+    player = state.player
+    if player.credit_score < 580:
+        return "Credit pressure"
+    if player.debt >= 18000:
+        return "Debt pressure"
+    if player.housing.housing_stability <= 42 or player.housing.missed_payment_streak > 0:
+        return "Housing squeeze"
+    if player.transport.reliability_score <= 45:
+        return "Transport friction"
+    if player.career.transition_penalty_months > 0 or player.career.layoff_pressure > 0:
+        return "Career turbulence"
+    if player.education.is_active and player.education.standing <= 55:
+        return "Education pressure"
+    if state.pending_user_choice_event_id or state.pending_events:
+        return "Situation fallout"
+    return "Steady month"
+
+
 def _net_worth_score(state: GameState) -> float:
     return _clamp_score((net_worth(state) + 8000) / 500)
 

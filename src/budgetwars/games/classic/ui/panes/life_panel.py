@@ -8,7 +8,7 @@ from ..theme import (
     TEXT_HEADING, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
     ACCENT_CAREER, ACCENT_EDUCATION, ACCENT_HOUSING, ACCENT_TRANSPORT,
     ACCENT_BUDGET, ACCENT_WEALTH, ACCENT_FOCUS,
-    COLOR_ENERGY, COLOR_STRESS,
+    COLOR_ENERGY, COLOR_STRESS, COLOR_NEUTRAL,
     FONT_SUBHEADING, FONT_BODY, FONT_SMALL, FONT_TINY,
     PAD_S, PAD_M, CARD_BORDER_W,
 )
@@ -107,7 +107,7 @@ class LifePanel(tk.Frame):
                 lbl = _label(inner, text=line, fg=fg, font=font)
                 lbl.pack(fill="x", anchor="w")
 
-    def render_snapshot(self, snapshot) -> None:
+    def render_snapshot(self, snapshot, *, compact: bool = False) -> None:
         """Render a structured build snapshot view-model."""
         for card in self._cards:
             card.destroy()
@@ -141,6 +141,8 @@ class LifePanel(tk.Frame):
                 accent = ACCENT_WEALTH
             elif tone == "focus":
                 accent = ACCENT_FOCUS
+            elif tone == "credit":
+                accent = COLOR_NEUTRAL
 
             outer, inner = _card(self._scroll_frame, accent)
             outer.pack(fill="x", pady=2)
@@ -170,7 +172,17 @@ class LifePanel(tk.Frame):
                     fg=TEXT_SECONDARY,
                     font=FONT_TINY if not self._large else ("Segoe UI", 10),
                     anchor="w",
-                    wraplength=280,
+                    wraplength=260 if compact else 280,
+                ).pack(fill="x")
+            if getattr(system, "progress", None) and (not compact or system.system in {"Career", "Education", "Focus", "Credit"}):
+                tk.Label(
+                    inner,
+                    text=system.progress,
+                    bg=BG_ELEVATED,
+                    fg=TEXT_MUTED,
+                    font=FONT_TINY if not self._large else ("Segoe UI", 10),
+                    anchor="w",
+                    wraplength=260 if compact else 280,
                 ).pack(fill="x")
 
     def set_large_text(self, enabled: bool) -> None:

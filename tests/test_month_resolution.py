@@ -109,6 +109,39 @@ def test_recovery_month_can_lower_stress_in_supportive_setup(bundle, controller_
     assert controller.state.player.stress < starting_stress
 
 
+def test_easy_mode_recovery_month_can_stabilize_stress(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(
+        opening_path_id="stay_home_stack_cash",
+        difficulty_id="easy",
+        city_id="hometown_low_cost",
+        family_support_level_id="high",
+        savings_band_id="solid",
+    )
+    controller.change_focus_action("recovery_month")
+    controller.change_budget_stance("quality_of_life")
+    starting_stress = controller.state.player.stress
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+    assert controller.state.player.stress < starting_stress
+
+
+def test_easy_mode_risky_month_can_still_raise_stress(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(
+        difficulty_id="easy",
+        city_id="mid_size_city",
+        family_support_level_id="low",
+        savings_band_id="none",
+        opening_path_id="move_out_immediately",
+    )
+    controller.state.player.selected_focus_action_id = "overtime"
+    starting_stress = controller.state.player.stress
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+    assert controller.state.player.stress > starting_stress
+
+
 def test_recent_summary_includes_stress_and_energy_breakdown(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
@@ -118,6 +151,9 @@ def test_recent_summary_includes_stress_and_energy_breakdown(bundle, controller_
     assert any(line.startswith("Stress drivers:") for line in controller.state.recent_summary)
     assert any(line.startswith("Energy ") for line in controller.state.recent_summary)
     assert any(line.startswith("Energy drivers:") for line in controller.state.recent_summary)
+    assert any(line.startswith("Credit ") for line in controller.state.recent_summary)
+    assert any(line.startswith("Credit tier:") for line in controller.state.recent_summary)
+    assert any(line.startswith("Situation family:") for line in controller.state.recent_summary)
 
 
 def test_degree_track_requires_real_gpa_and_credential(controller_factory):
