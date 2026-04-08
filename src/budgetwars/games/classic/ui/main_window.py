@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
 
 from budgetwars.core import GameSession, StartupOptions
+from budgetwars.engine.scoring import build_live_score_snapshot
+from budgetwars.models import LiveScoreSnapshot
 
 from .theme import (
     BG_CARD, BG_DARK, BG_DARKEST, BG_ELEVATED, BG_HOVER, BORDER,
@@ -32,6 +34,91 @@ class _SetupGroup:
     initial_id: str | None
 
 
+@dataclass(frozen=True)
+class BuildSystemVM:
+    system: str
+    primary: str
+    detail: str | None = None
+    tone: str = "neutral"
+
+    @property
+    def label(self) -> str:
+        return self.system
+
+    @property
+    def value(self) -> str:
+        return self.primary
+
+
+@dataclass(frozen=True)
+class BuildSnapshotVM:
+    player_name: str
+    city_name: str
+    items: list[BuildSystemVM] = field(default_factory=list)
+
+    @property
+    def headline(self) -> str:
+        return f"{self.player_name} in {self.city_name}"
+
+    @property
+    def systems(self) -> list[BuildSystemVM]:
+        return self.items
+
+
+@dataclass(frozen=True)
+class MonthlyForecastVM:
+    monthly_focus: str
+    main_threat: str
+    best_opportunity: str
+    chosen_focus: str
+    expected_swing: str
+    driver_notes: list[str] = field(default_factory=list)
+    recent_summary: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class PressureMetricVM:
+    label: str
+    primary: str
+    detail: str | None = None
+    tone: str = "neutral"
+
+
+@dataclass(frozen=True)
+class PressureSummaryVM:
+    projected_score: float
+    score_tier: str
+    biggest_risk: str
+    primary_metrics: list[PressureMetricVM] = field(default_factory=list)
+    secondary_metrics: list[PressureMetricVM] = field(default_factory=list)
+    active_modifiers: list[str] = field(default_factory=list)
+    crisis_watch: list[str] = field(default_factory=list)
+
+    @property
+    def tier(self) -> str:
+        return self.score_tier
+
+
+@dataclass(frozen=True)
+class ScoreDeltaVM:
+    previous_score: float | None
+    current_score: float
+    delta: float
+    previous_tier: str | None
+    tier: str
+    strongest_category: str
+    weakest_category: str
+    diagnosis: str
+
+    @property
+    def prev_score(self) -> float | None:
+        return self.previous_score
+
+    @property
+    def prev_tier(self) -> str | None:
+        return self.previous_tier
+
+
 def _lookup_option(options: list[tuple[str, str, str]], value_id: str | None) -> tuple[str, str, str]:
     if value_id is not None:
         for option in options:
@@ -42,6 +129,246 @@ def _lookup_option(options: list[tuple[str, str, str]], value_id: str | None) ->
 
 def _money(value: int) -> str:
     return f"${value:,}"
+
+
+@dataclass(frozen=True)
+class _Context:
+    state: object
+    bundle: object
+
+
+def _resolve_context(source, bundle=None) -> _Context:
+    if bundle is None and hasattr(source, "state") and hasattr(source, "bundle"):
+        return _Context(state=source.state, bundle=source.bundle)
+    if bundle is not None:
+        return _Context(state=source, bundle=bundle)
+    raise TypeError("Expected a controller or a (state, bundle) pair.")
+
+
+def _find_label(options: list, value_id: str, default: str = "") -> str:
+    for option in options:
+        if option.id == value_id:
+            return option.name
+    return default
+
+
+def _current_focus_name(controller) -> str:
+    player = controller.state.player
+    return _find_label(controller.bundle.focus_actions, player.selected_focus_action_id, "Focus")
+
+
+def _current_focus_description(controller) -> str:
+    player = controller.state.player
+    for option in controller.bundle.focus_actions:
+        if option.id == player.selected_focus_action_id:
+            return option.description
+    return "Choose a monthly focus."
+
+
+def _current_career_tier_label(controller) -> str:
+    state = controller.state
+    track = next(track for track in controller.bundle.careers if track.id == state.player.career.track_id)
+    return track.tiers[state.player.career.tier_index].label
+
+
+def _current_career_track_name(controller) -> str:
+    state = controller.state
+    track = next(track for track in controller.bundle.careers if track.id == state.player.career.track_id)
+    return track.name
+
+
+def _current_city(controller) -> str:
+    city = next(item for item in controller.bundle.cities if item.id == controller.state.player.current_city_id)
+    return city.name
+
+
+def _build_crisis_warnings(state, bundle) -> list[str]:
+    player = state.player
+    warnings: list[str] = []
+    if player.debt >= state.debt_game_over_threshold * bundle.config.crisis_warning_debt_ratio:
+        warnings.append("Debt is getting close to collections.")
+    if player.stress >= bundle.config.crisis_warning_stress:
+        warnings.append("Stress is getting close to burnout territory.")
+    if player.energy <= bundle.config.crisis_warning_energy:
+        warnings.append("Energy is dangerously low.")
+    if player.energy < 30:
+        warnings.append("Energy is capping your income - overtime and gig hours are unreliable.")
+    if player.housing.missed_payment_streak >= bundle.config.crisis_warning_housing_streak:
+        warnings.append("Housing stability is wobbling.")
+    if player.education.failure_streak >= max(1, state.academic_failure_streak_limit - 1):
+        warnings.append("School pressure is close to a hard setback.")
+    if player.housing.housing_stability <= 40:
+        warnings.append("Housing stability is sliding and may cascade into stress.")
+    if player.transport.reliability_score <= 45:
+        warnings.append("Transport reliability is now threatening your work consistency.")
+    if player.career.transition_penalty_months > 0:
+        warnings.append("Career transition drag is still active.")
+    if player.social_stability <= 35:
+        warnings.append("Social isolation is dragging down recovery and performance.")
+    if player.social_stability > 80:
+        current_year = ((state.current_month - 1) // 12) + 1
+        if player.last_social_lifeline_year < current_year:
+            warnings.append("Your strong network can bail you out once this year if things go bad.")
+    if state.pending_events:
+        warnings.append(f"Something is building - {len(state.pending_events)} consequence(s) pending.")
+    return warnings
+
+
+def _build_month_outlook_lines(state, bundle) -> list[str]:
+    player = state.player
+    city = next(item for item in bundle.cities if item.id == player.current_city_id)
+    focus_name = _find_label(bundle.focus_actions, player.selected_focus_action_id, "Focus")
+    outlook = [
+        f"{city.name}: {city.opportunity_text}",
+        f"Pressure: {city.pressure_text}",
+        f"Current lane: {player.career.track_id.replace('_', ' ').title()}.",
+        f"Focus: {focus_name}.",
+    ]
+    outlook.extend(_build_crisis_warnings(state, bundle))
+    return outlook
+
+
+def _best_breakdown_category(breakdown: dict[str, float], *, reverse: bool) -> str:
+    labels = {
+        "net_worth": "Net Worth",
+        "monthly_surplus": "Cash Flow",
+        "debt_ratio": "Debt",
+        "career_tier": "Career",
+        "credentials_education": "Education",
+        "housing_stability": "Housing",
+        "life_satisfaction": "Life",
+        "stress_burnout": "Wellness",
+    }
+    key = max(breakdown, key=breakdown.get) if reverse else min(breakdown, key=breakdown.get)
+    return labels.get(key, key.replace("_", " ").title())
+
+
+def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
+    controller = _resolve_context(source, bundle)
+    state = controller.state
+    player = state.player
+    city = next(item for item in controller.bundle.cities if item.id == player.current_city_id)
+    career_track = next(track for track in controller.bundle.careers if track.id == player.career.track_id)
+    current_tier = career_track.tiers[player.career.tier_index]
+    education = next(program for program in controller.bundle.education_programs if program.id == player.education.program_id)
+    housing = next(item for item in controller.bundle.housing_options if item.id == player.housing_id)
+    transport = next(item for item in controller.bundle.transport_options if item.id == player.transport_id)
+    stance = next(item for item in controller.bundle.config.budget_stances if item.id == player.budget_stance_id)
+    wealth = next(item for item in controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
+    focus_name = _current_focus_name(controller)
+    systems = [
+        BuildSystemVM("Career", current_tier.label, f"{career_track.name} | momentum {player.career.promotion_momentum}", "career"),
+        BuildSystemVM("Education", education.name, f"{'Active' if player.education.is_active else 'Paused'} | {player.education.intensity_level.title()}", "education"),
+        BuildSystemVM("Housing", housing.name, f"{player.housing.housing_stability}/100 stability", "housing"),
+        BuildSystemVM("Transport", transport.name, f"{player.transport.reliability_score}/100 reliability", "transport"),
+        BuildSystemVM("Budget", stance.name, f"Cash flow stance: {_money(player.monthly_surplus)}", "budget"),
+        BuildSystemVM("Wealth", wealth.name, f"Portfolio: {_money(player.high_interest_savings + player.index_fund + player.aggressive_growth_fund)}", "wealth"),
+        BuildSystemVM("Focus", focus_name, _current_focus_description(controller), "focus"),
+    ]
+    return BuildSnapshotVM(player_name=player.name, city_name=city.name, items=systems)
+
+
+def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
+    controller = _resolve_context(source, bundle)
+    state = controller.state
+    player = state.player
+    focus_name = _current_focus_name(controller)
+    focus_description = _current_focus_description(controller)
+    warnings = _build_crisis_warnings(state, controller.bundle)
+    city = next(item for item in controller.bundle.cities if item.id == player.current_city_id)
+    main_threat = warnings[0] if warnings else (city.pressure_text or "No major threat is pressing right now.")
+    best_opportunity = city.opportunity_text
+    expected_swing = f"Projected monthly swing {_money(player.monthly_surplus)} before pressure"
+    recent_summary = list(state.recent_summary[:3])
+    driver_notes = list(state.month_driver_notes[:5])
+    if not recent_summary:
+        recent_summary = _build_month_outlook_lines(state, controller.bundle)[-2:]
+    return MonthlyForecastVM(
+        monthly_focus=focus_description,
+        main_threat=main_threat,
+        best_opportunity=best_opportunity,
+        chosen_focus=focus_name,
+        expected_swing=expected_swing,
+        driver_notes=driver_notes,
+        recent_summary=recent_summary,
+    )
+
+
+def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot | None = None) -> PressureSummaryVM:
+    controller = _resolve_context(source, bundle)
+    state = controller.state
+    player = state.player
+    snapshot = snapshot or build_live_score_snapshot(controller.bundle, state)
+    active_modifiers = [
+        f"{modifier.label} ({modifier.remaining_months})"
+        for modifier in state.active_modifiers
+    ]
+    primary_metrics = [
+        PressureMetricVM("Cash", _money(player.cash), tone="positive" if player.cash >= 0 else "negative"),
+        PressureMetricVM("Savings", _money(player.savings), tone="positive"),
+        PressureMetricVM("Debt", _money(player.debt), tone="negative" if player.debt > 0 else "neutral"),
+    ]
+    secondary_metrics = [
+        PressureMetricVM("Income", _money(player.monthly_income), tone="positive"),
+        PressureMetricVM("Expenses", _money(player.monthly_expenses), tone="negative"),
+        PressureMetricVM("Monthly Swing", _money(player.monthly_surplus), tone="positive" if player.monthly_surplus >= 0 else "negative"),
+        PressureMetricVM("Stress", f"{player.stress}/{state.max_stress}", tone="negative" if player.stress >= state.max_stress * 0.75 else "neutral"),
+        PressureMetricVM("Energy", f"{player.energy}/{state.max_energy}", tone="negative" if player.energy <= 30 else "neutral"),
+        PressureMetricVM("Life", f"{player.life_satisfaction}/{state.max_life_satisfaction}"),
+        PressureMetricVM("Family", f"{player.family_support}/{state.max_family_support}"),
+        PressureMetricVM("Social", f"{player.social_stability}/{state.max_social_stability}"),
+        PressureMetricVM("Housing Stability", f"{player.housing.housing_stability}/100"),
+        PressureMetricVM("Transport Reliability", f"{player.transport.reliability_score}/100"),
+    ]
+    return PressureSummaryVM(
+        projected_score=snapshot.projected_score,
+        score_tier=snapshot.score_tier,
+        biggest_risk=snapshot.biggest_risk,
+        primary_metrics=primary_metrics,
+        secondary_metrics=secondary_metrics,
+        active_modifiers=active_modifiers,
+        crisis_watch=_build_crisis_warnings(state, controller.bundle),
+    )
+
+
+def build_score_delta_vm(prev_snapshot: LiveScoreSnapshot | None, snapshot: LiveScoreSnapshot) -> ScoreDeltaVM:
+    if prev_snapshot is None:
+        delta = 0.0
+        prev_score = None
+        prev_tier = None
+    else:
+        prev_score = prev_snapshot.projected_score
+        prev_tier = prev_snapshot.score_tier
+        delta = round(snapshot.projected_score - prev_snapshot.projected_score, 2)
+    return ScoreDeltaVM(
+        previous_score=prev_score,
+        current_score=snapshot.projected_score,
+        delta=delta,
+        previous_tier=prev_tier,
+        tier=snapshot.score_tier,
+        strongest_category=_best_breakdown_category(snapshot.breakdown, reverse=True),
+        weakest_category=_best_breakdown_category(snapshot.breakdown, reverse=False),
+        diagnosis=snapshot.biggest_risk,
+    )
+
+
+def build_build_snapshot(source, bundle=None) -> BuildSnapshotVM:
+    return build_build_snapshot_vm(source, bundle)
+
+
+def build_monthly_forecast(source, bundle=None) -> MonthlyForecastVM:
+    return build_monthly_forecast_vm(source, bundle)
+
+
+def build_pressure_summary(source, bundle=None, snapshot: LiveScoreSnapshot | None = None) -> PressureSummaryVM:
+    return build_pressure_summary_vm(source, bundle, snapshot=snapshot)
+
+
+def build_score_delta_summary(
+    prev_snapshot: LiveScoreSnapshot | None,
+    snapshot: LiveScoreSnapshot,
+) -> ScoreDeltaVM:
+    return build_score_delta_vm(prev_snapshot, snapshot)
 
 
 def build_setup_summary_lines(bundle, selections: dict[str, str], player_name: str) -> list[str]:
@@ -402,6 +729,7 @@ class MainWindow(tk.Frame):
         self._result_announced = False
         self._shown_milestone_count = 0
         self._large_text = False
+        self._previous_snapshot = None
         self._latest_snapshot = None
         self.pack(fill="both", expand=True)
         self._build_layout()
@@ -509,98 +837,56 @@ class MainWindow(tk.Frame):
             self.refresh()
 
     def _life_lines(self) -> list[str]:
-        state = self.controller.state
-        player = state.player
-        career_track = next(track for track in self.controller.bundle.careers if track.id == player.career.track_id)
-        current_tier = career_track.tiers[player.career.tier_index]
-        education = next(program for program in self.controller.bundle.education_programs if program.id == player.education.program_id)
-        housing = next(item for item in self.controller.bundle.housing_options if item.id == player.housing_id)
-        transport = next(item for item in self.controller.bundle.transport_options if item.id == player.transport_id)
-        city = next(item for item in self.controller.bundle.cities if item.id == player.current_city_id)
-        stance = next(item for item in self.controller.bundle.config.budget_stances if item.id == player.budget_stance_id)
-        focus = next(item for item in self.controller.bundle.focus_actions if item.id == player.selected_focus_action_id)
-        wealth = next(item for item in self.controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
-        return [
-            f"{player.name} in {city.name}",
-            f"Opening path: {player.opening_path_id.replace('_', ' ').title()}",
-            "",
-            f"Career: {career_track.name}",
-            f"Lane: {current_tier.label}",
-            f"Seniority: {player.career.months_at_tier // 12}yrs {player.career.months_at_tier % 12}mo",
-            f"Momentum: {player.career.promotion_momentum} | Streak: {player.career.best_performance_streak}",
-            "",
-            f"Education: {education.name}",
-            f"Status: {'Active' if player.education.is_active else 'Paused'} ({player.education.intensity_level.title()})",
-            f"Progress: {player.education.months_completed}/{education.duration_months or 0}",
-            f"Standing: {player.education.standing}",
-            "",
-            f"Housing: {housing.name}",
-            f"Lease: {player.housing.lease_months_remaining}mo remaining" if housing.id != "parents" else "Lease: None",
-            f"Transport: {transport.name}",
-            f"Mileage: {player.transport.vehicle_mileage}mi" if transport.id not in ["none", "bike", "transit", "scooter_moped"] else "Mileage: N/A",
-            f"Budget: {stance.name}",
-            f"Wealth: {wealth.name}",
-            f"Focus: {focus.name}",
-        ]
+        vm = build_build_snapshot_vm(self.controller)
+        lines = [vm.headline, f"Opening path: {self.controller.state.player.opening_path_id.replace('_', ' ').title()}", ""]
+        for system in vm.systems:
+            lines.append(f"{system.system}: {system.primary}")
+            if system.detail:
+                lines.append(system.detail)
+        return lines
 
     def _outlook_lines(self) -> list[str]:
-        focus = next(item for item in self.controller.bundle.focus_actions if item.id == self.controller.state.player.selected_focus_action_id)
+        vm = build_monthly_forecast_vm(self.controller)
         outlook = [
-            f"Monthly focus: {focus.name}",
-            focus.description,
+            f"Monthly focus: {vm.chosen_focus}",
+            vm.monthly_focus,
             "",
-            "Resolve the month after checking the pressure cards below.",
+            f"Main threat: {vm.main_threat}",
+            f"Best opportunity: {vm.best_opportunity}",
+            f"Expected swing: {vm.expected_swing}",
         ]
-        outlook.extend(self.controller.build_month_outlook())
-        if self.controller.state.month_driver_notes:
-            outlook += ["", "Why this month matters:"] + self.controller.state.month_driver_notes
-        summary = self.controller.state.recent_summary
-        if summary:
-            outlook += ["", "Last month:"] + summary
+        if vm.driver_notes:
+            outlook += ["", "Why this month matters:"] + vm.driver_notes
+        if vm.recent_summary:
+            outlook += ["", "Last month:"] + vm.recent_summary
         return outlook[:16]
 
     def _finance_lines(self) -> list[str]:
-        state = self.controller.state
-        player = state.player
-        housing = next(item for item in self.controller.bundle.housing_options if item.id == player.housing_id)
-        transport = next(item for item in self.controller.bundle.transport_options if item.id == player.transport_id)
-        wealth = next(item for item in self.controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
-        snapshot = self._latest_snapshot or self.controller.live_score_snapshot()
-        modifiers = ", ".join(f"{modifier.label} ({modifier.remaining_months})" for modifier in state.active_modifiers) or "None"
-        warnings = self.controller.build_crisis_warnings()
-        return [
-            f"Projected Score: {snapshot.projected_score:.2f}",
-            f"Tier: {snapshot.score_tier}",
-            f"Biggest Risk: {snapshot.biggest_risk}",
+        vm = build_pressure_summary_vm(self.controller, snapshot=self._latest_snapshot)
+        delta_vm = build_score_delta_vm(self._previous_snapshot, self._latest_snapshot or self.controller.live_score_snapshot())
+        lines = [
+            f"Projected Score: {vm.projected_score:.2f}",
+            f"Tier: {vm.tier}",
+            f"Score change: {delta_vm.delta:+.2f}",
+            f"Strongest category: {delta_vm.strongest_category}",
+            f"Weakest category: {delta_vm.weakest_category}",
+            f"Biggest Risk: {vm.biggest_risk}",
             "",
-            f"Cash: {_money(player.cash)}",
-            f"Savings: {_money(player.savings)}",
-            f"Debt: {_money(player.debt)}",
-            f"Credit Score: {player.credit_score}",
-            f"Income: {_money(player.monthly_income)}",
-            f"Expenses: {_money(player.monthly_expenses)}",
-            f"Monthly Swing: {_money(player.monthly_surplus)}",
-            "",
-            f"Stress: {player.stress}/{state.max_stress}",
-            f"Energy: {player.energy}/{state.max_energy}",
-            f"Life: {player.life_satisfaction}/{state.max_life_satisfaction}",
-            f"Family: {player.family_support}/{state.max_family_support}",
-            f"Social: {player.social_stability}/{state.max_social_stability}",
-            "",
-            f"Housing Stability: {player.housing.housing_stability}/100",
-            f"Transport Reliability: {player.transport.reliability_score}/100",
-            f"Wealth: {wealth.name}",
-            f"Portfolio: {_money(player.high_interest_savings + player.index_fund + player.aggressive_growth_fund)}",
-            "",
-            "Active Modifiers:",
-            modifiers,
-            "",
-            "Crisis Watch:",
-            *(warnings or ["Stable enough for now."]),
         ]
+        lines.extend(f"{metric.label}: {metric.primary}" for metric in vm.primary_metrics)
+        lines.append("")
+        lines.extend(f"{metric.label}: {metric.primary}" for metric in vm.secondary_metrics[:5])
+        lines.append("")
+        lines.append("Active Modifiers:")
+        lines.append(", ".join(vm.active_modifiers) if vm.active_modifiers else "None")
+        lines.append("")
+        lines.append("Crisis Watch:")
+        lines.extend(vm.crisis_watch or ["Stable enough for now."])
+        return lines
 
     def refresh(self) -> None:
         state = self.controller.state
+        self._previous_snapshot = self._latest_snapshot
         self._latest_snapshot = self.controller.live_score_snapshot()
         self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
         self.score_strip.render(self._latest_snapshot)
