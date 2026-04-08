@@ -12,6 +12,7 @@ from budgetwars.models import (
     CareerTrackDefinition,
     CityDefinition,
     ContentBundle,
+    ConsequenceMatrixDefinition,
     DifficultyModifier,
     EducationProgramDefinition,
     EventDefinition,
@@ -62,6 +63,7 @@ def load_content_bundle(data_dir: Path | None = None, *, content_files: Mapping[
             "events.json": data_dir / "events.json",
             "win_states.json": data_dir / "win_states.json",
             "learn_topics.json": data_dir / "learn_topics.json",
+            "consequence_matrix.json": data_dir / "consequence_matrix.json",
             "presets.json": data_dir / "presets.json",
         }
     bundle = ContentBundle(
@@ -78,6 +80,7 @@ def load_content_bundle(data_dir: Path | None = None, *, content_files: Mapping[
         events=_load_model_list(content_files["events.json"], EventDefinition),
         win_states=_load_model_list(content_files["win_states.json"], WinStateDefinition),
         learn_topics=_load_model_list(content_files["learn_topics.json"], LearnTopicDefinition),
+        consequence_matrix=_load_model(content_files["consequence_matrix.json"], ConsequenceMatrixDefinition),
         presets=_load_model_list(content_files["presets.json"], PresetDefinition),
     )
     validate_content_bundle(bundle)

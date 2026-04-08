@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from random import Random
 
-from budgetwars.engine.careers import promotion_blockers
-from budgetwars.engine.events import eligible_events
+from budgetwars.engine.careers import current_income, promotion_blockers
+from budgetwars.engine.events import eligible_events, event_severity_multiplier, event_weight, resolve_event
 from budgetwars.engine.month_resolution import resolve_month
 from budgetwars.engine.wealth import apply_wealth_allocations, apply_wealth_returns
 from budgetwars.models import ActiveMonthlyModifier
@@ -151,6 +151,18 @@ def test_used_car_window_requires_actual_vehicle(bundle, controller_factory):
     assert "used_car_window" in car_events
 
 
+def test_vehicle_repair_events_do_not_show_up_without_vehicle(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="stay_home_stack_cash")
+    controller.state.current_month = 6
+    controller.state.player.transport.option_id = "transit"
+
+    event_ids = {event.id for event in eligible_events(bundle, controller.state)}
+
+    assert "car_repair" not in event_ids
+    assert "beater_breakdown" not in event_ids
+    assert "missed_shift_after_breakdown" not in event_ids
+
+
 def test_heavy_debt_month_can_lower_credit(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
@@ -171,6 +183,107 @@ def test_heavy_debt_month_can_lower_credit(bundle, controller_factory):
     assert controller.state.player.credit_score < starting_credit
 
 
+def test_consequence_matrix_weights_change_event_pressure(bundle, controller_factory):
+    # Transport friction contrast
+    transit = controller_factory(opening_path_id="stay_home_stack_cash")
+    transit.state.current_month = 6
+    transit.state.player.transport.option_id = "transit"
+    beater = controller_factory(opening_path_id="stay_home_stack_cash")
+    beater.state.current_month = 6
+    beater.state.player.transport.option_id = "beater_car"
+    car_repair = next(event for event in bundle.events if event.id == "car_repair")
+    assert event_weight(bundle, beater.state, car_repair) > event_weight(bundle, transit.state, car_repair)
+
+    # Education drag contrast
+    no_school = controller_factory(opening_path_id="full_time_work")
+    no_school.state.current_month = 6
+    in_school = controller_factory(opening_path_id="college_university")
+    in_school.state.current_month = 6
+    scholarship_relief = next(event for event in bundle.events if event.id == "scholarship_relief")
+    assert event_weight(bundle, in_school.state, scholarship_relief) > event_weight(bundle, no_school.state, scholarship_relief)
+
+    # Credit squeeze contrast
+    fragile = controller_factory()
+    fragile.state.current_month = 6
+    fragile.state.player.credit_score = 520
+    prime = controller_factory()
+    prime.state.current_month = 6
+    prime.state.player.credit_score = 760
+    credit_limit_review = next(event for event in bundle.events if event.id == "credit_limit_review")
+    assert event_weight(bundle, fragile.state, credit_limit_review) > event_weight(bundle, prime.state, credit_limit_review)
+
+
+def test_major_risk_events_have_higher_severity_for_fragile_builds(bundle, controller_factory):
+    fragile = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    resilient = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+
+    fragile.state.player.cash = 0
+    fragile.state.player.savings = 0
+    fragile.state.player.debt = 26000
+    fragile.state.player.credit_score = 520
+    fragile.state.player.housing.housing_stability = 34
+    fragile.state.player.transport.reliability_score = 38
+    fragile.state.player.stress = 84
+    fragile.state.player.energy = 22
+    fragile.state.player.family_support = 22
+    fragile.state.player.social_stability = 24
+
+    resilient.state.player.cash = 4500
+    resilient.state.player.savings = 3200
+    resilient.state.player.debt = 1200
+    resilient.state.player.credit_score = 760
+    resilient.state.player.housing.housing_stability = 82
+    resilient.state.player.transport.reliability_score = 92
+    resilient.state.player.stress = 24
+    resilient.state.player.energy = 84
+    resilient.state.player.family_support = 76
+    resilient.state.player.social_stability = 74
+
+    for event_id in ("car_repair", "rent_increase", "job_layoff", "burnout_month", "credit_limit_review"):
+        event = next(item for item in bundle.events if item.id == event_id)
+        fragile_mult = event_severity_multiplier(bundle, fragile.state, event)
+        resilient_mult = event_severity_multiplier(bundle, resilient.state, event)
+        assert fragile_mult > resilient_mult
+
+
+def test_resolve_event_scales_car_repair_damage_by_resilience(bundle, controller_factory):
+    fragile = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    resilient = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    event = next(item for item in bundle.events if item.id == "car_repair")
+
+    fragile.state.player.cash = 2000
+    fragile.state.player.savings = 0
+    fragile.state.player.debt = 18000
+    fragile.state.player.credit_score = 540
+    fragile.state.player.transport.reliability_score = 40
+    fragile.state.player.stress = 78
+    fragile.state.player.energy = 28
+
+    resilient.state.player.cash = 2000
+    resilient.state.player.savings = 2000
+    resilient.state.player.debt = 1200
+    resilient.state.player.credit_score = 760
+    resilient.state.player.transport.reliability_score = 92
+    resilient.state.player.stress = 22
+    resilient.state.player.energy = 82
+
+    fragile_cash_start = fragile.state.player.cash
+    resilient_cash_start = resilient.state.player.cash
+    fragile_stress_start = fragile.state.player.stress
+    resilient_stress_start = resilient.state.player.stress
+
+    resolve_event(bundle, fragile.state, event)
+    resolve_event(bundle, resilient.state, event)
+
+    fragile_cash_hit = fragile_cash_start - fragile.state.player.cash
+    resilient_cash_hit = resilient_cash_start - resilient.state.player.cash
+    fragile_stress_gain = fragile.state.player.stress - fragile_stress_start
+    resilient_stress_gain = resilient.state.player.stress - resilient_stress_start
+
+    assert fragile_cash_hit > resilient_cash_hit
+    assert fragile_stress_gain > resilient_stress_gain
+
+
 def test_stacked_drag_preserves_game_over_logic(bundle, controller_factory):
     controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
     state = controller.state
@@ -185,3 +298,39 @@ def test_stacked_drag_preserves_game_over_logic(bundle, controller_factory):
     )
     resolve_month(bundle, state, controller.rng)
     assert state.game_over_reason in {"collections", "housing_loss", "burnout_collapse"}
+
+
+def test_branching_available_for_retail_and_warehouse_tracks(controller_factory):
+    retail = controller_factory(opening_path_id="full_time_work")
+    retail.change_career("retail_service")
+    retail.state.player.career.tier_index = 1
+    retail.state.player.career.promotion_momentum = 62
+    retail.state.player.social_stability = 60
+    retail.state.player.housing.housing_stability = 55
+    retail.state.player.transport.reliability_score = 70
+    retail_branches = retail.available_career_branches()
+    retail_ids = {branch.id for branch, _, _ in retail_branches}
+    assert {"retail_management_track", "retail_sales_track"} <= retail_ids
+
+    warehouse = controller_factory(opening_path_id="full_time_work")
+    warehouse.state.player.career.tier_index = 1
+    warehouse.state.player.transport.reliability_score = 75
+    warehouse.state.player.energy = 58
+    warehouse_branches = warehouse.available_career_branches()
+    warehouse_ids = {branch.id for branch, _, _ in warehouse_branches}
+    assert {"warehouse_ops_track", "warehouse_dispatch_track"} <= warehouse_ids
+
+
+def test_selected_branch_changes_income_profile(bundle, controller_factory):
+    mgmt = controller_factory(opening_path_id="full_time_work")
+    mgmt.change_career("retail_service")
+    mgmt.state.player.career.tier_index = 1
+    mgmt.state.player.career.branch_id = "retail_management_track"
+    sales = controller_factory(opening_path_id="full_time_work")
+    sales.change_career("retail_service")
+    sales.state.player.career.tier_index = 1
+    sales.state.player.career.branch_id = "retail_sales_track"
+    sales.state.player.social_stability = 70
+    mgmt_income = current_income(bundle, mgmt.state, 1.0)
+    sales_income = current_income(bundle, sales.state, 1.0)
+    assert mgmt_income != sales_income

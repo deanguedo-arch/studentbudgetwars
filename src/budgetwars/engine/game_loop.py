@@ -5,7 +5,7 @@ from random import Random
 from budgetwars.models import ContentBundle, FinalScoreSummary, GameState, LiveScoreSnapshot
 
 from .budgeting import pay_named_cost
-from .careers import can_enter_career, promotion_blockers
+from .careers import branch_statuses, can_enter_career, can_select_branch, promotion_blockers
 from .education import can_switch_education
 from .effects import append_log, net_worth, trim_logs
 from .events import eligible_events, resolve_event_choice
@@ -142,6 +142,15 @@ class GameController:
             statuses.append((track.name, track.id, allowed, reason))
         return statuses
 
+    def available_career_branches(self) -> list[tuple]:
+        return branch_statuses(self.bundle, self.state)
+
+    def pending_promotion_branch_choices(self) -> list[tuple]:
+        track_id = self.state.pending_promotion_branch_track_id
+        if track_id is None or self.state.player.career.track_id != track_id:
+            return []
+        return branch_statuses(self.bundle, self.state)
+
     def available_education_programs(self) -> list:
         return list(self.bundle.education_programs)
 
@@ -171,6 +180,8 @@ class GameController:
             pay_named_cost(self.state, switch_cost, "Career transition cost")
         self.state.player.stress += self.bundle.config.career_switch_stress_cost
         self.state.player.career.track_id = career_id
+        self.state.player.career.branch_id = None
+        self.state.pending_promotion_branch_track_id = None
         self.state.player.career.tier_index = 0
         self.state.player.career.months_in_track = 0
         self.state.player.career.months_at_tier = 0
@@ -186,6 +197,20 @@ class GameController:
             self.state,
             f"Career pivot: {get_career_track(self.bundle, previous_track).name} -> {get_career_track(self.bundle, career_id).name}",
         )
+        trim_logs(self.bundle, self.state)
+
+    def choose_career_branch(self, branch_id: str) -> None:
+        allowed, reason = can_select_branch(self.bundle, self.state, branch_id)
+        if not allowed:
+            raise ValueError(reason)
+        if self.state.player.career.branch_id == branch_id:
+            raise ValueError("That career branch is already selected.")
+        track = get_career_track(self.bundle, self.state.player.career.track_id)
+        branch = next(item for item in track.branches if item.id == branch_id)
+        self.state.player.career.branch_id = branch_id
+        self.state.pending_promotion_branch_track_id = None
+        self.state.player.career.promotion_momentum = min(100, self.state.player.career.promotion_momentum + 4)
+        append_log(self.state, f"Career branch selected: {branch.name}")
         trim_logs(self.bundle, self.state)
 
     def change_education(self, program_id: str, intensity: str | None = None) -> None:
@@ -335,6 +360,8 @@ class GameController:
             warnings.append(f"Something is building — {len(self.state.pending_events)} consequence(s) pending.")
         if self.state.pending_user_choice_event_id:
             warnings.append("An unresolved event choice is waiting.")
+        if self.state.pending_promotion_branch_track_id:
+            warnings.append("A promotion branch decision is pending before your next advancement.")
         return warnings
 
     def build_month_outlook(self) -> list[str]:

@@ -25,6 +25,40 @@
     "volatility_profile": 60,
     "transport_sensitivity": 35,
     "city_sensitivity": 45,
+    "branches": [
+      {
+        "id": "retail_management_track",
+        "name": "Operations Management",
+        "description": "Higher managerial load with steadier base pay and higher burnout risk.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 55,
+        "min_social_stability": 48,
+        "min_energy": 35,
+        "max_stress": 82,
+        "income_multiplier": 1.08,
+        "stress_delta": 2,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": 1
+      },
+      {
+        "id": "retail_sales_track",
+        "name": "Sales Performance",
+        "description": "Commission-leaning route with higher upside when social consistency is strong.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": null,
+        "min_social_stability": 58,
+        "min_energy": 30,
+        "max_stress": 85,
+        "income_multiplier": 1.11,
+        "stress_delta": 1,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": 0
+      }
+    ],
     "tiers": [
       {
         "label": "Floor Staff",
@@ -123,6 +157,40 @@
     "volatility_profile": 38,
     "transport_sensitivity": 72,
     "city_sensitivity": 35,
+    "branches": [
+      {
+        "id": "warehouse_ops_track",
+        "name": "Floor Operations",
+        "description": "Physical leadership route with faster progression but heavier fatigue.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 62,
+        "min_social_stability": null,
+        "min_energy": 40,
+        "max_stress": 84,
+        "income_multiplier": 1.06,
+        "stress_delta": 2,
+        "energy_delta": -2,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      },
+      {
+        "id": "warehouse_dispatch_track",
+        "name": "Dispatch Coordination",
+        "description": "Coordination-heavy path with lower physical drag and better stability.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 58,
+        "min_social_stability": 45,
+        "min_energy": 30,
+        "max_stress": 80,
+        "income_multiplier": 1.03,
+        "stress_delta": 0,
+        "energy_delta": 1,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      }
+    ],
     "tiers": [
       {
         "label": "Picker / Loader",

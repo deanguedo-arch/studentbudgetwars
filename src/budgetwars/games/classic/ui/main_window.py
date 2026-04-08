@@ -109,6 +109,8 @@ class PressureSummaryVM:
     progress_label: str
     progress_detail: str
     progress_fraction: float
+    run_killer: str = ""
+    fastest_fix: str = ""
     primary_metrics: list[PressureMetricVM] = field(default_factory=list)
     secondary_metrics: list[PressureMetricVM] = field(default_factory=list)
     active_modifiers: list[str] = field(default_factory=list)
@@ -310,7 +312,7 @@ def _education_intensity_options(program) -> list[tuple[str, str, str]]:
 
 
 def should_use_compact_layout(width: int, height: int) -> bool:
-    return width < 1700 or height < 1100
+    return width < 1560 or height < 900
 
 
 def compute_setup_dialog_geometry(
@@ -323,10 +325,10 @@ def compute_setup_dialog_geometry(
     screen_height: int,
 ) -> tuple[int, int, int, int]:
     margin = 24
-    width_cap = max(640, min(parent_width - margin * 2, screen_width - margin * 2))
-    height_cap = max(560, min(parent_height - margin * 2, screen_height - margin * 2))
-    width = min(max(980, int(parent_width * 0.92)), width_cap)
-    height = min(max(700, int(parent_height * 0.88)), height_cap)
+    width_cap = max(640, min(parent_width - margin * 2, screen_width - margin * 2, 1320))
+    height_cap = max(560, min(parent_height - margin * 2, screen_height - margin * 2, 860))
+    width = min(max(980, int(parent_width * 0.84)), width_cap)
+    height = min(max(700, int(parent_height * 0.84)), height_cap)
     x = parent_x + max(margin, (parent_width - width) // 2)
     y = parent_y + max(margin, (parent_height - height) // 2)
     x = max(0, min(x, screen_width - width))
@@ -418,6 +420,8 @@ def _build_crisis_warnings(state, bundle) -> list[str]:
             warnings.append("Your strong network can bail you out once this year if things go bad.")
     if state.pending_events:
         warnings.append(f"Something is building - {len(state.pending_events)} consequence(s) pending.")
+    if state.pending_promotion_branch_track_id:
+        warnings.append("A promotion branch decision is pending.")
     return warnings
 
 
@@ -473,6 +477,28 @@ def _score_progress_fraction(score: float) -> float:
     if score < 80:
         return max(0.0, min(1.0, (score - 60) / 20))
     return 1.0
+
+
+def _diagnosis_for_family(state) -> tuple[str, str]:
+    family = dominant_pressure_family(state)
+    player = state.player
+    if family == "Credit pressure":
+        return ("Run killer: credit squeeze", "Fastest fix: stabilize monthly swing and stop debt growth.")
+    if family == "Debt pressure":
+        return ("Run killer: debt spiral", "Fastest fix: move to debt payoff and protect surplus.")
+    if family == "Housing squeeze":
+        return ("Run killer: unstable housing", "Fastest fix: reduce rent pressure or use fallback housing.")
+    if family == "Transport friction":
+        return ("Run killer: transport fragility", "Fastest fix: switch into reliability before pushing career.")
+    if family == "Education pressure":
+        return ("Run killer: school drag", "Fastest fix: lower education intensity until stress stabilizes.")
+    if family == "Career turbulence":
+        return ("Run killer: career turbulence", "Fastest fix: hold one lane and rebuild momentum.")
+    if family == "Situation fallout":
+        return ("Run killer: chained situations", "Fastest fix: clear active pressure cards before forcing upside.")
+    if player.stress >= 75:
+        return ("Run killer: burnout pressure", "Fastest fix: run recovery focus and protect sleep/energy.")
+    return ("Run killer: none dominant", "Fastest fix: push your strongest lane while holding stability.")
 
 
 def _run_progress_text(state) -> tuple[str, str]:
@@ -694,6 +720,7 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
         PressureMetricVM("Transport Reliability", f"{player.transport.reliability_score}/100"),
     ]
     progress_label, progress_detail = _score_progress_text(snapshot.projected_score)
+    run_killer, fastest_fix = _diagnosis_for_family(state)
     return PressureSummaryVM(
         projected_score=snapshot.projected_score,
         score_tier=snapshot.score_tier,
@@ -706,6 +733,8 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
         progress_label=progress_label,
         progress_detail=progress_detail,
         progress_fraction=_score_progress_fraction(snapshot.projected_score),
+        run_killer=run_killer,
+        fastest_fix=fastest_fix,
         primary_metrics=primary_metrics,
         secondary_metrics=secondary_metrics,
         active_modifiers=active_modifiers,
@@ -980,7 +1009,7 @@ class SelectionDialog(simpledialog.Dialog):
             master, width=56, height=min(9, max(4, len(self.options))),
             font=FONT_BODY,
             bg=BG_ELEVATED, fg=TEXT_HEADING,
-            selectbackground=ACCENT_RESOLVE, selectforeground=BG_DARKEST,
+            selectbackground=ACCENT_RESOLVE, selectforeground=TEXT_HEADING,
             relief="flat", bd=0,
             highlightbackground=BORDER, highlightthickness=1,
             activestyle="none",
@@ -1106,6 +1135,7 @@ class ClassicSetupDialog(simpledialog.Dialog):
         self.configure(bg=BG_DARKEST)
         self._combobox_style = configure_dark_combobox_style(self)
         self.transient(self.master)
+        master.rowconfigure(0, weight=1)
         master.columnconfigure(0, weight=5)
         master.columnconfigure(1, weight=4)
 
@@ -1139,7 +1169,8 @@ class ClassicSetupDialog(simpledialog.Dialog):
         options_frame.columnconfigure(0, weight=1)
 
         options_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=options_frame, anchor="nw")
+        options_window = canvas.create_window((0, 0), window=options_frame, anchor="nw")
+        canvas.bind("<Configure>", lambda e: canvas.itemconfigure(options_window, width=e.width))
         canvas.configure(yscrollcommand=scrollbar.set)
 
         canvas.pack(side="left", fill="both", expand=True)
@@ -1220,7 +1251,7 @@ class ClassicSetupDialog(simpledialog.Dialog):
             screen_height=self.winfo_screenheight(),
         )
         self.geometry(f"{width}x{height}+{x}+{y}")
-        self.minsize(min(width, 960), min(height, 660))
+        self.minsize(960, 700)
 
         self._refresh_summary()
         return self.name_entry
@@ -1323,6 +1354,8 @@ class MainWindow(tk.Frame):
         self._learn_visible = False
         self._learn_drawer = None
         self.pack(fill="both", expand=True)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
         self._build_layout()
         self._apply_text_scale()
         self.refresh()
@@ -1334,15 +1367,15 @@ class MainWindow(tk.Frame):
     def _build_layout(self) -> None:
         # ── Status bar (top) ──
         self.status_bar = StatusBar(self)
-        self.status_bar.pack(fill="x", padx=PAD_M, pady=(PAD_M, PAD_S))
+        self.status_bar.grid(row=0, column=0, sticky="ew", padx=PAD_M, pady=(PAD_M, PAD_S))
 
         # ── Score strip ──
         self.score_strip = ScoreStrip(self, on_click=self.show_score_projection)
-        self.score_strip.pack(fill="x", padx=PAD_M, pady=(0, PAD_S))
+        self.score_strip.grid(row=1, column=0, sticky="ew", padx=PAD_M, pady=(0, PAD_S))
 
         # ── Main content area ──
         content = tk.Frame(self, bg=BG_DARKEST)
-        content.pack(fill="both", expand=True, padx=PAD_M, pady=(0, PAD_S))
+        content.grid(row=2, column=0, sticky="nsew", padx=PAD_M, pady=(0, PAD_S))
 
         # Left: life panel
         self.life_panel = LifePanel(content, "Build")
@@ -1351,10 +1384,13 @@ class MainWindow(tk.Frame):
         # Center: outlook + log
         center = tk.Frame(content, bg=BG_DARKEST)
         center.grid(row=0, column=1, sticky="nsew", padx=PAD_S)
+        center.grid_columnconfigure(0, weight=1)
+        center.grid_rowconfigure(0, weight=3)
+        center.grid_rowconfigure(1, weight=2)
         self.outlook_panel = OutlookPanel(center, "This Month", resolve_callback=self.resolve_month)
-        self.outlook_panel.pack(fill="both", expand=True, pady=(0, PAD_S))
+        self.outlook_panel.grid(row=0, column=0, sticky="nsew", pady=(0, PAD_S))
         self.log_panel = LogPanel(center, "Run Feedback")
-        self.log_panel.pack(fill="both", expand=True)
+        self.log_panel.grid(row=1, column=0, sticky="nsew")
 
         # Right: finance panel
         self.finance_panel = FinancePanel(content, "Score & Pressure")
@@ -1367,7 +1403,7 @@ class MainWindow(tk.Frame):
 
         # ── Actions bar (bottom) ──
         self.actions_panel = ActionsPanel(self)
-        self.actions_panel.pack(fill="x", padx=PAD_M, pady=(0, PAD_M))
+        self.actions_panel.grid(row=3, column=0, sticky="ew", padx=PAD_M, pady=(0, PAD_M))
         self.actions_panel.set_grouped_actions(self._build_action_groups())
 
         self.master.config(
@@ -1404,8 +1440,7 @@ class MainWindow(tk.Frame):
         monthly_actions: list[tuple[str, object]] = [("Focus", self.change_focus)]
         if self.controller.available_win_states():
             monthly_actions.append(("Claim Victory", self.claim_victory))
-        if not compact:
-            monthly_actions.append(("Resolve Month", self.resolve_month))
+        monthly_actions.append(("Resolve Month", self.resolve_month))
         return [
             ("Build", [
                 ("Career", self.change_career),
@@ -1427,6 +1462,9 @@ class MainWindow(tk.Frame):
         self._auto_save()
         self.refresh()
         if self._check_pending_event_choice():
+            self._auto_save()
+            self.refresh()
+        if self._check_pending_promotion_branch_choice():
             self._auto_save()
             self.refresh()
         self._check_milestones()
@@ -1590,6 +1628,24 @@ class MainWindow(tk.Frame):
         self.controller.resolve_event_choice(choice)
         return True
 
+    def _check_pending_promotion_branch_choice(self) -> bool:
+        options = []
+        for branch, allowed, reason in self.controller.pending_promotion_branch_choices():
+            if not allowed:
+                continue
+            options.append((branch.name, branch.id, branch.description))
+        if not options:
+            return False
+        chosen = self._choose(
+            "Promotion Branch",
+            "Promotion is waiting on a branch decision. Choose your path:",
+            options,
+        )
+        if chosen is None:
+            return False
+        self.controller.choose_career_branch(chosen)
+        return True
+
     def restart_new_game(self) -> None:
         bundle = self.session.refresh_bundle()
         setup = prompt_new_game_setup(self.master, bundle)
@@ -1616,6 +1672,15 @@ class MainWindow(tk.Frame):
         self._after_action()
 
     def change_career(self) -> None:
+        branch_options = []
+        for branch, allowed, reason in self.controller.available_career_branches():
+            if allowed:
+                branch_options.append((f"Branch: {branch.name}", branch.id, branch.description))
+        if branch_options:
+            chosen_branch = self._choose("Career Branch", "Choose a branch for your current career lane:", branch_options)
+            if chosen_branch:
+                self._run_action(lambda: self.controller.choose_career_branch(chosen_branch))
+                return
         options: list[tuple[str, str, str]] = []
         for name, track_id, allowed, reason in self.controller.career_entry_statuses():
             if not allowed:

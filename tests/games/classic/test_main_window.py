@@ -315,6 +315,7 @@ def test_build_menu_bar_includes_learn_entry(monkeypatch):
 
 def test_compact_layout_prefers_smaller_screens():
     assert should_use_compact_layout(1366, 768) is True
+    assert should_use_compact_layout(1920, 1080) is False
     assert should_use_compact_layout(2560, 1440) is False
 
 
@@ -434,7 +435,7 @@ def test_setup_dialog_geometry_is_clamped_to_parent_window():
     assert y >= 50
 
 
-def test_compact_action_groups_keep_focus_but_drop_bottom_resolve():
+def test_compact_action_groups_keep_focus_and_resolve():
     window = object.__new__(MainWindow)
     window.session = type(
         "Session",
@@ -452,7 +453,7 @@ def test_compact_action_groups_keep_focus_but_drop_bottom_resolve():
 
     groups = MainWindow._build_action_groups(window, compact=True)
 
-    assert [name for name, _ in groups[-1][1]] == ["Focus"]
+    assert [name for name, _ in groups[-1][1]] == ["Focus", "Resolve Month"]
 
 
 def test_show_learn_toggles_drawer_and_renders_content(controller_factory):

@@ -36,6 +36,7 @@ class TransportState(BaseModel):
 
 class CareerState(BaseModel):
     track_id: str
+    branch_id: str | None = None
     tier_index: int = Field(ge=0, default=0)
     months_in_track: int = Field(ge=0, default=0)
     promotion_progress: int = Field(ge=0, default=0)
@@ -185,6 +186,7 @@ class GameState(BaseModel):
     pending_events: list[PendingEvent] = Field(default_factory=list)
     pending_user_choice_event_id: str | None = None
     pending_user_choice_event: EventDefinition | None = None
+    pending_promotion_branch_track_id: str | None = None
     victory_state_id: str | None = None
     burnout_streak: int = Field(ge=0, default=0)
     log_messages: list[str] = Field(default_factory=list)

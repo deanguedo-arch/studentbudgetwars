@@ -7,6 +7,26 @@ from budgetwars.models import ContentBundle, EventChoice, EventDefinition, GameS
 from .effects import append_log, apply_stat_effects, create_modifier
 from .lookups import get_city, get_housing_option, get_transport_option
 
+FAMILY_TO_MATRIX_KEY = {
+    "Credit pressure": "credit_squeeze",
+    "Housing squeeze": "housing_squeeze",
+    "Transport friction": "transport_friction",
+    "Education pressure": "education_drag",
+    "Career turbulence": "career_breakthrough",
+    "Family pressure": "support_buffer",
+    "Wellbeing strain": "burnout_spiral",
+    "Market shock": "opportunity_window",
+    "General pressure": "debt_trap",
+}
+
+SEVERITY_EVENT_IDS = {
+    "car_repair",
+    "rent_increase",
+    "job_layoff",
+    "burnout_month",
+    "credit_limit_review",
+}
+
 
 def event_family(event: EventDefinition) -> str:
     event_id = event.id.lower()
@@ -29,6 +49,142 @@ def event_family(event: EventDefinition) -> str:
     if any(token in combined for token in ("market", "regime", "economic", "recession")):
         return "Market shock"
     return "General pressure"
+
+
+def _credit_band_id(credit_score: int) -> str:
+    if credit_score < 580:
+        return "fragile"
+    if credit_score < 670:
+        return "fair"
+    if credit_score < 740:
+        return "strong"
+    return "prime"
+
+
+def _uses_vehicle(transport_id: str) -> bool:
+    return transport_id in {"beater_car", "financed_car", "reliable_used_car", "luxury_financed_car"}
+
+
+def _consequence_layers(bundle: ContentBundle, state: GameState) -> list:
+    matrix = bundle.consequence_matrix
+    player = state.player
+    layers = []
+    for entries, key in (
+        (matrix.budget_stances, player.budget_stance_id),
+        (matrix.wealth_strategies, player.wealth_strategy_id),
+        (matrix.housing_options, player.housing_id),
+        (matrix.transport_options, player.transport_id),
+        (matrix.education_programs, player.education.program_id),
+        (matrix.focus_actions, player.selected_focus_action_id),
+        (matrix.career_tracks, player.career.track_id),
+        (matrix.credit_bands, _credit_band_id(player.credit_score)),
+    ):
+        layer = entries.get(key)
+        if layer is not None:
+            layers.append(layer)
+    return layers
+
+
+def _is_blocked_by_matrix(bundle: ContentBundle, state: GameState, event_id: str) -> bool:
+    return any(event_id in layer.blockers for layer in _consequence_layers(bundle, state))
+
+
+def _matrix_weight_multiplier(bundle: ContentBundle, state: GameState, event: EventDefinition) -> float:
+    multiplier = 1.0
+    unlocked = False
+    for layer in _consequence_layers(bundle, state):
+        event_scale = layer.event_weights.get(event.id)
+        if event_scale is not None:
+            multiplier *= max(0.05, float(event_scale))
+        if event.id in layer.unlocks:
+            unlocked = True
+    if unlocked:
+        multiplier *= 1.2
+    pressure_key = FAMILY_TO_MATRIX_KEY.get(event_family(event))
+    if pressure_key:
+        pressure_shift = sum(float(layer.pressure_families.get(pressure_key, 0.0)) for layer in _consequence_layers(bundle, state))
+        multiplier *= max(0.35, 1.0 + pressure_shift)
+    return max(0.05, multiplier)
+
+
+def _resilience_score(state: GameState) -> float:
+    player = state.player
+    liquid = player.cash + player.savings + player.high_interest_savings
+    score = 0.0
+    if liquid < 250:
+        score -= 0.9
+    elif liquid < 900:
+        score -= 0.45
+    elif liquid > 3500:
+        score += 0.4
+    if player.debt >= 22000:
+        score -= 0.8
+    elif player.debt >= 9000:
+        score -= 0.4
+    elif player.debt <= 2500:
+        score += 0.25
+    if player.credit_score < 580:
+        score -= 0.6
+    elif player.credit_score >= 720:
+        score += 0.35
+    if player.housing.housing_stability < 45:
+        score -= 0.5
+    elif player.housing.housing_stability >= 72:
+        score += 0.2
+    if player.transport.reliability_score < 50:
+        score -= 0.45
+    elif player.transport.reliability_score >= 82:
+        score += 0.2
+    if player.stress >= 78:
+        score -= 0.55
+    elif player.stress <= 38:
+        score += 0.2
+    if player.energy <= 28:
+        score -= 0.5
+    elif player.energy >= 72:
+        score += 0.2
+    if player.family_support <= 28:
+        score -= 0.25
+    elif player.family_support >= 68:
+        score += 0.15
+    if player.social_stability <= 32:
+        score -= 0.25
+    elif player.social_stability >= 65:
+        score += 0.15
+    return score
+
+
+def event_severity_multiplier(bundle: ContentBundle, state: GameState, event: EventDefinition) -> float:
+    if event.id not in SEVERITY_EVENT_IDS:
+        return 1.0
+    multiplier = 1.0
+    for layer in _consequence_layers(bundle, state):
+        severity_scale = layer.event_severity.get(event.id)
+        if severity_scale is not None:
+            multiplier *= max(0.4, float(severity_scale))
+    resilience = _resilience_score(state)
+    multiplier += (-resilience * 0.12)
+    family_key = FAMILY_TO_MATRIX_KEY.get(event_family(event))
+    if family_key:
+        pressure_shift = sum(float(layer.pressure_families.get(family_key, 0.0)) for layer in _consequence_layers(bundle, state))
+        multiplier += pressure_shift * 0.25
+    if event.id == "car_repair" and state.player.transport.reliability_score < 55:
+        multiplier += 0.18
+    if event.id == "rent_increase" and state.player.housing.housing_stability < 45:
+        multiplier += 0.16
+    if event.id == "job_layoff" and state.player.career.recent_performance_tag == "downtrend":
+        multiplier += 0.14
+    if event.id == "burnout_month" and state.player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
+        multiplier += 0.12
+    if event.id == "credit_limit_review" and state.player.credit_score < 580:
+        multiplier += 0.16
+    return max(0.7, min(1.8, multiplier))
+
+
+def _scaled_effects(effects: dict[str, float], multiplier: float) -> dict[str, float]:
+    if multiplier == 1.0:
+        return dict(effects)
+    return {key: int(round(value * multiplier)) for key, value in effects.items()}
 
 
 def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefinition) -> bool:
@@ -73,6 +229,10 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
     if event.maximum_credit_score is not None and player.credit_score > event.maximum_credit_score:
         return False
     if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
+        return False
+    if event.id in {"car_repair", "beater_breakdown", "missed_shift_after_breakdown", "used_car_window"} and not _uses_vehicle(player.transport_id):
+        return False
+    if _is_blocked_by_matrix(bundle, state, event.id):
         return False
     return True
 
@@ -170,6 +330,7 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         if state.player.debt >= 2500:
             weight *= 1.15
 
+    weight *= _matrix_weight_multiplier(bundle, state, event)
     return max(0.05, weight * difficulty.event_weight_multiplier)
 
 
@@ -183,12 +344,16 @@ def pick_event(bundle: ContentBundle, state: GameState, rng: Random, excluded_id
 
 def resolve_event(bundle: ContentBundle, state: GameState, event: EventDefinition) -> None:
     append_log(state, f"Situation family: {event_family(event)}")
+    multiplier = event_severity_multiplier(bundle, state, event)
     if event.choices:
         state.pending_user_choice_event_id = event.id
         state.pending_user_choice_event = event.model_copy(deep=True)
+        if multiplier != 1.0:
+            for choice in state.pending_user_choice_event.choices:
+                choice.stat_effects = _scaled_effects(choice.stat_effects, multiplier)
         append_log(state, event.log_entry or f"Choice pending: {event.name}")
         return
-    apply_stat_effects(state, event.immediate_effects)
+    apply_stat_effects(state, _scaled_effects(event.immediate_effects, multiplier))
     if event.modifier is not None:
         state.active_modifiers.append(create_modifier(event.modifier))
         append_log(state, f"Modifier gained: {event.modifier.label} ({event.modifier.duration_months} months)")

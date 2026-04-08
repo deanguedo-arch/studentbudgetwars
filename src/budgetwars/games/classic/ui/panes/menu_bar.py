@@ -7,6 +7,18 @@ from ..theme import BG_DARK, BG_DARKEST, BG_ELEVATED, BORDER, TEXT_HEADING, TEXT
 
 
 def configure_dark_menu_style(menu: tk.Menu) -> None:
+    windowing = menu.tk.call("tk", "windowingsystem") if hasattr(menu, "tk") else None
+    if windowing == "win32":
+        menu.configure(
+            bg="#f1f3f8",
+            fg="#151a24",
+            activebackground="#dfe7ff",
+            activeforeground="#0f1624",
+            bd=0,
+            tearoff=False,
+            relief="flat",
+        )
+        return
     menu.configure(
         bg=BG_DARKEST,
         fg=TEXT_PRIMARY,
@@ -49,7 +61,7 @@ def configure_dark_combobox_style(master: tk.Misc) -> str:
         target.option_add("*TCombobox*Listbox.background", BG_DARKEST)
         target.option_add("*TCombobox*Listbox.foreground", TEXT_PRIMARY)
         target.option_add("*TCombobox*Listbox.selectBackground", ACCENT_RESOLVE)
-        target.option_add("*TCombobox*Listbox.selectForeground", BG_DARKEST)
+        target.option_add("*TCombobox*Listbox.selectForeground", TEXT_HEADING)
         target.option_add("*TCombobox*Listbox.font", "Segoe UI 10")
     return style_name
 

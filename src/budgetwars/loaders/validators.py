@@ -23,6 +23,18 @@ VALID_STAT_EFFECT_KEYS = {
     "education_progress",
 }
 
+VALID_PRESSURE_FAMILIES = {
+    "credit_squeeze",
+    "debt_trap",
+    "housing_squeeze",
+    "transport_friction",
+    "burnout_spiral",
+    "education_drag",
+    "career_breakthrough",
+    "support_buffer",
+    "opportunity_window",
+}
+
 
 def _ensure_unique_ids(records: Iterable[object], label: str) -> None:
     seen: set[str] = set()
@@ -40,6 +52,26 @@ def _validate_effects(effects: dict[str, float], label: str) -> None:
     invalid = sorted(set(effects) - VALID_STAT_EFFECT_KEYS)
     if invalid:
         raise ValueError(f"{label} has invalid effect keys: {', '.join(invalid)}")
+
+
+def _validate_consequence_layer(
+    *,
+    label: str,
+    layer: object,
+    event_ids: set[str],
+) -> None:
+    pressure_invalid = sorted(set(getattr(layer, "pressure_families")) - VALID_PRESSURE_FAMILIES)
+    if pressure_invalid:
+        raise ValueError(f"{label} has unknown pressure families: {', '.join(pressure_invalid)}")
+    event_weight_invalid = sorted(set(getattr(layer, "event_weights")) - event_ids)
+    if event_weight_invalid:
+        raise ValueError(f"{label} has unknown event weight targets: {', '.join(event_weight_invalid)}")
+    unlock_invalid = sorted(set(getattr(layer, "unlocks")) - event_ids)
+    if unlock_invalid:
+        raise ValueError(f"{label} has unknown unlock event ids: {', '.join(unlock_invalid)}")
+    blocker_invalid = sorted(set(getattr(layer, "blockers")) - event_ids)
+    if blocker_invalid:
+        raise ValueError(f"{label} has unknown blocker event ids: {', '.join(blocker_invalid)}")
 
 
 def validate_content_bundle(bundle: ContentBundle) -> None:
@@ -76,6 +108,7 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     housing_ids = {housing.id for housing in bundle.housing_options}
     transport_ids = {transport.id for transport in bundle.transport_options}
     city_ids = {city.id for city in bundle.cities}
+    event_ids = {event.id for event in bundle.events}
     opening_path_ids = {path.id for path in bundle.config.opening_paths}
     budget_stance_ids = {stance.id for stance in bundle.config.budget_stances}
     focus_action_ids = {focus.id for focus in bundle.focus_actions}
@@ -106,6 +139,21 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Career '{career.id}' must define at least two tiers")
         if career.stability_profile + career.volatility_profile < 70:
             raise ValueError(f"Career '{career.id}' must have meaningful stability/volatility identity")
+        branch_ids: set[str] = set()
+        for branch in career.branches:
+            if branch.id in branch_ids:
+                raise ValueError(f"Career '{career.id}' has duplicate branch id '{branch.id}'")
+            branch_ids.add(branch.id)
+            missing_branch_credentials = sorted(set(branch.required_credential_ids) - credential_ids)
+            if missing_branch_credentials:
+                raise ValueError(
+                    f"Career '{career.id}' branch '{branch.id}' references unknown credentials: "
+                    f"{', '.join(missing_branch_credentials)}"
+                )
+            if branch.min_tier_index >= len(career.tiers):
+                raise ValueError(
+                    f"Career '{career.id}' branch '{branch.id}' min_tier_index exceeds available tiers"
+                )
         for tier in career.tiers:
             unknown_tier_credentials = sorted(set(tier.required_credential_ids) - credential_ids)
             if unknown_tier_credentials:
@@ -219,6 +267,42 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Learn topic '{topic.id}' must explain how to lower the stat")
         if not topic.why_it_matters:
             raise ValueError(f"Learn topic '{topic.id}' must explain why the stat matters")
+
+    matrix = bundle.consequence_matrix
+    for key in matrix.budget_stances:
+        if key not in budget_stance_ids:
+            raise ValueError(f"Consequence matrix references unknown budget stance '{key}'")
+    for key in matrix.wealth_strategies:
+        if key not in wealth_strategy_ids:
+            raise ValueError(f"Consequence matrix references unknown wealth strategy '{key}'")
+    for key in matrix.housing_options:
+        if key not in housing_ids:
+            raise ValueError(f"Consequence matrix references unknown housing option '{key}'")
+    for key in matrix.transport_options:
+        if key not in transport_ids:
+            raise ValueError(f"Consequence matrix references unknown transport option '{key}'")
+    for key in matrix.education_programs:
+        if key not in education_ids:
+            raise ValueError(f"Consequence matrix references unknown education program '{key}'")
+    for key in matrix.focus_actions:
+        if key not in focus_action_ids:
+            raise ValueError(f"Consequence matrix references unknown focus action '{key}'")
+    for key in matrix.career_tracks:
+        if key not in career_ids:
+            raise ValueError(f"Consequence matrix references unknown career track '{key}'")
+
+    for section_name, section in (
+        ("budget_stances", matrix.budget_stances),
+        ("wealth_strategies", matrix.wealth_strategies),
+        ("housing_options", matrix.housing_options),
+        ("transport_options", matrix.transport_options),
+        ("education_programs", matrix.education_programs),
+        ("focus_actions", matrix.focus_actions),
+        ("career_tracks", matrix.career_tracks),
+        ("credit_bands", matrix.credit_bands),
+    ):
+        for item_id, layer in section.items():
+            _validate_consequence_layer(label=f"consequence_matrix.{section_name}.{item_id}", layer=layer, event_ids=event_ids)
 
     for stance in bundle.config.budget_stances:
         allocation_total = (

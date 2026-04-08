@@ -128,6 +128,28 @@ class FinancePanel(tk.Frame):
             justify="left",
             wraplength=300,
         ).pack(anchor="w", pady=(PAD_S, 0))
+        if getattr(summary, "run_killer", ""):
+            tk.Label(
+                left,
+                text=summary.run_killer,
+                bg=BG_CARD,
+                fg=COLOR_NEGATIVE,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w", pady=(1, 0))
+        if getattr(summary, "fastest_fix", ""):
+            tk.Label(
+                left,
+                text=summary.fastest_fix,
+                bg=BG_CARD,
+                fg=TEXT_SECONDARY,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w")
 
         if delta is not None:
             delta_color = COLOR_POSITIVE if delta.delta >= 0 else COLOR_NEGATIVE
