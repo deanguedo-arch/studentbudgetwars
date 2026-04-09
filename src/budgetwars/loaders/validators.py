@@ -252,6 +252,12 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
                 raise ValueError(f"Event '{event.id}' has an impossible credit score range")
         if event.eligible_modifier_ids:
             modifier_ids = {entry.modifier.id for entry in bundle.events if entry.modifier is not None}
+            modifier_ids.update(
+                choice.modifier.id
+                for entry in bundle.events
+                for choice in entry.choices
+                if choice.modifier is not None
+            )
             if sorted(set(event.eligible_modifier_ids) - modifier_ids):
                 raise ValueError(f"Event '{event.id}' references unknown modifier ids")
         if event.eligible_market_regime_ids:

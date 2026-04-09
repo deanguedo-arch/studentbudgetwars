@@ -1873,6 +1873,22 @@
           "stress": 1,
           "social_stability": 1,
           "promotion_progress": 2
+        },
+        "modifier": {
+          "id": "coordination_anchor",
+          "label": "Coordination Anchor",
+          "duration_months": 3,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.02,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
         }
       }
     ],
@@ -2411,5 +2427,169 @@
     "chained_event_id": "burnout_month",
     "chained_delay_months": 1,
     "log_entry": "Ops fatigue turned into a real safety-pressure decision."
+  },
+  {
+    "id": "management_overload_wave",
+    "name": "Management Overload Wave",
+    "description": "You took command and the floor now routes every fire through you. Hold the line for upside or absorb an immediate reset.",
+    "weight": 4,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_management_track"
+    ],
+    "eligible_modifier_ids": [
+      "management_scope"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "absorb_the_wave",
+        "label": "Absorb the wave",
+        "description": "Keep authority and momentum at a personal cost.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -3
+        }
+      },
+      {
+        "id": "reset_workload",
+        "label": "Reset workload",
+        "description": "Protect your stability and give up some short-term momentum.",
+        "stat_effects": {
+          "promotion_progress": -1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Leadership scope created a second-order pressure decision."
+  },
+  {
+    "id": "floor_culture_retention_win",
+    "name": "Floor Culture Retention Win",
+    "description": "Your steadier management style improved retention and reduced churn noise this month.",
+    "weight": 3,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_management_track"
+    ],
+    "eligible_modifier_ids": [
+      "retail_rhythm"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_the_stability",
+        "label": "Bank stability",
+        "description": "Keep your steadier lane and convert it into team consistency.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "push_for_more_output",
+        "label": "Push output",
+        "description": "Use the calmer floor to push harder this month.",
+        "stat_effects": {
+          "cash": 210,
+          "stress": 2,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "Steady leadership created a compounding retention edge."
+  },
+  {
+    "id": "dispatch_fire_drill",
+    "name": "Dispatch Fire Drill",
+    "description": "Owning the board means outages route directly through you. Solve it fast for upside or preserve the team at cost.",
+    "weight": 4,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_dispatch_track"
+    ],
+    "eligible_modifier_ids": [
+      "dispatch_authority"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "brute_force_recovery",
+        "label": "Brute-force recovery",
+        "description": "Fix the board quickly and eat the stress load.",
+        "stat_effects": {
+          "cash": 180,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_shift_reliability",
+        "label": "Protect reliability",
+        "description": "Favor stability over speed and accept slower gains.",
+        "stat_effects": {
+          "stress": -1,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Dispatch authority opened a second-order crisis fork."
+  },
+  {
+    "id": "dispatch_process_upgrade",
+    "name": "Dispatch Process Upgrade",
+    "description": "Staying coordination-side paid off with a process redesign opportunity that rewards consistency over heroics.",
+    "weight": 3,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_dispatch_track"
+    ],
+    "eligible_modifier_ids": [
+      "coordination_anchor"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "standardize_routes",
+        "label": "Standardize routes",
+        "description": "Build cleaner reliability with moderate immediate upside.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": -1,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "pilot_new_stack",
+        "label": "Pilot new stack",
+        "description": "Try a faster process lane with a little more pressure.",
+        "stat_effects": {
+          "cash": 180,
+          "stress": 2,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "Coordination-first play unlocked a cleaner growth lane."
   }
 ]

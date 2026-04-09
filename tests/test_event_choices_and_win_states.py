@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from budgetwars.engine.events import resolve_event
+from budgetwars.engine.events import eligible_events, resolve_event
 from budgetwars.models.content import EventChoice, EventDefinition, ModifierTemplate
 
 
@@ -157,6 +157,64 @@ def test_branch_promotion_offer_events_are_choice_events(bundle) -> None:
 
     assert len(retail_offer.choices) >= 2
     assert len(warehouse_offer.choices) >= 2
+
+
+def test_retail_promotion_choice_alters_future_event_pool(bundle, controller_factory) -> None:
+    push = controller_factory(opening_path_id="full_time_work")
+    push.change_career("retail_service")
+    push.state.current_month = 24
+    push.state.player.career.tier_index = 3
+    push.state.player.career.branch_id = "retail_management_track"
+    push.state.player.social_stability = 64
+    push.state.player.transport.reliability_score = 70
+    offer = next(item for item in bundle.events if item.id == "retail_leadership_offer")
+    resolve_event(bundle, push.state, offer)
+    push.resolve_event_choice("take_closing_command")
+    push_ids = {event.id for event in eligible_events(bundle, push.state)}
+
+    stabilize = controller_factory(opening_path_id="full_time_work")
+    stabilize.change_career("retail_service")
+    stabilize.state.current_month = 24
+    stabilize.state.player.career.tier_index = 3
+    stabilize.state.player.career.branch_id = "retail_management_track"
+    stabilize.state.player.social_stability = 64
+    stabilize.state.player.transport.reliability_score = 70
+    resolve_event(bundle, stabilize.state, offer)
+    stabilize.resolve_event_choice("stabilize_the_floor")
+    stabilize_ids = {event.id for event in eligible_events(bundle, stabilize.state)}
+
+    assert "management_overload_wave" in push_ids
+    assert "floor_culture_retention_win" not in push_ids
+    assert "floor_culture_retention_win" in stabilize_ids
+    assert "management_overload_wave" not in stabilize_ids
+
+
+def test_dispatch_promotion_choice_alters_future_event_pool(bundle, controller_factory) -> None:
+    command = controller_factory(opening_path_id="full_time_work")
+    command.state.current_month = 24
+    command.state.player.career.tier_index = 3
+    command.state.player.career.branch_id = "warehouse_dispatch_track"
+    command.state.player.transport.reliability_score = 74
+    command.state.player.social_stability = 60
+    offer = next(item for item in bundle.events if item.id == "dispatch_lead_offer")
+    resolve_event(bundle, command.state, offer)
+    command.resolve_event_choice("own_the_board")
+    command_ids = {event.id for event in eligible_events(bundle, command.state)}
+
+    coordination = controller_factory(opening_path_id="full_time_work")
+    coordination.state.current_month = 24
+    coordination.state.player.career.tier_index = 3
+    coordination.state.player.career.branch_id = "warehouse_dispatch_track"
+    coordination.state.player.transport.reliability_score = 74
+    coordination.state.player.social_stability = 60
+    resolve_event(bundle, coordination.state, offer)
+    coordination.resolve_event_choice("stay_coordination")
+    coordination_ids = {event.id for event in eligible_events(bundle, coordination.state)}
+
+    assert "dispatch_fire_drill" in command_ids
+    assert "dispatch_process_upgrade" not in command_ids
+    assert "dispatch_process_upgrade" in coordination_ids
+    assert "dispatch_fire_drill" not in coordination_ids
 
 
 def test_declare_victory_finishes_run_with_multiplier(controller_factory) -> None:
