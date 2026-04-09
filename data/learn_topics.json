@@ -1,0 +1,104 @@
+[
+  {
+    "id": "credit",
+    "title": "Credit",
+    "what_it_is": "Credit measures how trustworthy you look to lenders and gatekeepers.",
+    "how_to_raise": [
+      "Pay debt down and avoid missed-payment spirals.",
+      "Keep monthly cashflow stable so crisis events do not stack."
+    ],
+    "how_to_lower": [
+      "Carry too much debt or miss key bills.",
+      "Let crisis events pile up without stabilizing cash."
+    ],
+    "why_it_matters": [
+      "Credit opens better housing and transport options.",
+      "Strong credit unlocks better debt relief situations."
+    ]
+  },
+  {
+    "id": "stress",
+    "title": "Stress",
+    "what_it_is": "Stress is the monthly pressure you are carrying from work, school, money, and life friction.",
+    "how_to_raise": [
+      "Take high-pressure focus actions like overtime or promotion pushes.",
+      "Let housing, transport, or debt problems keep leaking into the month."
+    ],
+    "how_to_lower": [
+      "Choose recovery-focused months and reduce unstable systems.",
+      "Improve housing stability, transport reliability, and cash cushion."
+    ],
+    "why_it_matters": [
+      "High stress weakens performance and makes burnout more likely.",
+      "Stress works together with low energy to create collapse months."
+    ]
+  },
+  {
+    "id": "housing",
+    "title": "Housing Stability",
+    "what_it_is": "Housing stability tracks whether your living situation can absorb pressure without turning into a bigger problem.",
+    "how_to_raise": [
+      "Stay current on payments and avoid repeated forced moves.",
+      "Use housing options that fit your budget and support system."
+    ],
+    "how_to_lower": [
+      "Miss payments or sit in a fragile housing setup too long.",
+      "Take on rent pressure your current cashflow cannot cover."
+    ],
+    "why_it_matters": [
+      "Low housing stability spills into stress and future events.",
+      "Stable housing makes recovery months actually work."
+    ]
+  },
+  {
+    "id": "transport",
+    "title": "Transport Reliability",
+    "what_it_is": "Transport reliability measures whether you can keep showing up without losing money, time, or momentum.",
+    "how_to_raise": [
+      "Use reliable transport and avoid pushing weak vehicles too hard.",
+      "Keep enough liquidity for maintenance and repairs."
+    ],
+    "how_to_lower": [
+      "Rely on breakdown-prone cars or underfund maintenance.",
+      "Ignore commute friction when your career needs better access."
+    ],
+    "why_it_matters": [
+      "Transport problems can cost shifts, promotions, and mood.",
+      "Some career lanes need stronger transport access than others."
+    ]
+  },
+  {
+    "id": "career",
+    "title": "Career Momentum",
+    "what_it_is": "Career momentum is how strongly your current lane is setting up promotions, income growth, and resilience.",
+    "how_to_raise": [
+      "Pick focus actions that support performance and promotion progress.",
+      "Protect energy and transport access so you can perform consistently."
+    ],
+    "how_to_lower": [
+      "Stay in downtrend months, transition badly, or stack instability.",
+      "Let stress and energy collapse undermine your work output."
+    ],
+    "why_it_matters": [
+      "Momentum shapes promotion timing and career-specific opportunities.",
+      "Weak momentum makes layoffs and stall months more dangerous."
+    ]
+  },
+  {
+    "id": "education",
+    "title": "Education Standing",
+    "what_it_is": "Education standing shows whether your current school or training path is stable enough to keep paying off.",
+    "how_to_raise": [
+      "Keep stress manageable and energy high enough to hold the line.",
+      "Use intensities and monthly focus that fit your current stability."
+    ],
+    "how_to_lower": [
+      "Stack exam pressure, re-entry drag, or cash strain without recovery.",
+      "Run low-energy, high-stress months while trying to push school hard."
+    ],
+    "why_it_matters": [
+      "Strong standing keeps long-term career doors open.",
+      "Weak standing can slow or kill the upside of the run."
+    ]
+  }
+]

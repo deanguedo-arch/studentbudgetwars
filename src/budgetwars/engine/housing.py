@@ -28,6 +28,11 @@ def can_switch_housing(bundle: ContentBundle, state: GameState, housing_id: str)
         return False, "Student residence only makes sense while you are actively enrolled."
     if state.player.credit_score < housing.minimum_credit_score:
         return False, f"Your credit score ({state.player.credit_score}) is too low to secure this lease."
+    if housing.id == "solo_rental":
+        if state.player.debt >= 14000 and state.player.credit_score < 740:
+            return False, "That lease wants stronger credit or less debt pressure first."
+        if state.player.monthly_surplus < -100 and (state.player.cash + state.player.savings) < (housing.move_in_cost + 300):
+            return False, "A solo lease on a negative monthly swing is too fragile right now."
     return True, ""
 
 

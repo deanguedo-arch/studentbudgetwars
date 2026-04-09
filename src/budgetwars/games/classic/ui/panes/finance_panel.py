@@ -26,6 +26,10 @@ def _mini_bar(parent: tk.Misc, value: int, max_val: int, color: str,
     return frame
 
 
+def _progress_bar(parent: tk.Misc, fraction: float, color: str) -> tk.Frame:
+    return _mini_bar(parent, int(max(0.0, min(1.0, fraction)) * 100), 100, color, width=120)
+
+
 class FinancePanel(tk.Frame):
     def __init__(self, master: tk.Misc, title: str = "Score & Pressure"):
         super().__init__(master, bg=BG_CARD, bd=1, relief="solid",
@@ -100,6 +104,177 @@ class FinancePanel(tk.Frame):
                            anchor="w", justify="left", wraplength=340)
             lbl.pack(fill="x", anchor="w", pady=1)
             self._widgets.append(lbl)
+
+    def render_summary(self, summary, delta=None, *, credit_delta: int | None = None, compact: bool = False) -> None:
+        for w in self._widgets:
+            w.destroy()
+        self._widgets.clear()
+
+        top = tk.Frame(self._content, bg=BG_CARD)
+        top.pack(fill="x", pady=(0, PAD_S))
+        self._widgets.append(top)
+
+        left = tk.Frame(top, bg=BG_CARD)
+        left.pack(side="left", fill="y", padx=(0, PAD_M))
+        tk.Label(left, text="RUN DIAGNOSIS", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(anchor="w")
+        tk.Label(left, text=f"{summary.projected_score:.1f}", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING if compact else ("Georgia", 20, "bold"), anchor="w").pack(anchor="w")
+        tk.Label(left, text=summary.tier, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SUBHEADING, anchor="w").pack(anchor="w")
+        tk.Label(
+            left,
+            text=f"Risk: {summary.biggest_risk}",
+            bg=BG_CARD,
+            fg=COLOR_WARNING,
+            font=FONT_SMALL,
+            anchor="w",
+            justify="left",
+            wraplength=300,
+        ).pack(anchor="w", pady=(PAD_S, 0))
+        if getattr(summary, "run_killer", ""):
+            tk.Label(
+                left,
+                text=summary.run_killer,
+                bg=BG_CARD,
+                fg=COLOR_NEGATIVE,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w", pady=(1, 0))
+        if getattr(summary, "fastest_fix", ""):
+            tk.Label(
+                left,
+                text=summary.fastest_fix,
+                bg=BG_CARD,
+                fg=TEXT_SECONDARY,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w")
+        if getattr(summary, "recovery_route", None):
+            tk.Label(
+                left,
+                text=summary.recovery_route,
+                bg=BG_CARD,
+                fg=COLOR_POSITIVE,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w", pady=(1, 0))
+
+        if delta is not None:
+            delta_color = COLOR_POSITIVE if delta.delta >= 0 else COLOR_NEGATIVE
+            tk.Label(
+                left,
+                text=f"Delta: {delta.delta:+.2f}",
+                bg=BG_CARD,
+                fg=delta_color,
+                font=FONT_SUBHEADING,
+                anchor="w",
+            ).pack(anchor="w", pady=(PAD_S, 0))
+            tk.Label(
+                left,
+                text=f"Best: {delta.strongest_category}  Worst: {delta.weakest_category}",
+                bg=BG_CARD,
+                fg=TEXT_SECONDARY,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w")
+
+        credit_frame = tk.Frame(left, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
+        credit_frame.pack(fill="x", pady=(PAD_S, 0))
+        tk.Label(credit_frame, text="CREDIT POSITION", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+        tk.Label(
+            credit_frame,
+            text=f"{summary.credit_score} {summary.credit_tier}",
+            bg=BG_ELEVATED,
+            fg=TEXT_PRIMARY,
+            font=FONT_SUBHEADING,
+            anchor="w",
+        ).pack(fill="x", padx=PAD_S)
+        tk.Label(
+            credit_frame,
+            text=summary.credit_progress_label,
+            bg=BG_ELEVATED,
+            fg=TEXT_SECONDARY,
+            font=FONT_SMALL,
+            anchor="w",
+        ).pack(fill="x", padx=PAD_S)
+        tk.Label(
+            credit_frame,
+            text=summary.credit_progress_detail,
+            bg=BG_ELEVATED,
+            fg=TEXT_MUTED,
+            font=FONT_SMALL,
+            anchor="w",
+        ).pack(fill="x", padx=PAD_S)
+        _progress_bar(credit_frame, summary.credit_progress_fraction, COLOR_WARNING).pack(anchor="w", padx=PAD_S, pady=(PAD_S, 0))
+        if credit_delta is not None:
+            tk.Label(
+                credit_frame,
+                text=f"Trend: {credit_delta:+d}",
+                bg=BG_ELEVATED,
+                fg=COLOR_POSITIVE if credit_delta >= 0 else COLOR_NEGATIVE,
+                font=FONT_SMALL,
+                anchor="w",
+            ).pack(fill="x", padx=PAD_S, pady=(1, PAD_S))
+
+        progress_frame = tk.Frame(left, bg=BG_CARD)
+        progress_frame.pack(fill="x", pady=(PAD_S, 0))
+        tk.Label(progress_frame, text=summary.progress_label.upper(), bg=BG_CARD, fg=TEXT_HEADING, font=FONT_TINY, anchor="w").pack(fill="x")
+        tk.Label(progress_frame, text=summary.progress_detail, bg=BG_CARD, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x")
+        _progress_bar(progress_frame, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", pady=(PAD_S, 0))
+
+        right = tk.Frame(top, bg=BG_CARD)
+        right.pack(side="left", fill="both", expand=True)
+        self._widgets.append(right)
+
+        tk.Label(right, text="Pressure Cards", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING, anchor="w").pack(fill="x")
+        primary_row = tk.Frame(right, bg=BG_CARD)
+        primary_row.pack(fill="x", pady=(PAD_S, PAD_S))
+        for metric in summary.primary_metrics[: (3 if compact else len(summary.primary_metrics))]:
+            card = tk.Frame(primary_row, bg=BG_ELEVATED, bd=0, highlightbackground=BORDER, highlightthickness=2)
+            card.pack(side="left", fill="both", expand=True, padx=(0, PAD_S))
+            tk.Label(card, text=metric.label.upper(), bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+            tk.Label(card, text=metric.primary, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_BODY, anchor="w").pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
+
+        progress_card = tk.Frame(right, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
+        progress_card.pack(fill="x", pady=(0, PAD_S))
+        tk.Label(progress_card, text=summary.progress_label.upper(), bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+        tk.Label(progress_card, text=summary.progress_detail, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x", padx=PAD_S)
+        _progress_bar(progress_card, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", padx=PAD_S, pady=(PAD_S, PAD_S))
+
+        secondary = tk.Frame(right, bg=BG_CARD)
+        secondary.pack(fill="x", pady=(PAD_S, 0))
+        for metric in summary.secondary_metrics[: (4 if compact else 6)]:
+            row = tk.Frame(secondary, bg=BG_CARD)
+            row.pack(fill="x", pady=1)
+            fg = TEXT_SECONDARY
+            if metric.tone == "positive":
+                fg = COLOR_POSITIVE
+            elif metric.tone == "negative":
+                fg = COLOR_NEGATIVE
+            elif metric.label in {"Stress", "Energy"}:
+                fg = COLOR_WARNING
+            tk.Label(row, text=f"{metric.label}:", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w", width=16).pack(side="left")
+            tk.Label(row, text=metric.primary, bg=BG_CARD, fg=fg, font=FONT_SMALL, anchor="w").pack(side="left")
+
+        if summary.active_modifiers and not compact:
+            tk.Label(right, text="Active Modifiers", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
+            tk.Label(right, text=", ".join(summary.active_modifiers), bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
+
+        if getattr(summary, "blocked_doors", None):
+            tk.Label(right, text="Blocked Doors", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
+            for line in summary.blocked_doors[: (1 if compact else 2)]:
+                tk.Label(right, text=line, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
+
+        if summary.crisis_watch:
+            tk.Label(right, text="Crisis Watch", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
+            for warning in summary.crisis_watch[: (2 if compact else 3)]:
+                tk.Label(right, text=warning, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x", anchor="w")
 
     def set_large_text(self, enabled: bool) -> None:
         self._large = enabled

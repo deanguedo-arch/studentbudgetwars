@@ -36,6 +36,23 @@ class CareerTierDefinition(BaseModel):
     seniority_income_bonus: int = 0
 
 
+class CareerBranchDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    min_tier_index: int = Field(ge=0, default=1)
+    required_credential_ids: list[str] = Field(default_factory=list)
+    min_transport_reliability: int | None = Field(default=None, ge=0, le=100)
+    min_social_stability: int | None = Field(default=None, ge=0, le=100)
+    min_energy: int | None = Field(default=None, ge=0, le=100)
+    max_stress: int | None = Field(default=None, ge=0, le=100)
+    income_multiplier: float = Field(gt=0, default=1.0)
+    stress_delta: int = 0
+    energy_delta: int = 0
+    promotion_progress_bonus: int = 0
+    layoff_pressure_delta: int = 0
+
+
 class CareerTrackDefinition(BaseModel):
     id: str
     name: str
@@ -55,6 +72,7 @@ class CareerTrackDefinition(BaseModel):
     volatility_profile: int = Field(ge=0, le=100, default=50)
     transport_sensitivity: int = Field(ge=0, le=100, default=50)
     city_sensitivity: int = Field(ge=0, le=100, default=50)
+    branches: list[CareerBranchDefinition] = Field(default_factory=list)
     skill_transfer_map: dict[str, float] = Field(default_factory=dict)
     tiers: list[CareerTierDefinition]
 
@@ -160,6 +178,14 @@ class ModifierTemplate(BaseModel):
     transport_switch_discount: int = 0
 
 
+class EventChoice(BaseModel):
+    id: str
+    label: str
+    description: str
+    stat_effects: StatEffects = Field(default_factory=dict)
+    modifier: ModifierTemplate | None = None
+
+
 class EventDefinition(BaseModel):
     id: str
     name: str
@@ -170,9 +196,11 @@ class EventDefinition(BaseModel):
     eligible_housing_ids: list[str] = Field(default_factory=list)
     eligible_transport_ids: list[str] = Field(default_factory=list)
     eligible_career_ids: list[str] = Field(default_factory=list)
+    eligible_branch_ids: list[str] = Field(default_factory=list)
     eligible_education_ids: list[str] = Field(default_factory=list)
     eligible_opening_path_ids: list[str] = Field(default_factory=list)
     eligible_modifier_ids: list[str] = Field(default_factory=list)
+    eligible_wealth_strategy_ids: list[str] = Field(default_factory=list)
     minimum_stress: int | None = Field(default=None, ge=0)
     minimum_debt: int | None = Field(default=None, ge=0)
     minimum_family_support: int | None = Field(default=None, ge=0)
@@ -182,12 +210,64 @@ class EventDefinition(BaseModel):
     maximum_transport_reliability: int | None = Field(default=None, ge=0, le=100)
     maximum_housing_stability: int | None = Field(default=None, ge=0, le=100)
     maximum_life_satisfaction: int | None = Field(default=None, ge=0, le=100)
+    minimum_credit_score: int | None = Field(default=None, ge=300, le=850)
+    maximum_credit_score: int | None = Field(default=None, ge=300, le=850)
     eligible_market_regime_ids: list[str] = Field(default_factory=list)
     immediate_effects: StatEffects = Field(default_factory=dict)
+    choices: list[EventChoice] = Field(default_factory=list)
     modifier: ModifierTemplate | None = None
     log_entry: str | None = None
     chained_event_id: str | None = None
     chained_delay_months: int = Field(ge=0, default=1)
+
+
+class WinStateDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    ending_label: str
+    minimum_score: float = Field(ge=0, default=0.0)
+    minimum_cash: int = Field(ge=0, default=0)
+    minimum_savings: int = Field(ge=0, default=0)
+    minimum_net_worth: int = Field(default=0)
+    maximum_debt: int | None = Field(default=None, ge=0)
+    minimum_credit_score: int | None = Field(default=None, ge=300, le=850)
+    minimum_housing_stability: int | None = Field(default=None, ge=0, le=100)
+    minimum_social_stability: int | None = Field(default=None, ge=0, le=100)
+    maximum_emergency_liquidation_count: int | None = Field(default=None, ge=0)
+    minimum_career_tier_index: int = Field(ge=0, default=0)
+    minimum_career_track_ids: list[str] = Field(default_factory=list)
+    minimum_career_branch_ids: list[str] = Field(default_factory=list)
+    score_multiplier: float = Field(gt=0, default=1.0)
+
+
+class LearnTopicDefinition(BaseModel):
+    id: str
+    title: str
+    what_it_is: str
+    how_to_raise: list[str] = Field(default_factory=list)
+    how_to_lower: list[str] = Field(default_factory=list)
+    why_it_matters: list[str] = Field(default_factory=list)
+
+
+class ConsequenceLayerDefinition(BaseModel):
+    pressure_families: dict[str, float] = Field(default_factory=dict)
+    event_weights: dict[str, float] = Field(default_factory=dict)
+    event_severity: dict[str, float] = Field(default_factory=dict)
+    unlocks: list[str] = Field(default_factory=list)
+    blockers: list[str] = Field(default_factory=list)
+    recovery_modifiers: dict[str, float] = Field(default_factory=dict)
+
+
+class ConsequenceMatrixDefinition(BaseModel):
+    budget_stances: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
+    wealth_strategies: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
+    housing_options: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
+    transport_options: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
+    education_programs: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
+    focus_actions: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
+    career_tracks: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
+    credit_bands: dict[str, ConsequenceLayerDefinition] = Field(default_factory=dict)
 
 
 class PresetDefinition(BaseModel):
@@ -217,4 +297,7 @@ class ContentBundle(BaseModel):
     focus_actions: list[FocusActionDefinition]
     wealth_strategies: list[WealthStrategyDefinition]
     events: list[EventDefinition]
+    win_states: list[WinStateDefinition]
+    learn_topics: list[LearnTopicDefinition]
+    consequence_matrix: ConsequenceMatrixDefinition
     presets: list[PresetDefinition]

@@ -146,11 +146,63 @@
     "minimum_stress": null,
     "minimum_debt": null,
     "maximum_life_satisfaction": null,
-    "immediate_effects": {
-      "promotion_progress": 4,
-      "life_satisfaction": 2,
-      "social_stability": 1
-    },
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "push_for_scope",
+        "label": "Push for scope",
+        "description": "Take the stretch assignment, chase the visibility, and accept the pressure that comes with it.",
+        "stat_effects": {
+          "promotion_progress": 5,
+          "stress": 3,
+          "energy": -2,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "promotion_push",
+          "label": "Stretch Assignment",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.04,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "bank_consistency",
+        "label": "Bank consistency",
+        "description": "Keep the month steadier, protect your energy, and turn the opening into a slower credibility win.",
+        "stat_effects": {
+          "promotion_progress": 3,
+          "life_satisfaction": 2,
+          "social_stability": 2,
+          "stress": -1
+        },
+        "modifier": {
+          "id": "promotion_stability",
+          "label": "Credibility Build",
+          "duration_months": 3,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.01,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      }
+    ],
     "modifier": null,
     "log_entry": "A promotion window opened if you can capitalize on it."
   },
@@ -190,9 +242,10 @@
     "eligible_city_ids": [],
     "eligible_housing_ids": [],
     "eligible_transport_ids": [
-      "none",
-      "transit",
-      "bike"
+      "beater_car",
+      "financed_car",
+      "reliable_used_car",
+      "luxury_financed_car"
     ],
     "eligible_career_ids": [],
     "eligible_education_ids": [],
@@ -204,6 +257,27 @@
       "life_satisfaction": 1,
       "stress": -1
     },
+    "choices": [
+      {
+        "id": "take_the_deal",
+        "label": "Take the deal",
+        "description": "Commit to the upgrade and accept the extra pressure.",
+        "stat_effects": {
+          "cash": -600,
+          "stress": 2,
+          "life_satisfaction": 1
+        }
+      },
+      {
+        "id": "walk_away",
+        "label": "Walk away",
+        "description": "Keep your current setup and protect your margin.",
+        "stat_effects": {
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
     "modifier": {
       "id": "used_car_window",
       "label": "Used Car Deal",
@@ -282,6 +356,29 @@
       "family_support": -6,
       "social_stability": -2
     },
+    "choices": [
+      {
+        "id": "cover_it",
+        "label": "Cover it",
+        "description": "Send money and absorb the hit to your own runway.",
+        "stat_effects": {
+          "cash": -240,
+          "savings": -120,
+          "family_support": 3,
+          "social_stability": 1
+        }
+      },
+      {
+        "id": "set_boundary",
+        "label": "Set boundary",
+        "description": "Protect your own month and let the tension settle.",
+        "stat_effects": {
+          "stress": 2,
+          "family_support": -3,
+          "social_stability": -1
+        }
+      }
+    ],
     "modifier": null,
     "log_entry": "Family trouble pulled money and focus out of your month."
   },
@@ -931,6 +1028,195 @@
     "log_entry": "Insurance jumped, and now the financed car feels a lot less clever."
   },
   {
+    "id": "credit_limit_review",
+    "name": "Credit Limit Review",
+    "description": "The credit bureau notice makes it clear that your borrowing story is under review.",
+    "weight": 4,
+    "min_month": 4,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": 1200,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "minimum_credit_score": 300,
+    "maximum_credit_score": 660,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "stress": 2,
+      "life_satisfaction": -1
+    },
+    "choices": [
+      {
+        "id": "tighten_up",
+        "label": "Tighten up",
+        "description": "Trim the balance and protect your credit story.",
+        "stat_effects": {
+          "cash": -180,
+          "debt": -220,
+          "credit_score": 10,
+          "stress": -1
+        }
+      },
+      {
+        "id": "coast",
+        "label": "Coast",
+        "description": "Protect cash now and accept the credit drag.",
+        "stat_effects": {
+          "debt": 140,
+          "credit_score": -8,
+          "stress": 2
+        }
+      }
+    ],
+    "modifier": null,
+    "log_entry": "The bureau review made the month feel a lot less optional."
+  },
+  {
+    "id": "refinance_window",
+    "name": "Refinance Window",
+    "description": "Strong credit cracked open a rare chance to clean up expensive debt terms.",
+    "weight": 3,
+    "min_month": 6,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": 2000,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "minimum_credit_score": 700,
+    "maximum_credit_score": null,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "refinance_now",
+        "label": "Refinance now",
+        "description": "Swap expensive debt terms for a cleaner monthly lane.",
+        "stat_effects": {
+          "cash": 160,
+          "debt": -450,
+          "credit_score": 4,
+          "stress": 1,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "refinance_relief",
+          "label": "Refinance Relief",
+          "duration_months": 3,
+          "stat_effects": {},
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": -40,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 150
+        }
+      },
+      {
+        "id": "wait_for_better_rate",
+        "label": "Wait",
+        "description": "Keep your current terms and protect your breathing room.",
+        "stat_effects": {
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "modifier": null,
+    "log_entry": "Your credit opened a rare chance to make debt less ugly."
+  },
+  {
+    "id": "credit_rebuild_window",
+    "name": "Credit Rebuild Window",
+    "description": "A cleaner few months finally made a real credit-repair lane worth taking seriously.",
+    "weight": 3,
+    "min_month": 8,
+    "eligible_city_ids": [],
+    "eligible_housing_ids": [],
+    "eligible_transport_ids": [],
+    "eligible_career_ids": [],
+    "eligible_education_ids": [],
+    "eligible_opening_path_ids": [],
+    "eligible_modifier_ids": [],
+    "minimum_stress": null,
+    "minimum_debt": 1200,
+    "minimum_family_support": null,
+    "maximum_family_support": null,
+    "minimum_social_stability": null,
+    "maximum_social_stability": null,
+    "maximum_transport_reliability": null,
+    "maximum_housing_stability": null,
+    "maximum_life_satisfaction": null,
+    "minimum_credit_score": 520,
+    "maximum_credit_score": 640,
+    "eligible_market_regime_ids": [],
+    "immediate_effects": {
+      "stress": -1,
+      "life_satisfaction": 1
+    },
+    "choices": [
+      {
+        "id": "open_the_secured_line",
+        "label": "Open the secured line",
+        "description": "Pay a little now to let consistent behavior rebuild your file month by month.",
+        "stat_effects": {
+          "cash": -120,
+          "credit_score": 3
+        },
+        "modifier": {
+          "id": "credit_rebuild_plan",
+          "label": "Credit Rebuild Plan",
+          "duration_months": 4,
+          "stat_effects": {
+            "credit_score": 4
+          },
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "keep_repairing_slowly",
+        "label": "Keep repairing slowly",
+        "description": "Avoid the extra step and keep rebuilding through ordinary clean months.",
+        "stat_effects": {
+          "stress": -1,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "modifier": null,
+    "log_entry": "A legitimate credit repair lane opened because your month stopped looking chaotic."
+  },
+  {
     "id": "sales_hot_streak",
     "name": "Sales Hot Streak",
     "description": "Momentum finally showed up in public and this lane felt alive for once.",
@@ -1084,5 +1370,709 @@
       "transport_switch_discount": 0
     },
     "log_entry": "The engine died. Your car is gone. You are back to transit or worse until you can replace it."
+  },
+  {
+    "id": "retail_inventory_crunch",
+    "name": "Inventory Crunch",
+    "description": "Receiving missed the mark and the floor is short. The store is about to lean on whoever can absorb the chaos.",
+    "weight": 4,
+    "min_month": 8,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_management_track"
+    ],
+    "immediate_effects": {
+      "stress": 1
+    },
+    "choices": [
+      {
+        "id": "cover_the_floor",
+        "label": "Cover the floor yourself",
+        "description": "You save the month for the store, but your body pays for it.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": 7,
+          "energy": -5,
+          "promotion_progress": 2
+        }
+      },
+      {
+        "id": "protect_the_team",
+        "label": "Protect the team",
+        "description": "You reset expectations, keep people from snapping, and give back some momentum.",
+        "stat_effects": {
+          "stress": 2,
+          "energy": -1,
+          "promotion_progress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Operations pressure landed in your lap."
+  },
+  {
+    "id": "sales_whale_month",
+    "name": "Big Ticket Month",
+    "description": "A rare customer window opened. If you press it right, this month can pay differently.",
+    "weight": 4,
+    "min_month": 8,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_sales_track"
+    ],
+    "minimum_social_stability": 58,
+    "immediate_effects": {
+      "life_satisfaction": 1
+    },
+    "choices": [
+      {
+        "id": "push_the_close",
+        "label": "Push the close",
+        "description": "You squeeze the month for upside and take the pressure with it.",
+        "stat_effects": {
+          "cash": 420,
+          "stress": 5,
+          "promotion_progress": 2,
+          "social_stability": -1
+        }
+      },
+      {
+        "id": "play_the_long_game",
+        "label": "Play the long game",
+        "description": "You bank the relationship instead of maxing the month.",
+        "stat_effects": {
+          "cash": 220,
+          "stress": -1,
+          "promotion_progress": 1,
+          "social_stability": 2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "A sales-heavy month gave you a real choice between upside and stability."
+  },
+  {
+    "id": "client_book_referral",
+    "name": "Client Book Referral",
+    "description": "A steady customer started feeding you repeat business and reputation instead of just random volume.",
+    "weight": 3,
+    "min_month": 9,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_clienteling_track"
+    ],
+    "minimum_social_stability": 64,
+    "immediate_effects": {
+      "cash": 180,
+      "life_satisfaction": 2,
+      "social_stability": 3,
+      "promotion_progress": 2
+    },
+    "log_entry": "Your relationship lane paid off this month."
+  },
+  {
+    "id": "dock_bottleneck",
+    "name": "Dock Bottleneck",
+    "description": "A bad inbound wave jammed the floor. Leadership has to decide whether to brute-force it or protect the team.",
+    "weight": 4,
+    "min_month": 8,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_ops_track"
+    ],
+    "immediate_effects": {
+      "stress": 1
+    },
+    "choices": [
+      {
+        "id": "stay_late",
+        "label": "Stay late and clear it",
+        "description": "You save the dock but the month gets heavier.",
+        "stat_effects": {
+          "cash": 160,
+          "stress": 6,
+          "energy": -6,
+          "promotion_progress": 2
+        }
+      },
+      {
+        "id": "run_a_safer_shift",
+        "label": "Run a safer shift",
+        "description": "You protect your people and accept a smaller career push.",
+        "stat_effects": {
+          "stress": 2,
+          "energy": -2,
+          "promotion_progress": 0,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Operations stress hit the dock all at once."
+  },
+  {
+    "id": "dispatch_route_rewrite",
+    "name": "Dispatch Route Rewrite",
+    "description": "The route board is a mess. If you can untangle it, the office notices.",
+    "weight": 3,
+    "min_month": 8,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_dispatch_track"
+    ],
+    "minimum_social_stability": 45,
+    "immediate_effects": {
+      "stress": 1
+    },
+    "choices": [
+      {
+        "id": "own_the_rollout",
+        "label": "Own the rollout",
+        "description": "You take point, earn visibility, and eat the coordination stress.",
+        "stat_effects": {
+          "cash": 180,
+          "stress": 4,
+          "promotion_progress": 3
+        }
+      },
+      {
+        "id": "keep_it_local",
+        "label": "Keep it local",
+        "description": "You fix your corner and stay steadier.",
+        "stat_effects": {
+          "stress": 1,
+          "promotion_progress": 1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Coordination work finally turned into a visible career moment."
+  },
+  {
+    "id": "equipment_cert_window",
+    "name": "Equipment Certification Window",
+    "description": "A short training slot opened for higher-value equipment work. It costs money now to change the lane later.",
+    "weight": 3,
+    "min_month": 8,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_equipment_track"
+    ],
+    "immediate_effects": {
+      "life_satisfaction": 1
+    },
+    "choices": [
+      {
+        "id": "certify_now",
+        "label": "Pay for certification",
+        "description": "You take the near-term hit for a cleaner equipment path.",
+        "stat_effects": {
+          "cash": -180,
+          "stress": 3,
+          "energy": -2,
+          "promotion_progress": 4
+        }
+      },
+      {
+        "id": "delay_it",
+        "label": "Delay it",
+        "description": "You preserve the month, but the lane stays narrower for now.",
+        "stat_effects": {
+          "stress": -1,
+          "promotion_progress": -1
+        }
+      }
+    ],
+    "log_entry": "A specialized equipment route briefly opened."
+  },
+  {
+    "id": "market_panic_window",
+    "name": "Market Panic Window",
+    "description": "The correction is forcing a choice: protect your nerves now or keep swinging for upside.",
+    "weight": 4,
+    "min_month": 10,
+    "eligible_wealth_strategy_ids": [
+      "market_chaser"
+    ],
+    "eligible_market_regime_ids": [
+      "weak",
+      "correction"
+    ],
+    "immediate_effects": {
+      "stress": 1
+    },
+    "choices": [
+      {
+        "id": "sell_to_safety",
+        "label": "Sell to safety",
+        "description": "You reduce pressure now, but it feels like conceding the run.",
+        "stat_effects": {
+          "cash": 240,
+          "stress": -2,
+          "life_satisfaction": -1
+        }
+      },
+      {
+        "id": "keep_buying",
+        "label": "Keep buying",
+        "description": "You lean into volatility and accept a shakier month.",
+        "stat_effects": {
+          "cash": -220,
+          "stress": 4,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Your wealth stance stopped being abstract when the market turned."
+  },
+  {
+    "id": "dry_powder_window",
+    "name": "Dry Powder Window",
+    "description": "Because you kept more cushion, this correction can be a threat or a selective opportunity instead of just panic.",
+    "weight": 4,
+    "min_month": 10,
+    "eligible_wealth_strategy_ids": [
+      "cushion_first",
+      "steady_builder"
+    ],
+    "eligible_market_regime_ids": [
+      "correction"
+    ],
+    "immediate_effects": {
+      "stress": -1
+    },
+    "choices": [
+      {
+        "id": "buy_selectively",
+        "label": "Buy selectively",
+        "description": "Use your stability to press a measured edge.",
+        "stat_effects": {
+          "cash": -260,
+          "stress": 1,
+          "life_satisfaction": 2,
+          "credit_score": 1
+        }
+      },
+      {
+        "id": "protect_the_floor",
+        "label": "Protect the floor",
+        "description": "Keep the month calm and take the stability win.",
+        "stat_effects": {
+          "stress": -2,
+          "social_stability": 1,
+          "credit_score": 2
+        }
+      }
+    ],
+    "log_entry": "Liquidity turned a market scare into a real decision."
+  },
+  {
+    "id": "retail_leadership_offer",
+    "name": "Retail Leadership Offer",
+    "description": "Senior management is testing who can absorb more scope without losing the floor.",
+    "weight": 3,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_management_track"
+    ],
+    "minimum_social_stability": 52,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_closing_command",
+        "label": "Take closing command",
+        "description": "Take more store authority, move faster, and live with the extra pressure.",
+        "stat_effects": {
+          "cash": 180,
+          "stress": 4,
+          "energy": -2,
+          "promotion_progress": 4
+        },
+        "modifier": {
+          "id": "management_scope",
+          "label": "Management Scope",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.05,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "stabilize_the_floor",
+        "label": "Stabilize the floor",
+        "description": "Protect the team, bank credibility, and grow slower.",
+        "stat_effects": {
+          "cash": 90,
+          "stress": 1,
+          "social_stability": 2,
+          "promotion_progress": 2,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "retail_rhythm",
+          "label": "Retail Rhythm",
+          "duration_months": 3,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.02,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      }
+    ],
+    "log_entry": "Management scope is on the table if you want the pressure that comes with it."
+  },
+  {
+    "id": "sales_territory_offer",
+    "name": "Sales Territory Offer",
+    "description": "A better territory opened. It can lift the lane or spike the volatility depending on how you take it.",
+    "weight": 3,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_sales_track"
+    ],
+    "minimum_social_stability": 64,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "go_full_commission",
+        "label": "Go full commission",
+        "description": "Press the upside and accept that the lane gets more unstable.",
+        "stat_effects": {
+          "cash": 420,
+          "stress": 5,
+          "promotion_progress": 4,
+          "social_stability": -1
+        },
+        "modifier": {
+          "id": "commission_pressure",
+          "label": "Commission Pressure",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 2
+          },
+          "income_multiplier": 1.08,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "take_salary_plus_bonus",
+        "label": "Take salary plus bonus",
+        "description": "Choose the steadier version of the offer and keep the run cleaner.",
+        "stat_effects": {
+          "cash": 220,
+          "stress": 2,
+          "promotion_progress": 2,
+          "social_stability": 1,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "sales_book_build",
+          "label": "Sales Book Build",
+          "duration_months": 3,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.03,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      }
+    ],
+    "log_entry": "A stronger territory opened and forced a real upside-versus-stability call."
+  },
+  {
+    "id": "dispatch_lead_offer",
+    "name": "Dispatch Lead Offer",
+    "description": "The routing board needs a lead. Taking it changes whether you become the calm center or the bottleneck.",
+    "weight": 3,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_dispatch_track"
+    ],
+    "minimum_social_stability": 48,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "own_the_board",
+        "label": "Own the board",
+        "description": "Take control of dispatch flow and carry the new coordination stress.",
+        "stat_effects": {
+          "cash": 240,
+          "stress": 3,
+          "promotion_progress": 4
+        },
+        "modifier": {
+          "id": "dispatch_authority",
+          "label": "Dispatch Authority",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.04,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "stay_coordination",
+        "label": "Stay coordination-side",
+        "description": "Keep the run steadier and let someone else wear the full pressure.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": 1,
+          "social_stability": 1,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "Dispatch stopped being background work and turned into a real fork."
+  },
+  {
+    "id": "equipment_shift_contract",
+    "name": "Equipment Shift Contract",
+    "description": "Operations wants someone certified and reliable for the premium machine-heavy shifts.",
+    "weight": 3,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_equipment_track"
+    ],
+    "minimum_social_stability": 40,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "sign_the_contract",
+        "label": "Sign the contract",
+        "description": "Take the pay bump and accept a harder body load.",
+        "stat_effects": {
+          "cash": 300,
+          "stress": 4,
+          "energy": -3,
+          "promotion_progress": 3
+        },
+        "modifier": {
+          "id": "shift_premium",
+          "label": "Shift Premium",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 1,
+            "energy": -1
+          },
+          "income_multiplier": 1.06,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "keep_standard_hours",
+        "label": "Keep standard hours",
+        "description": "Protect your body and stay on the lane without taking the heavier deal.",
+        "stat_effects": {
+          "stress": -1,
+          "life_satisfaction": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Specialized equipment work finally offered real upside and real strain."
+  },
+  {
+    "id": "security_deposit_shock",
+    "name": "Security Deposit Shock",
+    "description": "Weak credit turned a normal housing move into an expensive screening and deposit problem.",
+    "weight": 4,
+    "min_month": 10,
+    "eligible_housing_ids": [
+      "roommates",
+      "solo_rental"
+    ],
+    "minimum_credit_score": 300,
+    "maximum_credit_score": 620,
+    "minimum_debt": 2500,
+    "immediate_effects": {
+      "stress": 2,
+      "life_satisfaction": -1
+    },
+    "choices": [
+      {
+        "id": "pay_the_extra_deposit",
+        "label": "Pay the extra deposit",
+        "description": "Cover the credit penalty in cash and keep the housing lane open.",
+        "stat_effects": {
+          "cash": -450,
+          "stress": 2,
+          "social_stability": -1
+        }
+      },
+      {
+        "id": "delay_the_move",
+        "label": "Delay the move",
+        "description": "Protect cash now and accept another month of limitation.",
+        "stat_effects": {
+          "stress": 1,
+          "life_satisfaction": -2,
+          "social_stability": -1
+        }
+      }
+    ],
+    "log_entry": "Credit fragility made a housing move more expensive than it looked."
+  },
+  {
+    "id": "prime_vehicle_offer",
+    "name": "Prime Vehicle Offer",
+    "description": "Strong credit opened a financing lane with terms that are actually useful instead of predatory.",
+    "weight": 3,
+    "min_month": 10,
+    "eligible_transport_ids": [
+      "transit",
+      "beater_car",
+      "reliable_used_car"
+    ],
+    "minimum_credit_score": 740,
+    "immediate_effects": {
+      "stress": -1,
+      "life_satisfaction": 1
+    },
+    "choices": [
+      {
+        "id": "lock_the_offer",
+        "label": "Lock the offer",
+        "description": "Keep the financing window open so you can make the move on your terms.",
+        "stat_effects": {
+          "social_stability": 1,
+          "credit_score": 1
+        },
+        "modifier": {
+          "id": "prime_auto_offer",
+          "label": "Prime Auto Offer",
+          "duration_months": 3,
+          "stat_effects": {},
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": -70,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 450
+        }
+      },
+      {
+        "id": "skip_the_offer",
+        "label": "Skip it",
+        "description": "Keep your current transport plan and your monthly margin.",
+        "stat_effects": {
+          "stress": -1
+        }
+      }
+    ],
+    "log_entry": "Good credit finally opened a transport offer worth taking seriously."
+  },
+  {
+    "id": "good_tenant_renewal",
+    "name": "Good Tenant Renewal",
+    "description": "Strong credit and a clean solo-rental lane finally gave you leverage at renewal instead of just another bill.",
+    "weight": 3,
+    "min_month": 12,
+    "eligible_housing_ids": [
+      "solo_rental"
+    ],
+    "minimum_credit_score": 720,
+    "immediate_effects": {
+      "stress": -1,
+      "life_satisfaction": 1
+    },
+    "choices": [
+      {
+        "id": "lock_in_the_renewal",
+        "label": "Lock in the renewal",
+        "description": "Take the cleaner lease terms and protect your monthly margin.",
+        "stat_effects": {
+          "social_stability": 1,
+          "credit_score": 1
+        },
+        "modifier": {
+          "id": "renewal_discount",
+          "label": "Good Tenant Renewal",
+          "duration_months": 4,
+          "stat_effects": {},
+          "income_multiplier": 1.0,
+          "housing_cost_delta": -90,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "stay_flexible",
+        "label": "Stay flexible",
+        "description": "Keep your options open instead of locking yourself in, even if the deal is decent.",
+        "stat_effects": {
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "For once, good credit and a stable lease history put the renewal in your favor."
   }
 ]

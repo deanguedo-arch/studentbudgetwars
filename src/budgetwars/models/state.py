@@ -4,6 +4,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field, computed_field, field_validator
 
+from .content import EventDefinition
+
 
 StatEffects = dict[str, float]
 
@@ -34,6 +36,7 @@ class TransportState(BaseModel):
 
 class CareerState(BaseModel):
     track_id: str
+    branch_id: str | None = None
     tier_index: int = Field(ge=0, default=0)
     months_in_track: int = Field(ge=0, default=0)
     promotion_progress: int = Field(ge=0, default=0)
@@ -181,6 +184,10 @@ class GameState(BaseModel):
     player: PlayerState
     active_modifiers: list[ActiveMonthlyModifier] = Field(default_factory=list)
     pending_events: list[PendingEvent] = Field(default_factory=list)
+    pending_user_choice_event_id: str | None = None
+    pending_user_choice_event: EventDefinition | None = None
+    pending_promotion_branch_track_id: str | None = None
+    victory_state_id: str | None = None
     burnout_streak: int = Field(ge=0, default=0)
     log_messages: list[str] = Field(default_factory=list)
     recent_summary: list[str] = Field(default_factory=list)
@@ -214,6 +221,7 @@ class FinalScoreSummary(BaseModel):
     survived_to_28: bool
     outcome: str
     ending_label: str
+    run_identity: str | None = None
     breakdown: dict[str, float]
 
 

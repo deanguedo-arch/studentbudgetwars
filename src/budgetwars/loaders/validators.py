@@ -18,8 +18,21 @@ VALID_STAT_EFFECT_KEYS = {
     "life_satisfaction",
     "family_support",
     "social_stability",
+    "credit_score",
     "promotion_progress",
     "education_progress",
+}
+
+VALID_PRESSURE_FAMILIES = {
+    "credit_squeeze",
+    "debt_trap",
+    "housing_squeeze",
+    "transport_friction",
+    "burnout_spiral",
+    "education_drag",
+    "career_breakthrough",
+    "support_buffer",
+    "opportunity_window",
 }
 
 
@@ -41,6 +54,26 @@ def _validate_effects(effects: dict[str, float], label: str) -> None:
         raise ValueError(f"{label} has invalid effect keys: {', '.join(invalid)}")
 
 
+def _validate_consequence_layer(
+    *,
+    label: str,
+    layer: object,
+    event_ids: set[str],
+) -> None:
+    pressure_invalid = sorted(set(getattr(layer, "pressure_families")) - VALID_PRESSURE_FAMILIES)
+    if pressure_invalid:
+        raise ValueError(f"{label} has unknown pressure families: {', '.join(pressure_invalid)}")
+    event_weight_invalid = sorted(set(getattr(layer, "event_weights")) - event_ids)
+    if event_weight_invalid:
+        raise ValueError(f"{label} has unknown event weight targets: {', '.join(event_weight_invalid)}")
+    unlock_invalid = sorted(set(getattr(layer, "unlocks")) - event_ids)
+    if unlock_invalid:
+        raise ValueError(f"{label} has unknown unlock event ids: {', '.join(unlock_invalid)}")
+    blocker_invalid = sorted(set(getattr(layer, "blockers")) - event_ids)
+    if blocker_invalid:
+        raise ValueError(f"{label} has unknown blocker event ids: {', '.join(blocker_invalid)}")
+
+
 def validate_content_bundle(bundle: ContentBundle) -> None:
     _ensure_unique_ids(bundle.config.budget_stances, "budget stance")
     _ensure_unique_ids(bundle.config.opening_paths, "opening path")
@@ -57,6 +90,8 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     _ensure_unique_ids(bundle.focus_actions, "focus action")
     _ensure_unique_ids(bundle.wealth_strategies, "wealth strategy")
     _ensure_unique_ids(bundle.events, "event")
+    _ensure_unique_ids(bundle.learn_topics, "learn topic")
+    _ensure_unique_ids(bundle.win_states, "win state")
     _ensure_unique_ids(bundle.presets, "preset")
 
     if bundle.config.primary_event_chance < bundle.config.secondary_event_chance:
@@ -69,15 +104,18 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
         raise ValueError("default_market_regime_id must exist in market_regimes")
 
     career_ids = {career.id for career in bundle.careers}
+    branch_ids = {branch.id for career in bundle.careers for branch in career.branches}
     education_ids = {program.id for program in bundle.education_programs}
     housing_ids = {housing.id for housing in bundle.housing_options}
     transport_ids = {transport.id for transport in bundle.transport_options}
     city_ids = {city.id for city in bundle.cities}
+    event_ids = {event.id for event in bundle.events}
     opening_path_ids = {path.id for path in bundle.config.opening_paths}
     budget_stance_ids = {stance.id for stance in bundle.config.budget_stances}
     focus_action_ids = {focus.id for focus in bundle.focus_actions}
     wealth_strategy_ids = {strategy.id for strategy in bundle.wealth_strategies}
     credential_ids = {program.credential_id for program in bundle.education_programs if program.credential_id}
+    win_state_track_ids = {track.id for track in bundle.careers}
 
     if not isclose(sum(bundle.scoring_weights.model_dump().values()), 1.0, abs_tol=1e-9):
         raise ValueError("Scoring weights must sum to 1.0")
@@ -102,6 +140,21 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Career '{career.id}' must define at least two tiers")
         if career.stability_profile + career.volatility_profile < 70:
             raise ValueError(f"Career '{career.id}' must have meaningful stability/volatility identity")
+        career_branch_ids: set[str] = set()
+        for branch in career.branches:
+            if branch.id in career_branch_ids:
+                raise ValueError(f"Career '{career.id}' has duplicate branch id '{branch.id}'")
+            career_branch_ids.add(branch.id)
+            missing_branch_credentials = sorted(set(branch.required_credential_ids) - credential_ids)
+            if missing_branch_credentials:
+                raise ValueError(
+                    f"Career '{career.id}' branch '{branch.id}' references unknown credentials: "
+                    f"{', '.join(missing_branch_credentials)}"
+                )
+            if branch.min_tier_index >= len(career.tiers):
+                raise ValueError(
+                    f"Career '{career.id}' branch '{branch.id}' min_tier_index exceeds available tiers"
+                )
         for tier in career.tiers:
             unknown_tier_credentials = sorted(set(tier.required_credential_ids) - credential_ids)
             if unknown_tier_credentials:
@@ -164,6 +217,18 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
 
     for event in bundle.events:
         _validate_effects(event.immediate_effects, f"Event '{event.id}'")
+        if event.choices:
+            choice_ids = {choice.id for choice in event.choices}
+            if len(choice_ids) != len(event.choices):
+                raise ValueError(f"Event '{event.id}' has duplicate choice ids")
+            for choice in event.choices:
+                _validate_effects(choice.stat_effects, f"Event choice '{event.id}:{choice.id}'")
+                if choice.modifier is not None:
+                    _validate_effects(choice.modifier.stat_effects, f"Event choice modifier '{event.id}:{choice.id}'")
+                    if choice.modifier.duration_months > 12:
+                        raise ValueError(
+                            f"Event choice modifier '{event.id}:{choice.id}:{choice.modifier.id}' lasts too long for this version"
+                        )
         if event.min_month > bundle.config.total_months:
             raise ValueError(f"Event '{event.id}' starts after the game ends")
         if sorted(set(event.eligible_city_ids) - city_ids):
@@ -174,10 +239,17 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Event '{event.id}' references unknown transport ids")
         if sorted(set(event.eligible_career_ids) - career_ids):
             raise ValueError(f"Event '{event.id}' references unknown career ids")
+        if sorted(set(event.eligible_branch_ids) - branch_ids):
+            raise ValueError(f"Event '{event.id}' references unknown branch ids")
         if sorted(set(event.eligible_education_ids) - education_ids):
             raise ValueError(f"Event '{event.id}' references unknown education ids")
         if sorted(set(event.eligible_opening_path_ids) - opening_path_ids):
             raise ValueError(f"Event '{event.id}' references unknown opening paths")
+        if sorted(set(event.eligible_wealth_strategy_ids) - wealth_strategy_ids):
+            raise ValueError(f"Event '{event.id}' references unknown wealth strategies")
+        if event.minimum_credit_score is not None and event.maximum_credit_score is not None:
+            if event.minimum_credit_score > event.maximum_credit_score:
+                raise ValueError(f"Event '{event.id}' has an impossible credit score range")
         if event.eligible_modifier_ids:
             modifier_ids = {entry.modifier.id for entry in bundle.events if entry.modifier is not None}
             if sorted(set(event.eligible_modifier_ids) - modifier_ids):
@@ -190,6 +262,62 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             _validate_effects(event.modifier.stat_effects, f"Event modifier '{event.modifier.id}'")
             if event.modifier.duration_months > 12:
                 raise ValueError(f"Event modifier '{event.modifier.id}' lasts too long for this version")
+
+    for win_state in bundle.win_states:
+        if win_state.minimum_career_track_ids:
+            unknown_tracks = sorted(set(win_state.minimum_career_track_ids) - win_state_track_ids)
+            if unknown_tracks:
+                raise ValueError(f"Win state '{win_state.id}' references unknown career tracks")
+        if win_state.minimum_career_branch_ids:
+            unknown_branches = sorted(set(win_state.minimum_career_branch_ids) - branch_ids)
+            if unknown_branches:
+                raise ValueError(f"Win state '{win_state.id}' references unknown career branches")
+        if win_state.score_multiplier <= 0:
+            raise ValueError(f"Win state '{win_state.id}' must have a positive score multiplier")
+
+    for topic in bundle.learn_topics:
+        if not topic.how_to_raise:
+            raise ValueError(f"Learn topic '{topic.id}' must explain how to raise the stat")
+        if not topic.how_to_lower:
+            raise ValueError(f"Learn topic '{topic.id}' must explain how to lower the stat")
+        if not topic.why_it_matters:
+            raise ValueError(f"Learn topic '{topic.id}' must explain why the stat matters")
+
+    matrix = bundle.consequence_matrix
+    for key in matrix.budget_stances:
+        if key not in budget_stance_ids:
+            raise ValueError(f"Consequence matrix references unknown budget stance '{key}'")
+    for key in matrix.wealth_strategies:
+        if key not in wealth_strategy_ids:
+            raise ValueError(f"Consequence matrix references unknown wealth strategy '{key}'")
+    for key in matrix.housing_options:
+        if key not in housing_ids:
+            raise ValueError(f"Consequence matrix references unknown housing option '{key}'")
+    for key in matrix.transport_options:
+        if key not in transport_ids:
+            raise ValueError(f"Consequence matrix references unknown transport option '{key}'")
+    for key in matrix.education_programs:
+        if key not in education_ids:
+            raise ValueError(f"Consequence matrix references unknown education program '{key}'")
+    for key in matrix.focus_actions:
+        if key not in focus_action_ids:
+            raise ValueError(f"Consequence matrix references unknown focus action '{key}'")
+    for key in matrix.career_tracks:
+        if key not in career_ids:
+            raise ValueError(f"Consequence matrix references unknown career track '{key}'")
+
+    for section_name, section in (
+        ("budget_stances", matrix.budget_stances),
+        ("wealth_strategies", matrix.wealth_strategies),
+        ("housing_options", matrix.housing_options),
+        ("transport_options", matrix.transport_options),
+        ("education_programs", matrix.education_programs),
+        ("focus_actions", matrix.focus_actions),
+        ("career_tracks", matrix.career_tracks),
+        ("credit_bands", matrix.credit_bands),
+    ):
+        for item_id, layer in section.items():
+            _validate_consequence_layer(label=f"consequence_matrix.{section_name}.{item_id}", layer=layer, event_ids=event_ids)
 
     for stance in bundle.config.budget_stances:
         allocation_total = (

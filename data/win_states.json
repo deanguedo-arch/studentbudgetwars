@@ -1,0 +1,100 @@
+[
+  {
+    "id": "dispatch_anchor",
+    "name": "Dispatch Anchor",
+    "description": "You turned a logistics coordination lane into durable stability and strong day-to-day control.",
+    "ending_label": "Dispatch Anchor",
+    "minimum_score": 67,
+    "minimum_cash": 70000,
+    "minimum_savings": 15000,
+    "minimum_net_worth": 100000,
+    "maximum_debt": 7000,
+    "minimum_credit_score": 700,
+    "minimum_housing_stability": 68,
+    "minimum_social_stability": 58,
+    "maximum_emergency_liquidation_count": 1,
+    "minimum_career_tier_index": 4,
+    "minimum_career_track_ids": [
+      "warehouse_logistics"
+    ],
+    "minimum_career_branch_ids": [
+      "warehouse_dispatch_track"
+    ],
+    "score_multiplier": 1.18
+  },
+  {
+    "id": "client_book_position",
+    "name": "Client Book Position",
+    "description": "You turned a relationship-driven retail lane into a stable, high-trust position with real leverage.",
+    "ending_label": "Client Book Position",
+    "minimum_score": 68,
+    "minimum_cash": 80000,
+    "minimum_savings": 18000,
+    "minimum_net_worth": 105000,
+    "maximum_debt": 6000,
+    "minimum_credit_score": 710,
+    "minimum_housing_stability": 68,
+    "minimum_social_stability": 66,
+    "maximum_emergency_liquidation_count": 1,
+    "minimum_career_tier_index": 4,
+    "minimum_career_track_ids": [
+      "retail_service"
+    ],
+    "minimum_career_branch_ids": [
+      "retail_clienteling_track"
+    ],
+    "score_multiplier": 1.2
+  },
+  {
+    "id": "steady_builder",
+    "name": "Steady Builder",
+    "description": "You built a real cushion and kept your life from wobbling apart.",
+    "ending_label": "Steady Builder",
+    "minimum_score": 55,
+    "minimum_cash": 25000,
+    "minimum_savings": 5000,
+    "minimum_net_worth": 40000,
+    "maximum_debt": 15000,
+    "minimum_credit_score": 620,
+    "minimum_housing_stability": 50,
+    "minimum_career_tier_index": 3,
+    "minimum_career_track_ids": [],
+    "score_multiplier": 1.05
+  },
+  {
+    "id": "financial_anchor",
+    "name": "Financial Anchor",
+    "description": "You turned steady income into durable stability and a stronger runway.",
+    "ending_label": "Financial Anchor",
+    "minimum_score": 65,
+    "minimum_cash": 60000,
+    "minimum_savings": 15000,
+    "minimum_net_worth": 90000,
+    "maximum_debt": 8000,
+    "minimum_credit_score": 680,
+    "minimum_housing_stability": 62,
+    "minimum_social_stability": 52,
+    "maximum_emergency_liquidation_count": 1,
+    "minimum_career_tier_index": 4,
+    "minimum_career_track_ids": [],
+    "score_multiplier": 1.15
+  },
+  {
+    "id": "life_position",
+    "name": "Life Position",
+    "description": "You finished the run with a genuinely strong position and room to keep building.",
+    "ending_label": "Life Position",
+    "minimum_score": 78,
+    "minimum_cash": 90000,
+    "minimum_savings": 20000,
+    "minimum_net_worth": 120000,
+    "maximum_debt": 5000,
+    "minimum_credit_score": 720,
+    "minimum_housing_stability": 72,
+    "minimum_social_stability": 60,
+    "maximum_emergency_liquidation_count": 0,
+    "minimum_career_tier_index": 4,
+    "minimum_career_track_ids": [],
+    "score_multiplier": 1.3
+  }
+]

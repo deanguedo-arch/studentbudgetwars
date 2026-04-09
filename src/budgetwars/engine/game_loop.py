@@ -5,10 +5,10 @@ from random import Random
 from budgetwars.models import ContentBundle, FinalScoreSummary, GameState, LiveScoreSnapshot
 
 from .budgeting import pay_named_cost
-from .careers import can_enter_career, promotion_blockers
+from .careers import branch_statuses, can_enter_career, can_select_branch, promotion_blockers
 from .education import can_switch_education
-from .effects import append_log, trim_logs
-from .events import eligible_events
+from .effects import append_log, net_worth, trim_logs
+from .events import eligible_events, resolve_event_choice
 from .housing import can_switch_housing
 from .lookups import (
     get_budget_stance,
@@ -22,7 +22,13 @@ from .lookups import (
     get_wealth_strategy,
 )
 from .month_resolution import resolve_month
-from .scoring import build_live_score_snapshot, calculate_final_score
+from .scoring import (
+    build_live_score_snapshot,
+    calculate_final_score,
+    credit_progress_summary,
+    credit_tier_label,
+    dominant_pressure_family,
+)
 from .setup import build_new_game_state
 from .transport import can_switch_transport
 
@@ -64,13 +70,80 @@ class GameController:
         return cls(bundle, state)
 
     def final_score_summary(self) -> FinalScoreSummary:
-        return calculate_final_score(self.bundle, self.state)
+        summary = calculate_final_score(self.bundle, self.state)
+        victory_state = self._victory_state()
+        if victory_state is None:
+            return summary
+        return FinalScoreSummary(
+            final_score=round(summary.final_score * victory_state.score_multiplier, 2),
+            survived_to_28=summary.survived_to_28,
+            outcome=(
+                f"You claimed the {victory_state.ending_label} path through {summary.run_identity}."
+                if summary.run_identity
+                else f"You claimed the {victory_state.ending_label} path."
+            ),
+            ending_label=victory_state.ending_label,
+            run_identity=summary.run_identity,
+            breakdown=summary.breakdown,
+        )
 
     def live_score_snapshot(self) -> LiveScoreSnapshot:
         return build_live_score_snapshot(self.bundle, self.state, warnings=self.build_crisis_warnings())
 
     def resolve_month(self) -> None:
         resolve_month(self.bundle, self.state, self.rng)
+
+    def resolve_event_choice(self, choice_id: str) -> None:
+        event_id = self.state.pending_user_choice_event_id
+        if event_id is None:
+            raise ValueError("No event choice is pending.")
+        resolve_event_choice(self.bundle, self.state, event_id, choice_id)
+
+    def available_win_states(self) -> list:
+        if self.is_finished():
+            return []
+        snapshot = self.live_score_snapshot()
+        player = self.state.player
+        current_track_id = player.career.track_id
+        eligible = []
+        for win_state in self.bundle.win_states:
+            if snapshot.projected_score < win_state.minimum_score:
+                continue
+            if player.cash < win_state.minimum_cash:
+                continue
+            if player.savings < win_state.minimum_savings:
+                continue
+            if net_worth(self.state) < win_state.minimum_net_worth:
+                continue
+            if win_state.maximum_debt is not None and player.debt > win_state.maximum_debt:
+                continue
+            if win_state.minimum_credit_score is not None and player.credit_score < win_state.minimum_credit_score:
+                continue
+            if win_state.minimum_housing_stability is not None and player.housing.housing_stability < win_state.minimum_housing_stability:
+                continue
+            if win_state.minimum_social_stability is not None and player.social_stability < win_state.minimum_social_stability:
+                continue
+            if (
+                win_state.maximum_emergency_liquidation_count is not None
+                and player.emergency_liquidation_count > win_state.maximum_emergency_liquidation_count
+            ):
+                continue
+            if player.career.tier_index < win_state.minimum_career_tier_index:
+                continue
+            if win_state.minimum_career_track_ids and current_track_id not in win_state.minimum_career_track_ids:
+                continue
+            if win_state.minimum_career_branch_ids and player.career.branch_id not in win_state.minimum_career_branch_ids:
+                continue
+            eligible.append(win_state)
+        return eligible
+
+    def declare_victory(self, win_state_id: str) -> None:
+        win_state = next((item for item in self.available_win_states() if item.id == win_state_id), None)
+        if win_state is None:
+            raise ValueError(f"Win state '{win_state_id}' is not currently available.")
+        self.state.victory_state_id = win_state.id
+        self.state.game_over_reason = "victory"
+        append_log(self.state, f"Victory declared: {win_state.name}")
 
     def available_careers(self) -> list:
         available = []
@@ -86,6 +159,15 @@ class GameController:
             allowed, reason = can_enter_career(self.bundle, self.state, track.id)
             statuses.append((track.name, track.id, allowed, reason))
         return statuses
+
+    def available_career_branches(self) -> list[tuple]:
+        return branch_statuses(self.bundle, self.state)
+
+    def pending_promotion_branch_choices(self) -> list[tuple]:
+        track_id = self.state.pending_promotion_branch_track_id
+        if track_id is None or self.state.player.career.track_id != track_id:
+            return []
+        return branch_statuses(self.bundle, self.state)
 
     def available_education_programs(self) -> list:
         return list(self.bundle.education_programs)
@@ -116,6 +198,8 @@ class GameController:
             pay_named_cost(self.state, switch_cost, "Career transition cost")
         self.state.player.stress += self.bundle.config.career_switch_stress_cost
         self.state.player.career.track_id = career_id
+        self.state.player.career.branch_id = None
+        self.state.pending_promotion_branch_track_id = None
         self.state.player.career.tier_index = 0
         self.state.player.career.months_in_track = 0
         self.state.player.career.months_at_tier = 0
@@ -131,6 +215,20 @@ class GameController:
             self.state,
             f"Career pivot: {get_career_track(self.bundle, previous_track).name} -> {get_career_track(self.bundle, career_id).name}",
         )
+        trim_logs(self.bundle, self.state)
+
+    def choose_career_branch(self, branch_id: str) -> None:
+        allowed, reason = can_select_branch(self.bundle, self.state, branch_id)
+        if not allowed:
+            raise ValueError(reason)
+        if self.state.player.career.branch_id == branch_id:
+            raise ValueError("That career branch is already selected.")
+        track = get_career_track(self.bundle, self.state.player.career.track_id)
+        branch = next(item for item in track.branches if item.id == branch_id)
+        self.state.player.career.branch_id = branch_id
+        self.state.pending_promotion_branch_track_id = None
+        self.state.player.career.promotion_momentum = min(100, self.state.player.career.promotion_momentum + 4)
+        append_log(self.state, f"Career branch selected: {branch.name}")
         trim_logs(self.bundle, self.state)
 
     def change_education(self, program_id: str, intensity: str | None = None) -> None:
@@ -248,6 +346,10 @@ class GameController:
     def build_crisis_warnings(self) -> list[str]:
         player = self.state.player
         warnings: list[str] = []
+        if player.credit_score < 580:
+            warnings.append(f"Credit is limiting housing and transport options ({player.credit_score}).")
+        elif player.credit_score < 670:
+            warnings.append(f"Credit is still fair; some housing and transport doors stay narrow ({player.credit_score}).")
         if player.debt >= self.state.debt_game_over_threshold * self.bundle.config.crisis_warning_debt_ratio:
             warnings.append("Debt is getting close to collections.")
         if player.stress >= self.bundle.config.crisis_warning_stress:
@@ -272,8 +374,22 @@ class GameController:
             current_year = ((self.state.current_month - 1) // 12) + 1
             if player.last_social_lifeline_year < current_year:
                 warnings.append("Your strong network can bail you out once this year if things go bad.")
+        if player.housing_id != "solo_rental":
+            solo_allowed, solo_reason = can_switch_housing(self.bundle, self.state, "solo_rental")
+            if not solo_allowed and ("credit" in solo_reason.lower() or "debt" in solo_reason.lower() or "lease" in solo_reason.lower()):
+                warnings.append(f"Solo rental blocked: {solo_reason}")
+        if player.transport_id != "financed_car":
+            financed_allowed, financed_reason = can_switch_transport(self.bundle, self.state, "financed_car")
+            if not financed_allowed and (
+                "credit" in financed_reason.lower() or "debt" in financed_reason.lower() or "payment" in financed_reason.lower()
+            ):
+                warnings.append(f"Financed car blocked: {financed_reason}")
         if self.state.pending_events:
             warnings.append(f"Something is building — {len(self.state.pending_events)} consequence(s) pending.")
+        if self.state.pending_user_choice_event_id:
+            warnings.append("An unresolved event choice is waiting.")
+        if self.state.pending_promotion_branch_track_id:
+            warnings.append("A promotion branch decision is pending before your next advancement.")
         return warnings
 
     def build_month_outlook(self) -> list[str]:
@@ -284,11 +400,16 @@ class GameController:
         track = get_career_track(self.bundle, player.career.track_id)
         tier = get_current_career_tier(self.bundle, self.state)
         wealth_strategy = get_wealth_strategy(self.bundle, player.wealth_strategy_id)
+        credit_label = credit_tier_label(player.credit_score)
+        credit_progress_label, credit_progress_detail, _ = credit_progress_summary(player.credit_score)
         outlook = [
             f"{city.name}: {city.opportunity_text}",
             f"Pressure: {city.pressure_text}",
             f"Current lane: {tier.label} in {track.name}.",
             f"Wealth plan: {wealth_strategy.name}.",
+            f"Credit: {player.credit_score} ({credit_label})",
+            f"{credit_progress_label}: {credit_progress_detail}",
+            f"Situation family: {dominant_pressure_family(self.state)}.",
         ]
         outlook.extend(f"Warning: {warning}" for warning in self.build_crisis_warnings())
         if housing.id == "parents" and player.family_support <= self.state.minimum_parent_fallback_support + 10:
@@ -323,7 +444,16 @@ class GameController:
             outlook.append("Career transition drag is still reducing this month's reliability.")
         if self.state.player.education.reentry_drag_months > 0:
             outlook.append("Education re-entry drag is slowing school momentum this month.")
-        return outlook[:8]
+        return outlook[:10]
 
     def is_finished(self) -> bool:
-        return self.state.game_over_reason is not None or self.state.current_month > self.state.total_months
+        return (
+            self.state.game_over_reason is not None
+            or self.state.victory_state_id is not None
+            or self.state.current_month > self.state.total_months
+        )
+
+    def _victory_state(self):
+        if not self.state.victory_state_id:
+            return None
+        return next((item for item in self.bundle.win_states if item.id == self.state.victory_state_id), None)

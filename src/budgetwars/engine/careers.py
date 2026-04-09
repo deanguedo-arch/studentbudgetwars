@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from random import Random
 
-from budgetwars.models import ContentBundle, GameState
+from budgetwars.models import CareerBranchDefinition, ContentBundle, GameState
 from budgetwars.utils.rng import derive_seed
 
 from .effects import append_log
@@ -39,6 +39,49 @@ def can_enter_career(bundle: ContentBundle, state: GameState, career_id: str) ->
     return True, ""
 
 
+def _current_branch(bundle: ContentBundle, state: GameState) -> CareerBranchDefinition | None:
+    branch_id = state.player.career.branch_id
+    if not branch_id:
+        return None
+    track = get_career_track(bundle, state.player.career.track_id)
+    return next((branch for branch in track.branches if branch.id == branch_id), None)
+
+
+def branch_options(bundle: ContentBundle, state: GameState) -> list[CareerBranchDefinition]:
+    track = get_career_track(bundle, state.player.career.track_id)
+    return list(track.branches)
+
+
+def can_select_branch(bundle: ContentBundle, state: GameState, branch_id: str) -> tuple[bool, str]:
+    track = get_career_track(bundle, state.player.career.track_id)
+    branch = next((item for item in track.branches if item.id == branch_id), None)
+    if branch is None:
+        return False, "That branch does not exist for your current career track."
+    player = state.player
+    if player.career.tier_index < branch.min_tier_index:
+        return False, f"You need to reach tier {branch.min_tier_index + 1} before that branch opens."
+    if branch.min_transport_reliability is not None and player.transport.reliability_score < branch.min_transport_reliability:
+        return False, "Transport reliability is too low for that branch."
+    if branch.min_social_stability is not None and player.social_stability < branch.min_social_stability:
+        return False, "Social stability is too low for that branch."
+    if branch.min_energy is not None and player.energy < branch.min_energy:
+        return False, "Energy is too low for that branch."
+    if branch.max_stress is not None and player.stress > branch.max_stress:
+        return False, "Stress is too high for that branch."
+    missing = [credential for credential in branch.required_credential_ids if credential not in player.education.earned_credential_ids]
+    if missing:
+        return False, f"Missing credential: {', '.join(missing)}."
+    return True, ""
+
+
+def branch_statuses(bundle: ContentBundle, state: GameState) -> list[tuple[CareerBranchDefinition, bool, str]]:
+    statuses: list[tuple[CareerBranchDefinition, bool, str]] = []
+    for branch in branch_options(bundle, state):
+        allowed, reason = can_select_branch(bundle, state, branch.id)
+        statuses.append((branch, allowed, reason))
+    return statuses
+
+
 def _income_variance_factor(state: GameState, variance: float) -> float:
     if variance <= 0:
         return 1.0
@@ -50,6 +93,7 @@ def current_income(bundle: ContentBundle, state: GameState, income_multiplier: f
     city = get_city(bundle, state.player.current_city_id)
     tier = get_current_career_tier(bundle, state)
     track = get_career_track(bundle, state.player.career.track_id)
+    branch = _current_branch(bundle, state)
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
     career_bias = city.career_income_biases.get(state.player.career.track_id, 1.0)
     social_bonus = 1.0 + (track.social_income_factor * max(0, state.player.social_stability - 50))
@@ -73,15 +117,22 @@ def current_income(bundle: ContentBundle, state: GameState, income_multiplier: f
         * momentum_multiplier
         * energy_cap
     )
+    if branch is not None:
+        income *= branch.income_multiplier
     return max(0, int(round(income)))
 
 
 def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
     tier = get_current_career_tier(bundle, state)
     track = get_career_track(bundle, state.player.career.track_id)
+    branch = _current_branch(bundle, state)
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
     state.player.energy += tier.energy_delta
     state.player.stress += int(round(tier.stress_delta * difficulty.stress_multiplier))
+    if branch is not None:
+        state.player.energy += branch.energy_delta
+        state.player.stress += branch.stress_delta
+        state.player.career.layoff_pressure = max(0, state.player.career.layoff_pressure + branch.layoff_pressure_delta)
     state.player.life_satisfaction += tier.life_satisfaction_delta
     state.player.social_stability += tier.social_stability_delta
     state.player.career.months_in_track += 1
@@ -120,7 +171,10 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
 
 def add_promotion_progress(bundle: ContentBundle, state: GameState, bonus: int) -> None:
     track = get_career_track(bundle, state.player.career.track_id)
+    branch = _current_branch(bundle, state)
     progress_gain = 1 + max(0, bonus)
+    if branch is not None:
+        progress_gain += branch.promotion_progress_bonus
     if state.player.career.recent_performance_tag == "uptrend":
         progress_gain += 1
     elif state.player.career.recent_performance_tag == "downtrend":
@@ -176,6 +230,12 @@ def promotion_blockers(bundle: ContentBundle, state: GameState) -> list[str]:
         blockers.append("Sales promotion needs stronger momentum.")
     if track.id == "degree_gated_professional" and not state.player.education.earned_credential_ids:
         blockers.append("Professional track progression depends on completed credentials.")
+    branch = _current_branch(bundle, state)
+    if branch is not None:
+        if branch.min_transport_reliability is not None and state.player.transport.reliability_score < branch.min_transport_reliability:
+            blockers.append("Current branch needs higher transport reliability.")
+        if branch.max_stress is not None and state.player.stress > branch.max_stress:
+            blockers.append("Current branch is straining under current stress.")
     return blockers
 
 
@@ -185,9 +245,17 @@ def maybe_promote(bundle: ContentBundle, state: GameState) -> None:
         return
     if promotion_blockers(bundle, state):
         return
+    if track.branches:
+        min_branch_tier = min(branch.min_tier_index for branch in track.branches)
+        if state.player.career.tier_index >= min_branch_tier and not state.player.career.branch_id:
+            if state.pending_promotion_branch_track_id != track.id:
+                append_log(state, f"Promotion decision pending: choose a branch in {track.name} before advancing.")
+            state.pending_promotion_branch_track_id = track.id
+            return
     next_tier = track.tiers[state.player.career.tier_index + 1]
     state.player.career.tier_index += 1
     state.player.career.promotion_progress = 0
     state.player.career.months_at_tier = 0
     state.player.career.promotion_momentum = min(100, state.player.career.promotion_momentum + 7)
+    state.pending_promotion_branch_track_id = None
     append_log(state, f"You moved up to {next_tier.label} in {track.name}.")
