@@ -19,7 +19,15 @@ from .education import apply_education_effects, education_monthly_cost, update_e
 from .effects import append_log, apply_stat_effects, clamp_player_state, net_worth, summarize_milestone, trim_logs
 from .events import roll_month_events
 from .housing import apply_housing_effects, can_switch_housing, monthly_housing_cost
-from .lookups import get_career_track, get_current_career_tier, get_difficulty, get_focus_action, get_housing_option, get_transport_option
+from .lookups import (
+    get_career_track,
+    get_current_career_tier,
+    get_difficulty,
+    get_education_program,
+    get_focus_action,
+    get_housing_option,
+    get_transport_option,
+)
 from .transport import apply_transport_access_penalty, apply_transport_effects, can_switch_transport, monthly_transport_cost
 from .wealth import apply_wealth_allocations, apply_wealth_returns
 from .scoring import credit_tier_label, dominant_pressure_family
@@ -381,6 +389,17 @@ def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
         player.stress -= 1
         append_log(state, f"Recovery route: strong credit unlocked debt relief (-${debt_relief}).")
     if (
+        player.credit_score <= 590
+        and player.debt <= 4500
+        and player.monthly_surplus >= 120
+        and player.housing.missed_payment_streak == 0
+        and (player.cash + player.savings) >= 1000
+    ):
+        credit_gain = 4 if player.credit_score < 575 else 3
+        player.credit_score += credit_gain
+        player.stress -= 1
+        append_log(state, f"Recovery route: clean-month credit rebuild added +{credit_gain} credit.")
+    if (
         player.housing.housing_stability <= 34
         and player.current_city_id == "hometown_low_cost"
         and player.family_support >= bundle.config.minimum_parent_fallback_support + 8
@@ -415,6 +434,35 @@ def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
             append_log(state, f"Recovery route: cash reserve buffer stabilized housing (-${reserve_spend}).")
         else:
             append_log(state, "Recovery route: your cash reserve buffer softened the housing spiral after liquidation.")
+    if (
+        player.transport.option_id in {"financed_car", "luxury_financed_car"}
+        and player.monthly_surplus <= -120
+        and player.debt >= 9000
+        and player.credit_score < 680
+        and (player.cash + player.savings) < 500
+    ):
+        player.transport.option_id = "transit"
+        player.transport.months_owned = 0
+        player.transport.reliability_score = max(player.transport.reliability_score, 78)
+        player.transport.recent_switch_penalty_months = 0
+        player.stress -= 2
+        player.life_satisfaction -= 1
+        append_log(state, "Recovery route: transport downgrade cut the financed trap and restored monthly oxygen.")
+    program = get_education_program(bundle, player.education.program_id)
+    if (
+        player.education.is_active
+        and program.can_pause
+        and player.stress >= 82
+        and player.energy <= 28
+        and player.monthly_surplus < 0
+        and (player.cash + player.savings) < 400
+    ):
+        player.education.is_active = False
+        player.education.is_paused = True
+        player.education.reentry_drag_months = max(player.education.reentry_drag_months, 1)
+        player.stress -= 3
+        player.energy += 2
+        append_log(state, "Recovery route: paused education to prevent burnout collapse and stabilize cash.")
 
 
 def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | None:
@@ -433,8 +481,19 @@ def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | 
         and player.housing.missed_payment_streak == 0
     ):
         return "Recovery route: strong credit kept debt relief available."
+    if (
+        player.credit_score <= 590
+        and player.debt <= 4500
+        and player.monthly_surplus >= 120
+        and player.housing.missed_payment_streak == 0
+    ):
+        return "Recovery route: clean months are rebuilding a fragile credit file."
     if player.housing.option_id == "parents" and player.current_city_id == "hometown_low_cost":
         return "Recovery route: family fallback is holding the housing line."
+    if player.transport.option_id == "transit" and player.monthly_surplus <= 0 and player.debt >= 9000:
+        return "Recovery route: transport downgrade reduced the financed-car trap."
+    if player.education.is_paused and player.education.reentry_drag_months > 0:
+        return "Recovery route: paused education to stop a burnout spiral."
     if player.wealth_strategy_id in {"cushion_first", "steady_builder"} and player.housing.housing_stability >= 42:
         return "Recovery route: cash buffer kept the housing spiral from getting worse."
     return None

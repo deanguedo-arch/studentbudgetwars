@@ -427,6 +427,82 @@ def test_liquid_buffer_recovery_route_can_stabilize_housing(bundle, controller_f
     assert any("cash reserve" in line.lower() or "buffer" in line.lower() for line in controller.state.log_messages)
 
 
+def test_transport_downgrade_recovery_route_can_stop_financed_trap(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.player.transport.option_id = "financed_car"
+    controller.state.player.debt = 12600
+    controller.state.player.credit_score = 602
+    controller.state.player.cash = 80
+    controller.state.player.savings = 120
+    controller.state.player.stress = 74
+    controller.state.player.monthly_surplus = -220
+    controller.state.active_modifiers.append(
+        ActiveMonthlyModifier(
+            id="forced_shortfall",
+            label="Forced Shortfall",
+            remaining_months=1,
+            income_multiplier=0.2,
+            housing_cost_delta=1400,
+            transport_cost_delta=220,
+        )
+    )
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert controller.state.player.transport.option_id in {"transit", "bike"}
+    assert any("transport downgrade" in line.lower() for line in controller.state.log_messages)
+
+
+def test_education_pause_recovery_route_triggers_under_burnout_and_cash_pressure(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(opening_path_id="college_university", city_id="mid_size_city")
+    controller.state.player.education.program_id = "full_time_university"
+    controller.state.player.education.is_active = True
+    controller.state.player.education.is_paused = False
+    controller.state.player.stress = 88
+    controller.state.player.energy = 20
+    controller.state.player.cash = 60
+    controller.state.player.savings = 80
+    controller.state.player.monthly_surplus = -180
+    controller.state.active_modifiers.append(
+        ActiveMonthlyModifier(
+            id="forced_shortfall",
+            label="Forced Shortfall",
+            remaining_months=1,
+            income_multiplier=0.2,
+            housing_cost_delta=1500,
+        )
+    )
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert controller.state.player.education.is_active is False
+    assert controller.state.player.education.is_paused is True
+    assert any("paused education" in line.lower() for line in controller.state.log_messages)
+
+
+def test_clean_credit_rebuild_route_applies_in_fragile_band(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost", difficulty_id="easy")
+    controller.state.player.credit_score = 565
+    controller.state.player.debt = 3200
+    controller.state.player.cash = 1900
+    controller.state.player.savings = 1400
+    controller.state.player.monthly_surplus = 220
+    controller.state.player.housing.missed_payment_streak = 0
+    controller.state.player.stress = 48
+    start_credit = controller.state.player.credit_score
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert controller.state.player.credit_score > start_credit
+    assert any("credit rebuild" in line.lower() for line in controller.state.log_messages)
+
+
 def test_transport_signature_can_boost_promotion_momentum(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
