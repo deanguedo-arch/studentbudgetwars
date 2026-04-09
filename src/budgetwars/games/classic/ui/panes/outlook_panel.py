@@ -130,6 +130,28 @@ class OutlookPanel(tk.Frame):
             wraplength=420,
             justify="left",
         ).pack(fill="x", pady=(1, 0))
+        if getattr(forecast, "recovery_route", None):
+            tk.Label(
+                focus_frame,
+                text=forecast.recovery_route,
+                bg=BG_CARD,
+                fg=COLOR_POSITIVE,
+                font=FONT_SMALL if not self._large else ("Segoe UI", 11),
+                anchor="w",
+                wraplength=420,
+                justify="left",
+            ).pack(fill="x", pady=(2, 0))
+        if getattr(forecast, "blocked_doors", None):
+            tk.Label(
+                focus_frame,
+                text="Blocked doors: " + " | ".join(forecast.blocked_doors[: (1 if compact else 2)]),
+                bg=BG_CARD,
+                fg=COLOR_WARNING,
+                font=FONT_SMALL if not self._large else ("Segoe UI", 11),
+                anchor="w",
+                wraplength=420,
+                justify="left",
+            ).pack(fill="x", pady=(2, 0))
 
         resolve_frame = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=ACCENT_FOCUS, highlightthickness=2)
         resolve_frame.pack(fill="x", pady=(PAD_S, 0))

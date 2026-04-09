@@ -12,6 +12,8 @@ from budgetwars.engine.scoring import (
     credit_tier_label,
     dominant_pressure_family,
 )
+from budgetwars.engine.housing import can_switch_housing
+from budgetwars.engine.transport import can_switch_transport
 from budgetwars.models import LiveScoreSnapshot
 
 from .theme import (
@@ -61,6 +63,7 @@ class BuildSystemVM:
 class BuildSnapshotVM:
     player_name: str
     city_name: str
+    identity_line: str | None = None
     items: list[BuildSystemVM] = field(default_factory=list)
 
     @property
@@ -84,6 +87,8 @@ class MonthlyForecastVM:
     progress_label: str
     progress_detail: str
     progress_fraction: float
+    recovery_route: str | None = None
+    blocked_doors: list[str] = field(default_factory=list)
     driver_notes: list[str] = field(default_factory=list)
     recent_summary: list[str] = field(default_factory=list)
 
@@ -111,6 +116,8 @@ class PressureSummaryVM:
     progress_fraction: float
     run_killer: str = ""
     fastest_fix: str = ""
+    recovery_route: str | None = None
+    blocked_doors: list[str] = field(default_factory=list)
     primary_metrics: list[PressureMetricVM] = field(default_factory=list)
     secondary_metrics: list[PressureMetricVM] = field(default_factory=list)
     active_modifiers: list[str] = field(default_factory=list)
@@ -205,6 +212,25 @@ def _career_preview(track) -> str:
         f"promotion target {tier.promotion_target}",
     ]
     return _format_preview(track.description, [effect for effect in effects if effect])
+
+
+def _career_branch_preview(branch) -> str:
+    effects = [
+        _percent_label(branch.income_multiplier - 1.0, "income"),
+        _signed_label(branch.stress_delta, "stress"),
+        _signed_label(branch.energy_delta, "energy"),
+        _signed_label(branch.promotion_progress_bonus, "promo"),
+        _signed_label(branch.layoff_pressure_delta, "layoff pressure"),
+    ]
+    if branch.min_transport_reliability is not None:
+        effects.append(f"transport {branch.min_transport_reliability}+")
+    if branch.min_social_stability is not None:
+        effects.append(f"social {branch.min_social_stability}+")
+    if branch.min_energy is not None:
+        effects.append(f"energy floor {branch.min_energy}+")
+    if branch.max_stress is not None:
+        effects.append(f"stress cap {branch.max_stress}")
+    return _format_preview(branch.description, [effect for effect in effects if effect])
 
 
 def _housing_preview(option) -> str:
@@ -418,11 +444,68 @@ def _build_crisis_warnings(state, bundle) -> list[str]:
         current_year = ((state.current_month - 1) // 12) + 1
         if player.last_social_lifeline_year < current_year:
             warnings.append("Your strong network can bail you out once this year if things go bad.")
+    warnings.extend(_blocked_door_lines(state, bundle))
     if state.pending_events:
         warnings.append(f"Something is building - {len(state.pending_events)} consequence(s) pending.")
     if state.pending_promotion_branch_track_id:
         warnings.append("A promotion branch decision is pending.")
     return warnings
+
+
+def _blocked_door_lines(state, bundle) -> list[str]:
+    player = state.player
+    blocked: list[str] = []
+    if player.housing_id != "solo_rental":
+        solo_allowed, solo_reason = can_switch_housing(bundle, state, "solo_rental")
+        if not solo_allowed and ("credit" in solo_reason.lower() or "debt" in solo_reason.lower() or "lease" in solo_reason.lower()):
+            blocked.append(f"Solo rental blocked: {solo_reason}")
+    if player.transport_id != "financed_car":
+        financed_allowed, financed_reason = can_switch_transport(bundle, state, "financed_car")
+        if not financed_allowed and (
+            "credit" in financed_reason.lower()
+            or "debt" in financed_reason.lower()
+            or "payment" in financed_reason.lower()
+            or "cash" in financed_reason.lower()
+        ):
+            blocked.append(f"Financed car blocked: {financed_reason}")
+    return blocked
+
+
+def _best_recovery_route(state, bundle) -> str | None:
+    player = state.player
+    current_year = ((state.current_month - 1) // 12) + 1
+    if (
+        player.stress >= 78
+        and player.social_stability >= 74
+        and player.family_support >= 62
+        and player.last_social_lifeline_year < current_year
+    ):
+        return "Best recovery route: your network can absorb one bad month if you stop forcing upside."
+    if (
+        player.credit_score >= 705
+        and player.debt >= 2600
+        and player.monthly_surplus >= 0
+        and player.housing.missed_payment_streak == 0
+    ):
+        return "Best recovery route: strong credit can unlock debt relief if you keep the month clean."
+    if (
+        player.housing.housing_stability <= 34
+        and player.current_city_id == "hometown_low_cost"
+        and player.family_support >= bundle.config.minimum_parent_fallback_support + 8
+        and player.housing.option_id != "parents"
+    ):
+        return "Best recovery route: move back home to stop the housing spiral before it compounds."
+    if (
+        player.housing.option_id in {"roommates", "solo_rental"}
+        and player.housing.housing_stability <= 35
+        and (player.housing.missed_payment_streak > 0 or player.monthly_surplus < 0)
+        and ((player.savings + player.high_interest_savings) >= 900 or player.emergency_liquidation_count > 0)
+        and player.wealth_strategy_id in {"cushion_first", "steady_builder"}
+    ):
+        return "Best recovery route: spend the cash buffer to stabilize housing instead of forcing growth."
+    if player.stress >= 72:
+        return "Best recovery route: run a recovery month and stop stacking pressure on a fragile turn."
+    return None
 
 
 def _build_month_outlook_lines(state, bundle) -> list[str]:
@@ -584,6 +667,7 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
     stance = next(item for item in controller.bundle.config.budget_stances if item.id == player.budget_stance_id)
     wealth = next(item for item in controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
     focus = next(item for item in controller.bundle.focus_actions if item.id == player.selected_focus_action_id)
+    branch = next((item for item in career_track.branches if item.id == player.career.branch_id), None)
     focus_name = _current_focus_name(controller)
     credit_tier = credit_tier_label(player.credit_score)
     credit_progress_label, credit_progress_detail, _ = credit_progress_summary(player.credit_score)
@@ -599,7 +683,11 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
         BuildSystemVM(
             "Career",
             current_tier.label,
-            f"{career_track.name} | momentum {player.career.promotion_momentum}",
+            (
+                f"{career_track.name} | {branch.name} | momentum {player.career.promotion_momentum}"
+                if branch is not None
+                else f"{career_track.name} | open branch lane | momentum {player.career.promotion_momentum}"
+            ),
             career_progress,
             "career",
         ),
@@ -653,7 +741,16 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
             "focus",
         ),
     ]
-    return BuildSnapshotVM(player_name=player.name, city_name=city.name, items=systems)
+    identity_line = (
+        f"{career_track.name} | {branch.name if branch is not None else 'Uncommitted lane'} | "
+        f"{wealth.name} | Credit {credit_tier}"
+    )
+    return BuildSnapshotVM(
+        player_name=player.name,
+        city_name=city.name,
+        identity_line=identity_line,
+        items=systems,
+    )
 
 
 def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
@@ -667,6 +764,8 @@ def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
     credit_tier = credit_tier_label(player.credit_score)
     credit_progress_label, credit_progress_detail, _ = credit_progress_summary(player.credit_score)
     situation_family = dominant_pressure_family(state)
+    blocked_doors = _blocked_door_lines(state, controller.bundle)
+    recovery_route = _best_recovery_route(state, controller.bundle)
     main_threat = warnings[0] if warnings else (city.pressure_text or "No major threat is pressing right now.")
     best_opportunity = city.opportunity_text
     expected_swing = f"Projected monthly swing {_money(player.monthly_surplus)} before pressure"
@@ -686,6 +785,8 @@ def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
         progress_label=progress_label,
         progress_detail=progress_detail,
         progress_fraction=_run_progress_fraction(state),
+        recovery_route=recovery_route,
+        blocked_doors=blocked_doors,
         driver_notes=driver_notes,
         recent_summary=recent_summary,
     )
@@ -721,6 +822,8 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
     ]
     progress_label, progress_detail = _score_progress_text(snapshot.projected_score)
     run_killer, fastest_fix = _diagnosis_for_family(state)
+    blocked_doors = _blocked_door_lines(state, controller.bundle)
+    recovery_route = _best_recovery_route(state, controller.bundle)
     return PressureSummaryVM(
         projected_score=snapshot.projected_score,
         score_tier=snapshot.score_tier,
@@ -735,6 +838,8 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
         progress_fraction=_score_progress_fraction(snapshot.projected_score),
         run_killer=run_killer,
         fastest_fix=fastest_fix,
+        recovery_route=recovery_route,
+        blocked_doors=blocked_doors,
         primary_metrics=primary_metrics,
         secondary_metrics=secondary_metrics,
         active_modifiers=active_modifiers,
@@ -1499,6 +1604,10 @@ class MainWindow(tk.Frame):
             f"Best opportunity: {vm.best_opportunity}",
             f"Expected swing: {vm.expected_swing}",
         ]
+        if vm.recovery_route:
+            outlook += ["", vm.recovery_route]
+        if vm.blocked_doors:
+            outlook += ["", "Blocked doors:"] + vm.blocked_doors[:2]
         if vm.driver_notes:
             outlook += ["", "Why this month matters:"] + vm.driver_notes
         if vm.recent_summary:
@@ -1523,6 +1632,13 @@ class MainWindow(tk.Frame):
         lines.append("")
         lines.extend(f"{metric.label}: {metric.primary}" for metric in vm.secondary_metrics[:5])
         lines.append("")
+        if vm.recovery_route:
+            lines.append(vm.recovery_route)
+            lines.append("")
+        if vm.blocked_doors:
+            lines.append("Blocked Doors:")
+            lines.extend(vm.blocked_doors[:2])
+            lines.append("")
         lines.append("Active Modifiers:")
         lines.append(", ".join(vm.active_modifiers) if vm.active_modifiers else "None")
         lines.append("")
@@ -1569,7 +1685,9 @@ class MainWindow(tk.Frame):
         next_best_move = _current_focus_name(self.controller)
         family = dominant_pressure_family(state)
         credit_line = f"Credit: {state.player.credit_score} ({credit_tier_label(state.player.credit_score)})"
-        return [
+        recovery_route = _best_recovery_route(state, self.controller.bundle)
+        blocked_doors = _blocked_door_lines(state, self.controller.bundle)
+        lines = [
             f"Big Win: {state.recent_summary[0]}" if state.recent_summary else "Big Win: Holding steady.",
             f"Big Hit: {state.recent_summary[1]}" if len(state.recent_summary) > 1 else "Big Hit: No major hit this month.",
             f"Score Change: {self._latest_snapshot.projected_score:.1f}" if self._latest_snapshot else "Score Change: Pending.",
@@ -1577,7 +1695,12 @@ class MainWindow(tk.Frame):
             f"Situation Family: {family}",
             f"New Threat: {crisis[0]}" if crisis else "New Threat: None right now.",
             f"Next Best Move: {next_best_move}",
-        ] + state.log_messages
+        ]
+        if recovery_route:
+            lines.append(f"Recovery Route: {recovery_route.replace('Best recovery route: ', '')}")
+        if blocked_doors:
+            lines.extend(f"Blocked Door: {line}" for line in blocked_doors[:2])
+        return lines + state.log_messages
 
     def _apply_text_scale(self) -> None:
         self.status_bar.set_large_text(self._large_text)
@@ -1637,7 +1760,7 @@ class MainWindow(tk.Frame):
         for branch, allowed, reason in self.controller.pending_promotion_branch_choices():
             if not allowed:
                 continue
-            options.append((branch.name, branch.id, branch.description))
+            options.append((branch.name, branch.id, _career_branch_preview(branch)))
         if not options:
             return False
         chosen = self._choose(
@@ -1679,7 +1802,7 @@ class MainWindow(tk.Frame):
         branch_options = []
         for branch, allowed, reason in self.controller.available_career_branches():
             if allowed:
-                branch_options.append((f"Branch: {branch.name}", branch.id, branch.description))
+                branch_options.append((f"Branch: {branch.name}", branch.id, _career_branch_preview(branch)))
         if branch_options:
             chosen_branch = self._choose("Career Branch", "Choose a branch for your current career lane:", branch_options)
             if chosen_branch:

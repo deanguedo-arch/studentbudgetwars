@@ -10,6 +10,14 @@ def _clamp_score(value: float) -> float:
     return max(0.0, min(100.0, value))
 
 
+def _current_branch(bundle: ContentBundle, state: GameState):
+    branch_id = state.player.career.branch_id
+    if not branch_id:
+        return None
+    track = get_career_track(bundle, state.player.career.track_id)
+    return next((branch for branch in track.branches if branch.id == branch_id), None)
+
+
 def _score_tier_label(score: float) -> str:
     if score >= 80:
         return "Elite"
@@ -88,7 +96,12 @@ def _career_tier_score(bundle: ContentBundle, state: GameState) -> float:
     promotion_buffer = min(10, state.player.career.promotion_progress)
     seniority_buffer = min(5, state.player.career.months_at_tier // 3)
     streak_bonus = min(5, state.player.career.best_performance_streak)
-    return _clamp_score(tier_share + promotion_buffer + seniority_buffer + streak_bonus)
+    branch_bonus = 0
+    if state.player.career.branch_id:
+        branch_bonus = 3
+        if state.player.career.tier_index >= 2:
+            branch_bonus += 2
+    return _clamp_score(tier_share + promotion_buffer + seniority_buffer + streak_bonus + branch_bonus)
 
 
 def _credentials_score(state: GameState) -> float:
@@ -146,7 +159,8 @@ def _biggest_risk_label(breakdown: dict[str, float], warnings: list[str]) -> str
     return labels.get(weakest_key, "No major crisis is pressing right now.")
 
 
-def _ending_label(final_score: float, breakdown: dict[str, float], state: GameState) -> str:
+def _ending_label(bundle: ContentBundle, final_score: float, breakdown: dict[str, float], state: GameState) -> str:
+    branch = _current_branch(bundle, state)
     if state.game_over_reason == "collections":
         return "Crushed by Bad Decisions" if state.player.debt > 32000 else "Educated but Overleveraged"
     if state.game_over_reason == "housing_loss":
@@ -155,6 +169,18 @@ def _ending_label(final_score: float, breakdown: dict[str, float], state: GameSt
         return "Burned-Out High Earner" if breakdown["net_worth"] >= 55 else "Burned-Out High Earner"
     if state.game_over_reason == "academic_collapse":
         return "Late Bloomer With Momentum" if final_score >= 55 else "Drifting Survivor"
+    if branch is not None and final_score >= 58 and state.player.stress < 82:
+        branch_labels = {
+            "warehouse_dispatch_track": "Dispatch-Built Stabilizer",
+            "warehouse_equipment_track": "Equipment Track Builder",
+            "warehouse_ops_track": "Floor Operations Grinder",
+            "retail_management_track": "Retail Operations Climber",
+            "retail_sales_track": "Commission-Driven Climber",
+            "retail_clienteling_track": "Client Book Builder",
+        }
+        branch_label = branch_labels.get(branch.id)
+        if branch_label:
+            return branch_label
     if final_score >= 82 and breakdown["life_satisfaction"] >= 55:
         return "Financially Secure Builder"
     if breakdown["credentials_education"] >= 62 and state.player.debt >= 18000:
@@ -193,9 +219,17 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
         + (breakdown["stress_burnout"] * weights.stress_burnout),
         2,
     )
+    branch = _current_branch(bundle, state)
+    run_identity = None
+    if branch is not None:
+        track = get_career_track(bundle, state.player.career.track_id)
+        run_identity = f"{track.name} | {branch.name}"
     survived = state.game_over_reason is None and state.current_month > state.total_months
     if survived:
-        outcome = "You reached age 28 and carved out a real life position."
+        if branch is not None:
+            outcome = f"You reached age 28 and carved out a real life position through the {branch.name} branch."
+        else:
+            outcome = "You reached age 28 and carved out a real life position."
     elif state.game_over_reason == "collections":
         outcome = "Debt pressure broke the run before age 28."
     elif state.game_over_reason == "housing_loss":
@@ -210,7 +244,8 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
         final_score=final_score,
         survived_to_28=survived,
         outcome=outcome,
-        ending_label=_ending_label(final_score, breakdown, state),
+        ending_label=_ending_label(bundle, final_score, breakdown, state),
+        run_identity=run_identity,
         breakdown=breakdown,
     )
 

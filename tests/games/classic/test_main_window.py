@@ -14,6 +14,7 @@ from budgetwars.games.classic.ui.main_window import (
     build_score_delta_summary,
     _budget_preview,
     _career_preview,
+    _career_branch_preview,
     _focus_preview,
     _housing_preview,
     _transport_preview,
@@ -62,6 +63,19 @@ def test_build_snapshot_exposes_progress_signals(controller_factory):
     assert "Progress" in snapshot.items[0].progress
 
 
+def test_build_snapshot_surfaces_branch_identity(controller_factory):
+    controller = controller_factory(opening_path_id="full_time_work")
+    controller.state.player.career.tier_index = 2
+    controller.state.player.career.branch_id = "warehouse_dispatch_track"
+
+    snapshot = build_build_snapshot(controller.state, controller.bundle)
+
+    assert hasattr(snapshot, "identity_line")
+    assert snapshot.identity_line is not None
+    assert "Dispatch Coordination" in snapshot.identity_line
+    assert "Warehouse / Logistics" in snapshot.identity_line
+
+
 def test_monthly_forecast_exposes_named_sections(controller_factory):
     controller = controller_factory()
 
@@ -78,6 +92,20 @@ def test_monthly_forecast_exposes_named_sections(controller_factory):
     assert forecast.progress_detail
     assert 0.0 <= forecast.progress_fraction <= 1.0
     assert isinstance(forecast.driver_notes, list)
+
+
+def test_monthly_forecast_surfaces_recovery_route(controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.player.stress = 81
+    controller.state.player.social_stability = 82
+    controller.state.player.family_support = 70
+    controller.state.player.last_social_lifeline_year = 0
+
+    forecast = build_monthly_forecast(controller.state, controller.bundle)
+
+    assert hasattr(forecast, "recovery_route")
+    assert forecast.recovery_route is not None
+    assert "network" in forecast.recovery_route.lower()
 
 
 def test_pressure_summary_prioritizes_key_metrics(controller_factory):
@@ -105,6 +133,19 @@ def test_pressure_summary_prioritizes_key_metrics(controller_factory):
     assert summary.crisis_watch is not None
 
 
+def test_pressure_summary_surfaces_blocked_doors(controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.player.credit_score = 690
+    controller.state.player.debt = 16500
+    controller.state.player.monthly_surplus = -120
+
+    summary = build_pressure_summary(controller.state, controller.bundle)
+
+    assert hasattr(summary, "blocked_doors")
+    assert any("solo rental" in line.lower() for line in summary.blocked_doors)
+    assert any("financed car" in line.lower() for line in summary.blocked_doors)
+
+
 def test_learn_drawer_surfaces_topics_and_pressure_sources(controller_factory):
     controller = controller_factory()
 
@@ -122,6 +163,7 @@ def test_action_choice_previews_mention_likely_changes(controller_factory):
     controller = controller_factory()
 
     career = controller.bundle.careers[0]
+    branch = controller.bundle.careers[0].branches[0]
     housing = controller.bundle.housing_options[0]
     transport = controller.bundle.transport_options[0]
     budget = controller.bundle.config.budget_stances[0]
@@ -129,6 +171,7 @@ def test_action_choice_previews_mention_likely_changes(controller_factory):
     focus = controller.bundle.focus_actions[0]
 
     assert "Likely changes:" in _career_preview(career)
+    assert "Likely changes:" in _career_branch_preview(branch)
     assert "Likely changes:" in _housing_preview(housing)
     assert "Likely changes:" in _transport_preview(transport, transport.upfront_cost, transport.monthly_payment + transport.insurance_cost + transport.fuel_maintenance_cost)
     assert "Likely changes:" in _budget_preview(budget)
@@ -195,6 +238,26 @@ def test_score_delta_summary_compares_current_and_previous_snapshots():
     assert delta.strongest_category
     assert delta.weakest_category
     assert delta.diagnosis
+
+
+def test_run_feedback_lines_surface_recovery_and_blocked_doors(controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.player.credit_score = 690
+    controller.state.player.debt = 16500
+    controller.state.player.monthly_surplus = -120
+    controller.state.player.stress = 81
+    controller.state.player.social_stability = 82
+    controller.state.player.family_support = 70
+    controller.state.player.last_social_lifeline_year = 0
+
+    window = object.__new__(MainWindow)
+    window.session = type("Session", (), {"require_controller": lambda self=None: controller})()
+    window._latest_snapshot = controller.live_score_snapshot()
+
+    lines = MainWindow._run_feedback_lines(window)
+
+    assert any("recovery route:" in line.lower() for line in lines)
+    assert any("blocked door:" in line.lower() for line in lines)
 
 
 def test_dark_combobox_style_prefers_light_text():
@@ -532,6 +595,6 @@ def test_life_panel_rerender_does_not_duplicate_build_subtitle(controller_factor
             for child in panel._scroll_frame.winfo_children()
             if isinstance(child, tk.Label)
         ]
-        assert labels.count("Build identity and pressure anchors") == 1
+        assert labels.count(snapshot.identity_line) == 1
     finally:
         root.destroy()

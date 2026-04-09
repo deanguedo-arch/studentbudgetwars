@@ -104,6 +104,7 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
         raise ValueError("default_market_regime_id must exist in market_regimes")
 
     career_ids = {career.id for career in bundle.careers}
+    branch_ids = {branch.id for career in bundle.careers for branch in career.branches}
     education_ids = {program.id for program in bundle.education_programs}
     housing_ids = {housing.id for housing in bundle.housing_options}
     transport_ids = {transport.id for transport in bundle.transport_options}
@@ -139,11 +140,11 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Career '{career.id}' must define at least two tiers")
         if career.stability_profile + career.volatility_profile < 70:
             raise ValueError(f"Career '{career.id}' must have meaningful stability/volatility identity")
-        branch_ids: set[str] = set()
+        career_branch_ids: set[str] = set()
         for branch in career.branches:
-            if branch.id in branch_ids:
+            if branch.id in career_branch_ids:
                 raise ValueError(f"Career '{career.id}' has duplicate branch id '{branch.id}'")
-            branch_ids.add(branch.id)
+            career_branch_ids.add(branch.id)
             missing_branch_credentials = sorted(set(branch.required_credential_ids) - credential_ids)
             if missing_branch_credentials:
                 raise ValueError(
@@ -222,6 +223,12 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
                 raise ValueError(f"Event '{event.id}' has duplicate choice ids")
             for choice in event.choices:
                 _validate_effects(choice.stat_effects, f"Event choice '{event.id}:{choice.id}'")
+                if choice.modifier is not None:
+                    _validate_effects(choice.modifier.stat_effects, f"Event choice modifier '{event.id}:{choice.id}'")
+                    if choice.modifier.duration_months > 12:
+                        raise ValueError(
+                            f"Event choice modifier '{event.id}:{choice.id}:{choice.modifier.id}' lasts too long for this version"
+                        )
         if event.min_month > bundle.config.total_months:
             raise ValueError(f"Event '{event.id}' starts after the game ends")
         if sorted(set(event.eligible_city_ids) - city_ids):
@@ -232,10 +239,14 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             raise ValueError(f"Event '{event.id}' references unknown transport ids")
         if sorted(set(event.eligible_career_ids) - career_ids):
             raise ValueError(f"Event '{event.id}' references unknown career ids")
+        if sorted(set(event.eligible_branch_ids) - branch_ids):
+            raise ValueError(f"Event '{event.id}' references unknown branch ids")
         if sorted(set(event.eligible_education_ids) - education_ids):
             raise ValueError(f"Event '{event.id}' references unknown education ids")
         if sorted(set(event.eligible_opening_path_ids) - opening_path_ids):
             raise ValueError(f"Event '{event.id}' references unknown opening paths")
+        if sorted(set(event.eligible_wealth_strategy_ids) - wealth_strategy_ids):
+            raise ValueError(f"Event '{event.id}' references unknown wealth strategies")
         if event.minimum_credit_score is not None and event.maximum_credit_score is not None:
             if event.minimum_credit_score > event.maximum_credit_score:
                 raise ValueError(f"Event '{event.id}' has an impossible credit score range")
@@ -257,6 +268,10 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             unknown_tracks = sorted(set(win_state.minimum_career_track_ids) - win_state_track_ids)
             if unknown_tracks:
                 raise ValueError(f"Win state '{win_state.id}' references unknown career tracks")
+        if win_state.minimum_career_branch_ids:
+            unknown_branches = sorted(set(win_state.minimum_career_branch_ids) - branch_ids)
+            if unknown_branches:
+                raise ValueError(f"Win state '{win_state.id}' references unknown career branches")
         if win_state.score_multiplier <= 0:
             raise ValueError(f"Win state '{win_state.id}' must have a positive score multiplier")
 

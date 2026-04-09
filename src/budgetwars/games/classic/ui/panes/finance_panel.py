@@ -151,6 +151,17 @@ class FinancePanel(tk.Frame):
                 justify="left",
                 wraplength=300,
             ).pack(anchor="w")
+        if getattr(summary, "recovery_route", None):
+            tk.Label(
+                left,
+                text=summary.recovery_route,
+                bg=BG_CARD,
+                fg=COLOR_POSITIVE,
+                font=FONT_SMALL,
+                anchor="w",
+                justify="left",
+                wraplength=300,
+            ).pack(anchor="w", pady=(1, 0))
 
         if delta is not None:
             delta_color = COLOR_POSITIVE if delta.delta >= 0 else COLOR_NEGATIVE
@@ -254,6 +265,11 @@ class FinancePanel(tk.Frame):
         if summary.active_modifiers and not compact:
             tk.Label(right, text="Active Modifiers", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
             tk.Label(right, text=", ".join(summary.active_modifiers), bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
+
+        if getattr(summary, "blocked_doors", None):
+            tk.Label(right, text="Blocked Doors", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
+            for line in summary.blocked_doors[: (1 if compact else 2)]:
+                tk.Label(right, text=line, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
 
         if summary.crisis_watch:
             tk.Label(right, text="Crisis Watch", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))

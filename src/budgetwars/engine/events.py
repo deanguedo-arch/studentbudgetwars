@@ -40,7 +40,26 @@ def event_family(event: EventDefinition) -> str:
         return "Transport friction"
     if any(token in combined for token in ("school", "education", "scholarship", "academic", "study")):
         return "Education pressure"
-    if any(token in combined for token in ("layoff", "promotion", "sales", "job", "career", "gig", "work")):
+    if any(
+        token in combined
+        for token in (
+            "layoff",
+            "promotion",
+            "sales",
+            "job",
+            "career",
+            "gig",
+            "work",
+            "retail",
+            "warehouse",
+            "dispatch",
+            "inventory",
+            "commission",
+            "client",
+            "forklift",
+            "equipment",
+        )
+    ):
         return "Career turbulence"
     if any(token in combined for token in ("family", "parent")):
         return "Family pressure"
@@ -200,11 +219,15 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         return False
     if event.eligible_career_ids and player.career.track_id not in event.eligible_career_ids:
         return False
+    if event.eligible_branch_ids and player.career.branch_id not in event.eligible_branch_ids:
+        return False
     if event.eligible_education_ids and player.education.program_id not in event.eligible_education_ids:
         return False
     if event.eligible_opening_path_ids and player.opening_path_id not in event.eligible_opening_path_ids:
         return False
     if event.eligible_modifier_ids and not set(event.eligible_modifier_ids).issubset(active_modifier_ids):
+        return False
+    if event.eligible_wealth_strategy_ids and player.wealth_strategy_id not in event.eligible_wealth_strategy_ids:
         return False
     if event.minimum_stress is not None and player.stress < event.minimum_stress:
         return False
@@ -228,6 +251,15 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         return False
     if event.maximum_credit_score is not None and player.credit_score > event.maximum_credit_score:
         return False
+    if event.id == "credit_rebuild_window":
+        if player.monthly_surplus < 150:
+            return False
+        if player.debt > 5000:
+            return False
+        if player.housing.missed_payment_streak > 0:
+            return False
+        if (player.cash + player.savings) < 1200:
+            return False
     if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
         return False
     if event.id in {"car_repair", "beater_breakdown", "missed_shift_after_breakdown", "used_car_window"} and not _uses_vehicle(player.transport_id):
@@ -329,6 +361,13 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 0.25
         if state.player.debt >= 2500:
             weight *= 1.15
+    if event.id == "credit_rebuild_window":
+        if state.player.monthly_surplus >= 250:
+            weight *= 1.5
+        if state.player.debt <= 4000:
+            weight *= 1.25
+        if state.player.housing.missed_payment_streak > 0:
+            weight *= 0.2
 
     weight *= _matrix_weight_multiplier(bundle, state, event)
     return max(0.05, weight * difficulty.event_weight_multiplier)
@@ -389,6 +428,21 @@ def resolve_event_choice(
         raise ValueError(f"Unknown choice '{choice_id}' for event '{event_id}'.")
 
     apply_stat_effects(state, choice.stat_effects)
+    if event.modifier is not None:
+        state.active_modifiers.append(create_modifier(event.modifier))
+        append_log(state, f"Modifier gained: {event.modifier.label} ({event.modifier.duration_months} months)")
+    if choice.modifier is not None:
+        state.active_modifiers.append(create_modifier(choice.modifier))
+        append_log(state, f"Modifier gained: {choice.modifier.label} ({choice.modifier.duration_months} months)")
+    if event.chained_event_id:
+        state.pending_events.append(
+            PendingEvent(
+                event_id=event.chained_event_id,
+                months_remaining=max(1, event.chained_delay_months),
+                source_event_id=event.id,
+            )
+        )
+        append_log(state, f"Something worse may follow from this ({event.chained_delay_months}mo)...")
     state.pending_user_choice_event_id = None
     state.pending_user_choice_event = None
     append_log(state, f"Choice made: {event.name} -> {choice.label}")

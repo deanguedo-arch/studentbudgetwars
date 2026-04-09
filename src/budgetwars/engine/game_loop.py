@@ -77,8 +77,13 @@ class GameController:
         return FinalScoreSummary(
             final_score=round(summary.final_score * victory_state.score_multiplier, 2),
             survived_to_28=summary.survived_to_28,
-            outcome=f"You claimed the {victory_state.ending_label} path.",
+            outcome=(
+                f"You claimed the {victory_state.ending_label} path through {summary.run_identity}."
+                if summary.run_identity
+                else f"You claimed the {victory_state.ending_label} path."
+            ),
             ending_label=victory_state.ending_label,
+            run_identity=summary.run_identity,
             breakdown=summary.breakdown,
         )
 
@@ -112,9 +117,22 @@ class GameController:
                 continue
             if win_state.maximum_debt is not None and player.debt > win_state.maximum_debt:
                 continue
+            if win_state.minimum_credit_score is not None and player.credit_score < win_state.minimum_credit_score:
+                continue
+            if win_state.minimum_housing_stability is not None and player.housing.housing_stability < win_state.minimum_housing_stability:
+                continue
+            if win_state.minimum_social_stability is not None and player.social_stability < win_state.minimum_social_stability:
+                continue
+            if (
+                win_state.maximum_emergency_liquidation_count is not None
+                and player.emergency_liquidation_count > win_state.maximum_emergency_liquidation_count
+            ):
+                continue
             if player.career.tier_index < win_state.minimum_career_tier_index:
                 continue
             if win_state.minimum_career_track_ids and current_track_id not in win_state.minimum_career_track_ids:
+                continue
+            if win_state.minimum_career_branch_ids and player.career.branch_id not in win_state.minimum_career_branch_ids:
                 continue
             eligible.append(win_state)
         return eligible
@@ -356,6 +374,16 @@ class GameController:
             current_year = ((self.state.current_month - 1) // 12) + 1
             if player.last_social_lifeline_year < current_year:
                 warnings.append("Your strong network can bail you out once this year if things go bad.")
+        if player.housing_id != "solo_rental":
+            solo_allowed, solo_reason = can_switch_housing(self.bundle, self.state, "solo_rental")
+            if not solo_allowed and ("credit" in solo_reason.lower() or "debt" in solo_reason.lower() or "lease" in solo_reason.lower()):
+                warnings.append(f"Solo rental blocked: {solo_reason}")
+        if player.transport_id != "financed_car":
+            financed_allowed, financed_reason = can_switch_transport(self.bundle, self.state, "financed_car")
+            if not financed_allowed and (
+                "credit" in financed_reason.lower() or "debt" in financed_reason.lower() or "payment" in financed_reason.lower()
+            ):
+                warnings.append(f"Financed car blocked: {financed_reason}")
         if self.state.pending_events:
             warnings.append(f"Something is building — {len(self.state.pending_events)} consequence(s) pending.")
         if self.state.pending_user_choice_event_id:

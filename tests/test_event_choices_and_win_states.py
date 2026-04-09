@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from budgetwars.engine.events import resolve_event
-from budgetwars.models.content import EventChoice, EventDefinition
+from budgetwars.models.content import EventChoice, EventDefinition, ModifierTemplate
 
 
 def test_bundle_loads_win_states_and_choice_events(bundle) -> None:
@@ -96,6 +96,69 @@ def test_event_choice_can_adjust_credit_score(bundle, controller_factory) -> Non
     assert controller.state.player.credit_score == starting_credit + 12
 
 
+def test_event_choice_can_apply_modifier(bundle, controller_factory) -> None:
+    controller = controller_factory()
+    event = EventDefinition(
+        id="refinance_test",
+        name="Refinance Test",
+        description="A test event that grants a modifier after a choice.",
+        weight=1,
+        choices=[
+            EventChoice(
+                id="take_it",
+                label="Take it",
+                description="Lock in the better terms.",
+                stat_effects={"debt": -100},
+                modifier=ModifierTemplate(
+                    id="better_terms",
+                    label="Better Terms",
+                    duration_months=3,
+                    living_cost_delta=-25,
+                ),
+            )
+        ],
+    )
+
+    resolve_event(bundle, controller.state, event)
+    controller.resolve_event_choice("take_it")
+
+    assert any(modifier.id == "better_terms" for modifier in controller.state.active_modifiers)
+
+
+def test_refinance_window_only_grants_relief_when_taken(bundle, controller_factory) -> None:
+    event = next(item for item in bundle.events if item.id == "refinance_window")
+
+    wait_controller = controller_factory()
+    wait_controller.state.player.credit_score = 720
+    wait_controller.state.player.debt = 5000
+    resolve_event(bundle, wait_controller.state, event)
+    wait_controller.resolve_event_choice("wait_for_better_rate")
+
+    take_controller = controller_factory()
+    take_controller.state.player.credit_score = 720
+    take_controller.state.player.debt = 5000
+    resolve_event(bundle, take_controller.state, event)
+    take_controller.resolve_event_choice("refinance_now")
+
+    assert not any(modifier.id == "refinance_relief" for modifier in wait_controller.state.active_modifiers)
+    assert any(modifier.id == "refinance_relief" for modifier in take_controller.state.active_modifiers)
+
+
+def test_promotion_window_is_a_real_choice_event(bundle) -> None:
+    event = next(item for item in bundle.events if item.id == "promotion_window")
+
+    assert event.choices
+    assert len(event.choices) >= 2
+
+
+def test_branch_promotion_offer_events_are_choice_events(bundle) -> None:
+    retail_offer = next(item for item in bundle.events if item.id == "retail_leadership_offer")
+    warehouse_offer = next(item for item in bundle.events if item.id == "dispatch_lead_offer")
+
+    assert len(retail_offer.choices) >= 2
+    assert len(warehouse_offer.choices) >= 2
+
+
 def test_declare_victory_finishes_run_with_multiplier(controller_factory) -> None:
     controller = controller_factory()
     player = controller.state.player
@@ -117,3 +180,101 @@ def test_declare_victory_finishes_run_with_multiplier(controller_factory) -> Non
     summary = controller.final_score_summary()
     assert summary.final_score > 0
     assert summary.ending_label == win_state.ending_label
+
+
+def test_top_victory_requires_stability_not_just_money(controller_factory) -> None:
+    controller = controller_factory()
+    player = controller.state.player
+    player.cash = 180_000
+    player.savings = 35_000
+    player.high_interest_savings = 10_000
+    player.index_fund = 15_000
+    player.aggressive_growth_fund = 8_000
+    player.debt = 0
+    player.credit_score = 560
+    player.housing.housing_stability = 38
+    player.social_stability = 34
+    player.career.tier_index = len(controller.bundle.careers[0].tiers) - 1
+    player.career.track_id = controller.bundle.careers[0].id
+    player.emergency_liquidation_count = 2
+
+    eligible_ids = {win_state.id for win_state in controller.available_win_states()}
+
+    assert "life_position" not in eligible_ids
+    assert "financial_anchor" not in eligible_ids
+
+
+def test_branch_specific_victory_requires_matching_branch(controller_factory) -> None:
+    dispatch = controller_factory(opening_path_id="full_time_work")
+    player = dispatch.state.player
+    player.cash = 95_000
+    player.savings = 22_000
+    player.high_interest_savings = 12_000
+    player.index_fund = 18_000
+    player.aggressive_growth_fund = 6_000
+    player.debt = 2_000
+    player.credit_score = 735
+    player.housing.housing_stability = 78
+    player.social_stability = 66
+    player.career.track_id = "warehouse_logistics"
+    player.career.branch_id = "warehouse_dispatch_track"
+    player.career.tier_index = 4
+
+    equipment = controller_factory(opening_path_id="full_time_work")
+    other = equipment.state.player
+    other.cash = player.cash
+    other.savings = player.savings
+    other.high_interest_savings = player.high_interest_savings
+    other.index_fund = player.index_fund
+    other.aggressive_growth_fund = player.aggressive_growth_fund
+    other.debt = player.debt
+    other.credit_score = player.credit_score
+    other.housing.housing_stability = player.housing.housing_stability
+    other.social_stability = player.social_stability
+    other.career.track_id = "warehouse_logistics"
+    other.career.branch_id = "warehouse_equipment_track"
+    other.career.tier_index = 4
+
+    dispatch_ids = {win_state.id for win_state in dispatch.available_win_states()}
+    equipment_ids = {win_state.id for win_state in equipment.available_win_states()}
+
+    assert "dispatch_anchor" in dispatch_ids
+    assert "dispatch_anchor" not in equipment_ids
+
+
+def test_client_book_victory_requires_clienteling_branch(controller_factory) -> None:
+    clienteling = controller_factory(opening_path_id="full_time_work")
+    clienteling.change_career("retail_service")
+    player = clienteling.state.player
+    player.cash = 92_000
+    player.savings = 24_000
+    player.high_interest_savings = 10_000
+    player.index_fund = 14_000
+    player.aggressive_growth_fund = 5_000
+    player.debt = 1_500
+    player.credit_score = 730
+    player.housing.housing_stability = 75
+    player.social_stability = 72
+    player.career.branch_id = "retail_clienteling_track"
+    player.career.tier_index = 4
+
+    management = controller_factory(opening_path_id="full_time_work")
+    management.change_career("retail_service")
+    other = management.state.player
+    other.cash = player.cash
+    other.savings = player.savings
+    other.high_interest_savings = player.high_interest_savings
+    other.index_fund = player.index_fund
+    other.aggressive_growth_fund = player.aggressive_growth_fund
+    other.debt = player.debt
+    other.credit_score = player.credit_score
+    other.housing.housing_stability = player.housing.housing_stability
+    other.social_stability = player.social_stability
+    other.career.branch_id = "retail_management_track"
+    other.career.tier_index = 4
+
+    clienteling_ids = {win_state.id for win_state in clienteling.available_win_states()}
+    management_ids = {win_state.id for win_state in management.available_win_states()}
+
+    assert "client_book_position" in clienteling_ids
+    assert "client_book_position" not in management_ids

@@ -221,6 +221,7 @@ class FinalScoreSummary(BaseModel):
     survived_to_28: bool
     outcome: str
     ending_label: str
+    run_identity: str | None = None
     breakdown: dict[str, float]
 
 

@@ -18,9 +18,9 @@ from .careers import add_promotion_progress, apply_career_effects, current_incom
 from .education import apply_education_effects, education_monthly_cost, update_education_progress
 from .effects import append_log, apply_stat_effects, clamp_player_state, net_worth, summarize_milestone, trim_logs
 from .events import roll_month_events
-from .housing import apply_housing_effects, monthly_housing_cost
+from .housing import apply_housing_effects, can_switch_housing, monthly_housing_cost
 from .lookups import get_career_track, get_current_career_tier, get_difficulty, get_focus_action, get_housing_option, get_transport_option
-from .transport import apply_transport_access_penalty, apply_transport_effects, monthly_transport_cost
+from .transport import apply_transport_access_penalty, apply_transport_effects, can_switch_transport, monthly_transport_cost
 from .wealth import apply_wealth_allocations, apply_wealth_returns
 from .scoring import credit_tier_label, dominant_pressure_family
 
@@ -392,6 +392,71 @@ def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
         player.housing.housing_stability = max(player.housing.housing_stability, 52)
         player.stress -= 3
         append_log(state, "Recovery route: moved back home to stop a housing spiral.")
+    if (
+        player.housing.option_id in {"roommates", "solo_rental"}
+        and player.housing.housing_stability <= 35
+        and (player.housing.missed_payment_streak > 0 or player.monthly_surplus < 0)
+        and ((player.savings + player.high_interest_savings) >= 900 or player.emergency_liquidation_count > 0)
+        and player.wealth_strategy_id in {"cushion_first", "steady_builder"}
+    ):
+        reserve_spend = 0
+        if (player.savings + player.high_interest_savings) >= 900:
+            reserve_spend = min(420, max(180, int((player.savings + player.high_interest_savings) * 0.12)))
+            from_savings = min(player.savings, reserve_spend)
+            player.savings -= from_savings
+            remaining = reserve_spend - from_savings
+            from_safe = min(player.high_interest_savings, remaining)
+            player.high_interest_savings -= from_safe
+            reserve_spend = from_savings + from_safe
+        player.housing.missed_payment_streak = 0
+        player.housing.housing_stability = max(player.housing.housing_stability, 42)
+        player.stress -= 2
+        if reserve_spend > 0:
+            append_log(state, f"Recovery route: cash reserve buffer stabilized housing (-${reserve_spend}).")
+        else:
+            append_log(state, "Recovery route: your cash reserve buffer softened the housing spiral after liquidation.")
+
+
+def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | None:
+    player = state.player
+    current_year = ((state.current_month - 1) // 12) + 1
+    if (
+        player.social_stability >= 74
+        and player.family_support >= 62
+        and player.last_social_lifeline_year == current_year
+    ):
+        return "Recovery route: network bailout softened the month."
+    if (
+        player.credit_score >= 705
+        and player.debt >= 2000
+        and player.monthly_surplus >= 0
+        and player.housing.missed_payment_streak == 0
+    ):
+        return "Recovery route: strong credit kept debt relief available."
+    if player.housing.option_id == "parents" and player.current_city_id == "hometown_low_cost":
+        return "Recovery route: family fallback is holding the housing line."
+    if player.wealth_strategy_id in {"cushion_first", "steady_builder"} and player.housing.housing_stability >= 42:
+        return "Recovery route: cash buffer kept the housing spiral from getting worse."
+    return None
+
+
+def _blocked_door_lines(state: GameState, bundle: ContentBundle) -> list[str]:
+    player = state.player
+    blocked: list[str] = []
+    if player.housing.option_id != "solo_rental":
+        allowed, reason = can_switch_housing(bundle, state, "solo_rental")
+        if not allowed and ("credit" in reason.lower() or "debt" in reason.lower() or "lease" in reason.lower()):
+            blocked.append(f"Blocked door: solo rental - {reason}")
+    if player.transport.option_id != "financed_car":
+        allowed, reason = can_switch_transport(bundle, state, "financed_car")
+        if not allowed and (
+            "credit" in reason.lower()
+            or "debt" in reason.lower()
+            or "payment" in reason.lower()
+            or "cash" in reason.lower()
+        ):
+            blocked.append(f"Blocked door: financed car - {reason}")
+    return blocked
 
 
 def _apply_system_signatures(bundle: ContentBundle, state: GameState) -> None:
@@ -452,6 +517,7 @@ def _apply_credit_drift(
     player = state.player
     credit_adjustment = 0
     credit_parts: list[str] = []
+    liquid_buffer = player.cash + player.savings + player.high_interest_savings
     if debt_due > 0 and debt_paid >= debt_due:
         credit_adjustment += 1
         credit_parts.append("on-time debt payment +1")
@@ -498,10 +564,28 @@ def _apply_credit_drift(
     if player.debt < debt_start and player.monthly_surplus >= 0 and player.debt < 5000:
         credit_adjustment += 1
         credit_parts.append("debt trend improving +1")
+    if housing_shortfall == 0 and debt_due == 0 and player.monthly_surplus >= 150 and player.debt < 6000 and liquid_buffer >= 1000:
+        credit_adjustment += 1
+        credit_parts.append("clean obligations month +1")
+    elif housing_shortfall == 0 and debt_paid >= debt_due and player.monthly_surplus >= 150 and player.debt < 6000 and liquid_buffer >= 1000:
+        credit_adjustment += 2
+        credit_parts.append("clean on-time month +2")
+    if liquid_buffer >= 1500 and player.monthly_surplus >= 100 and debt_load_ratio < 0.75:
+        credit_adjustment += 1
+        credit_parts.append("buffer plus low leverage +1")
+    if player.debt >= 7000 and liquid_buffer < 800:
+        credit_adjustment -= 2
+        credit_parts.append("thin buffer under debt -2")
     if player.credit_score < 620 and player.monthly_surplus >= 180 and player.debt <= debt_start:
         credit_adjustment += 1
         credit_parts.append("credit rebuild pace +1")
-    credit_adjustment = max(-12, min(6, credit_adjustment))
+    if player.credit_score < 580 and housing_shortfall == 0 and player.monthly_surplus >= 180 and player.debt <= debt_start:
+        credit_adjustment += 2
+        credit_parts.append("fragile-credit rebuild push +2")
+    elif player.credit_score < 670 and housing_shortfall == 0 and player.monthly_surplus >= 180 and player.debt <= debt_start:
+        credit_adjustment += 1
+        credit_parts.append("fair-credit rebuild push +1")
+    credit_adjustment = max(-12, min(8, credit_adjustment))
     if credit_adjustment:
         player.credit_score = max(300, min(850, player.credit_score + credit_adjustment))
         append_log(state, f"Credit drift: {credit_adjustment:+d} ({', '.join(credit_parts)})")
@@ -748,6 +832,10 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
         f"Energy {energy_start}->{state.player.energy} ({state.player.energy - energy_start:+d})",
         "Energy drivers: " + (", ".join(energy_parts) if energy_parts else "steady"),
     ]
+    recovery_route_line = _best_recovery_route_line(state, bundle)
+    if recovery_route_line:
+        state.recent_summary.append(recovery_route_line)
+    state.recent_summary.extend(_blocked_door_lines(state, bundle))
     if state.game_over_reason:
         append_log(state, f"Run ended: {state.game_over_reason.replace('_', ' ')}.")
     elif state.current_month % 12 == 0:

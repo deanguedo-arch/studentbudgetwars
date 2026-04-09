@@ -183,6 +183,7 @@ class EventChoice(BaseModel):
     label: str
     description: str
     stat_effects: StatEffects = Field(default_factory=dict)
+    modifier: ModifierTemplate | None = None
 
 
 class EventDefinition(BaseModel):
@@ -195,9 +196,11 @@ class EventDefinition(BaseModel):
     eligible_housing_ids: list[str] = Field(default_factory=list)
     eligible_transport_ids: list[str] = Field(default_factory=list)
     eligible_career_ids: list[str] = Field(default_factory=list)
+    eligible_branch_ids: list[str] = Field(default_factory=list)
     eligible_education_ids: list[str] = Field(default_factory=list)
     eligible_opening_path_ids: list[str] = Field(default_factory=list)
     eligible_modifier_ids: list[str] = Field(default_factory=list)
+    eligible_wealth_strategy_ids: list[str] = Field(default_factory=list)
     minimum_stress: int | None = Field(default=None, ge=0)
     minimum_debt: int | None = Field(default=None, ge=0)
     minimum_family_support: int | None = Field(default=None, ge=0)
@@ -228,8 +231,13 @@ class WinStateDefinition(BaseModel):
     minimum_savings: int = Field(ge=0, default=0)
     minimum_net_worth: int = Field(default=0)
     maximum_debt: int | None = Field(default=None, ge=0)
+    minimum_credit_score: int | None = Field(default=None, ge=300, le=850)
+    minimum_housing_stability: int | None = Field(default=None, ge=0, le=100)
+    minimum_social_stability: int | None = Field(default=None, ge=0, le=100)
+    maximum_emergency_liquidation_count: int | None = Field(default=None, ge=0)
     minimum_career_tier_index: int = Field(ge=0, default=0)
     minimum_career_track_ids: list[str] = Field(default_factory=list)
+    minimum_career_branch_ids: list[str] = Field(default_factory=list)
     score_multiplier: float = Field(gt=0, default=1.0)
 
 

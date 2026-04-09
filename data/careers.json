@@ -57,6 +57,22 @@
         "energy_delta": 0,
         "promotion_progress_bonus": 1,
         "layoff_pressure_delta": 0
+      },
+      {
+        "id": "retail_clienteling_track",
+        "name": "Clienteling / Key Accounts",
+        "description": "Relationship-heavy route that pays off when your consistency and social stability hold.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 45,
+        "min_social_stability": 64,
+        "min_energy": 32,
+        "max_stress": 78,
+        "income_multiplier": 1.13,
+        "stress_delta": 0,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": -1
       }
     ],
     "tiers": [
@@ -188,6 +204,22 @@
         "stress_delta": 0,
         "energy_delta": 1,
         "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      },
+      {
+        "id": "warehouse_equipment_track",
+        "name": "Equipment Specialist",
+        "description": "Machine-heavy route with better pay and fewer brute-force hours if you stay reliable.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 64,
+        "min_social_stability": 40,
+        "min_energy": 34,
+        "max_stress": 78,
+        "income_multiplier": 1.1,
+        "stress_delta": 1,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 2,
         "layoff_pressure_delta": -1
       }
     ],

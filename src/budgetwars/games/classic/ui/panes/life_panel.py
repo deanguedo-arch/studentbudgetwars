@@ -125,7 +125,7 @@ class LifePanel(tk.Frame):
         self._cards.append(headline)
         subtitle = tk.Label(
             self._scroll_frame,
-            text="Build identity and pressure anchors",
+            text=snapshot.identity_line or "Build identity and pressure anchors",
             bg=BG_CARD,
             fg=TEXT_MUTED,
             font=FONT_TINY,

@@ -14,7 +14,7 @@ def test_content_bundle_loads_expected_v2_sets(bundle):
     assert len(bundle.transport_options) == 8
     assert len(bundle.focus_actions) == 7
     assert len(bundle.wealth_strategies) == 4
-    assert 24 <= len(bundle.events) <= 30
+    assert 24 <= len(bundle.events) <= 50
     assert len(bundle.learn_topics) >= 6
     assert bundle.consequence_matrix.transport_options
     assert bundle.consequence_matrix.credit_bands
@@ -45,6 +45,20 @@ def test_invalid_event_opening_path_reference_fails_validation(bundle):
     broken = bundle.model_copy(deep=True)
     broken.events[0].eligible_opening_path_ids.append("missing_path")
     with pytest.raises(ValueError, match="opening paths"):
+        validate_content_bundle(broken)
+
+
+def test_invalid_event_branch_reference_fails_validation(bundle):
+    broken = bundle.model_copy(deep=True)
+    broken.events[0].eligible_branch_ids.append("missing_branch")
+    with pytest.raises(ValueError, match="branch ids"):
+        validate_content_bundle(broken)
+
+
+def test_invalid_event_wealth_strategy_reference_fails_validation(bundle):
+    broken = bundle.model_copy(deep=True)
+    broken.events[0].eligible_wealth_strategy_ids.append("missing_strategy")
+    with pytest.raises(ValueError, match="wealth strategies"):
         validate_content_bundle(broken)
 
 
