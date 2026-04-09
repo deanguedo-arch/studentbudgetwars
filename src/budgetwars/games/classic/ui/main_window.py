@@ -15,7 +15,7 @@ from budgetwars.engine.scoring import (
 from budgetwars.models import LiveScoreSnapshot
 
 from .theme import (
-    BG_CARD, BG_DARK, BG_DARKEST, BG_ELEVATED, BG_HOVER, BORDER,
+    BG_CARD, BG_DARK, BG_DARKEST, BG_ELEVATED, BG_HOVER, BG_MID, BORDER,
     TEXT_HEADING, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED,
     ACCENT_RESOLVE,
     FONT_HEADING, FONT_HEADING_LG, FONT_SUBHEADING, FONT_BODY, FONT_SMALL,
@@ -1196,7 +1196,7 @@ class ClassicSetupDialog(simpledialog.Dialog):
                 frame,
                 textvariable=var,
                 command=lambda key=group.key: self.select_setup_group(key),
-                bg=BG_DARK,
+                bg=BG_MID,
                 fg=TEXT_PRIMARY,
                 activebackground=BG_HOVER,
                 activeforeground=TEXT_HEADING,
@@ -1233,7 +1233,7 @@ class ClassicSetupDialog(simpledialog.Dialog):
             right, width=1, height=1, wrap="word",
             bg=BG_ELEVATED, fg=TEXT_PRIMARY,
             relief="flat", bd=0,
-            font=FONT_MONO, spacing1=1, spacing3=2,
+            font=FONT_BODY, spacing1=2, spacing3=4,
             insertbackground=BG_ELEVATED,
         )
         self.summary_text.grid(row=0, column=0, sticky="nsew")
@@ -1396,8 +1396,8 @@ class MainWindow(tk.Frame):
         self.finance_panel = FinancePanel(content, "Score & Pressure")
         self.finance_panel.grid(row=0, column=2, sticky="nsew", padx=(PAD_S, 0))
 
-        content.grid_columnconfigure(0, weight=3)
-        content.grid_columnconfigure(1, weight=4)
+        content.grid_columnconfigure(0, weight=2)
+        content.grid_columnconfigure(1, weight=5)
         content.grid_columnconfigure(2, weight=3)
         content.grid_rowconfigure(0, weight=1)
 
@@ -1545,7 +1545,11 @@ class MainWindow(tk.Frame):
         self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
         self.score_strip.render(self._latest_snapshot, delta_vm, credit_score=state.player.credit_score, credit_delta=credit_delta)
         self.life_panel.render_snapshot(build_build_snapshot_vm(self.controller), compact=compact)
-        self.outlook_panel.render_forecast(build_monthly_forecast_vm(self.controller), compact=compact)
+        self.outlook_panel.render_forecast(
+            build_monthly_forecast_vm(self.controller),
+            compact=compact,
+            show_resolve_button=False,
+        )
         self.finance_panel.render_summary(
             build_pressure_summary_vm(self.controller, snapshot=self._latest_snapshot),
             delta_vm,

@@ -4,35 +4,35 @@ from __future__ import annotations
 import tkinter as tk
 
 # ── Background palette ──────────────────────────────────────────────
-BG_DARKEST  = "#0e0e1a"
-BG_DARK     = "#161625"
-BG_MID      = "#1e1e32"
-BG_CARD     = "#252540"
-BG_ELEVATED = "#2d2d4a"
-BG_HOVER    = "#363658"
-BORDER      = "#3a3a5c"
+BG_DARKEST  = "#0b1016"
+BG_DARK     = "#111923"
+BG_MID      = "#182330"
+BG_CARD     = "#1d2a38"
+BG_ELEVATED = "#243446"
+BG_HOVER    = "#2d4258"
+BORDER      = "#4a6076"
 
 # ── Text ─────────────────────────────────────────────────────────────
-TEXT_PRIMARY   = "#e8e8f0"
-TEXT_SECONDARY = "#a0a0b8"
-TEXT_MUTED     = "#6e6e88"
-TEXT_HEADING   = "#f0f0ff"
+TEXT_PRIMARY   = "#f0eadb"
+TEXT_SECONDARY = "#c8bca6"
+TEXT_MUTED     = "#8f8a7a"
+TEXT_HEADING   = "#fff7e7"
 
 # ── System accent colors ────────────────────────────────────────────
-ACCENT_CAREER    = "#f0a030"   # amber
-ACCENT_EDUCATION = "#4ea8de"   # blue
-ACCENT_HOUSING   = "#48b880"   # green
-ACCENT_TRANSPORT = "#a86de4"   # purple
-ACCENT_BUDGET    = "#38c8b0"   # teal
-ACCENT_WEALTH    = "#e8c840"   # gold
-ACCENT_FOCUS     = "#e87040"   # orange
-ACCENT_RESOLVE   = "#ffd966"   # gold button
+ACCENT_CAREER    = "#d98f43"
+ACCENT_EDUCATION = "#88b7d8"
+ACCENT_HOUSING   = "#5ea87a"
+ACCENT_TRANSPORT = "#6aa3b5"
+ACCENT_BUDGET    = "#4fb39d"
+ACCENT_WEALTH    = "#d9b55a"
+ACCENT_FOCUS     = "#d97952"
+ACCENT_RESOLVE   = "#f2ca7a"
 
 # ── Score tier colors ────────────────────────────────────────────────
-TIER_BRONZE = "#cd7f32"
-TIER_SILVER = "#a8b0b8"
-TIER_GOLD   = "#f0c850"
-TIER_ELITE  = "#60d0ff"
+TIER_BRONZE = "#c48a4d"
+TIER_SILVER = "#c1c7cf"
+TIER_GOLD   = "#e2bf62"
+TIER_ELITE  = "#86c3cf"
 
 def tier_color(tier: str) -> str:
     return {
@@ -43,34 +43,34 @@ def tier_color(tier: str) -> str:
     }.get(tier, TEXT_SECONDARY)
 
 # ── Stat colors ──────────────────────────────────────────────────────
-COLOR_POSITIVE  = "#48d878"
-COLOR_NEGATIVE  = "#e85050"
-COLOR_WARNING   = "#f0a840"
-COLOR_NEUTRAL   = "#6888a8"
-COLOR_STRESS    = "#e85050"
-COLOR_ENERGY    = "#48d878"
-COLOR_LIFE      = "#60b0f0"
-COLOR_FAMILY    = "#c888e0"
-COLOR_SOCIAL    = "#f0c060"
-COLOR_MONEY_POS = "#48d878"
-COLOR_MONEY_NEG = "#e85050"
+COLOR_POSITIVE  = "#72c78c"
+COLOR_NEGATIVE  = "#df7664"
+COLOR_WARNING   = "#d9a85f"
+COLOR_NEUTRAL   = "#7d96a8"
+COLOR_STRESS    = "#df7664"
+COLOR_ENERGY    = "#72c78c"
+COLOR_LIFE      = "#8ab7cf"
+COLOR_FAMILY    = "#b8996f"
+COLOR_SOCIAL    = "#e0be76"
+COLOR_MONEY_POS = "#72c78c"
+COLOR_MONEY_NEG = "#df7664"
 
 # ── Fonts ────────────────────────────────────────────────────────────
-FONT_HEADING      = ("Segoe UI", 12, "bold")
-FONT_HEADING_LG   = ("Segoe UI", 14, "bold")
-FONT_SUBHEADING   = ("Segoe UI", 10, "bold")
-FONT_BODY         = ("Segoe UI", 10)
-FONT_BODY_LG      = ("Segoe UI", 12)
+FONT_HEADING      = ("Georgia", 13, "bold")
+FONT_HEADING_LG   = ("Georgia", 16, "bold")
+FONT_SUBHEADING   = ("Georgia", 10, "bold")
+FONT_BODY         = ("Trebuchet MS", 10)
+FONT_BODY_LG      = ("Trebuchet MS", 12)
 FONT_MONO         = ("Consolas", 10)
 FONT_MONO_LG      = ("Consolas", 12)
-FONT_SMALL        = ("Segoe UI", 9)
-FONT_TINY         = ("Segoe UI", 8)
-FONT_SCORE        = ("Segoe UI", 18, "bold")
-FONT_SCORE_TIER   = ("Segoe UI", 11, "bold")
-FONT_BUTTON       = ("Segoe UI", 10, "bold")
-FONT_BUTTON_LG    = ("Segoe UI", 12, "bold")
-FONT_RESOLVE      = ("Segoe UI", 13, "bold")
-FONT_RESOLVE_LG   = ("Segoe UI", 15, "bold")
+FONT_SMALL        = ("Trebuchet MS", 9)
+FONT_TINY         = ("Trebuchet MS", 8)
+FONT_SCORE        = ("Georgia", 22, "bold")
+FONT_SCORE_TIER   = ("Georgia", 12, "bold")
+FONT_BUTTON       = ("Trebuchet MS", 10, "bold")
+FONT_BUTTON_LG    = ("Trebuchet MS", 12, "bold")
+FONT_RESOLVE      = ("Georgia", 14, "bold")
+FONT_RESOLVE_LG   = ("Georgia", 16, "bold")
 
 # ── Layout constants ─────────────────────────────────────────────────
 PAD_S  = 4

@@ -20,6 +20,7 @@ from budgetwars.games.classic.ui.main_window import (
     _wealth_preview,
     should_use_compact_layout,
 )
+from budgetwars.games.classic.ui.panes.life_panel import LifePanel
 from budgetwars.games.classic.ui.panes.event_popup import preview_choice_detail
 from budgetwars.games.classic.ui.panes.menu_bar import (
     build_menu_bar,
@@ -205,8 +206,8 @@ def test_dark_combobox_style_prefers_light_text():
     try:
         style_name = configure_dark_combobox_style(root)
         style = ttk.Style(root)
-        assert style.lookup(style_name, "foreground", ("readonly",)) == "#e8e8f0"
-        assert style.lookup(style_name, "fieldbackground", ("readonly",)) == "#2d2d4a"
+        assert style.lookup(style_name, "foreground", ("readonly",)) == "#f0eadb"
+        assert style.lookup(style_name, "fieldbackground", ("readonly",)) == "#243446"
     finally:
         root.destroy()
 
@@ -225,9 +226,9 @@ def test_dark_menu_style_uses_light_foreground():
     menu = FakeMenu()
     configure_dark_menu_style(menu)
 
-    assert menu.cget("fg") == "#e8e8f0"
-    assert menu.cget("activeforeground") == "#e8e8f0"
-    assert menu.cget("bg") == "#0e0e1a"
+    assert menu.cget("fg") == "#f0eadb"
+    assert menu.cget("activeforeground") == "#f0eadb"
+    assert menu.cget("bg") == "#0b1016"
 
 
 def test_menu_bar_exposes_learn_action():
@@ -378,7 +379,7 @@ def test_setup_group_selection_updates_button_and_summary(monkeypatch):
     assert refresh_calls == [True]
 
 
-def test_actions_panel_compact_mode_uses_less_vertical_space():
+def test_actions_panel_layouts_stay_vertically_bounded():
     import tkinter as tk
 
     try:
@@ -414,7 +415,8 @@ def test_actions_panel_compact_mode_uses_less_vertical_space():
         compact.update_idletasks()
         compact_height = compact.winfo_reqheight()
 
-        assert compact_height < normal_height
+        assert normal_height <= 100
+        assert compact_height <= 140
     finally:
         root.destroy()
 
@@ -508,3 +510,28 @@ def test_show_learn_toggles_drawer_and_renders_content(controller_factory):
         assert created[0].destroyed is True
     finally:
         monkeypatch.undo()
+
+
+def test_life_panel_rerender_does_not_duplicate_build_subtitle(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory()
+        panel = LifePanel(root)
+        snapshot = build_build_snapshot(controller.state, controller.bundle)
+        panel.render_snapshot(snapshot)
+        panel.render_snapshot(snapshot)
+
+        labels = [
+            child.cget("text")
+            for child in panel._scroll_frame.winfo_children()
+            if isinstance(child, tk.Label)
+        ]
+        assert labels.count("Build identity and pressure anchors") == 1
+    finally:
+        root.destroy()

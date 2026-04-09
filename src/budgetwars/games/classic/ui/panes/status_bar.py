@@ -24,26 +24,28 @@ class StatusBar(tk.Frame):
             "small": FONT_SMALL,
         }
         self._large_fonts = {
-            "heading": ("Segoe UI", 12, "bold"),
-            "body": ("Segoe UI", 12),
+            "heading": ("Georgia", 13, "bold"),
+            "body": ("Trebuchet MS", 12),
             "mono": ("Consolas", 12),
-            "small": ("Segoe UI", 10),
+            "small": ("Trebuchet MS", 10),
         }
         self._fonts = self._normal_fonts
 
         # ── Timeline section ──
         time_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         time_frame.pack(side="left", fill="y", padx=(0, PAD_S), pady=2)
+        tk.Label(time_frame, text="RUN", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._month_label = tk.Label(time_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["heading"], padx=PAD_M, pady=2)
         self._month_label.pack(side="left")
         self._age_label = tk.Label(time_frame, bg=BG_DARK, fg=TEXT_SECONDARY, font=self._fonts["body"], padx=PAD_S, pady=2)
         self._age_label.pack(side="left")
-        self._progress_canvas = tk.Canvas(time_frame, width=80, height=8, bg=BG_DARKEST, bd=0, highlightthickness=0)
+        self._progress_canvas = tk.Canvas(time_frame, width=92, height=10, bg=BG_DARKEST, bd=0, highlightthickness=0)
         self._progress_canvas.pack(side="left", padx=PAD_S, pady=6)
 
         # ── Money section ──
         money_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         money_frame.pack(side="left", fill="y", padx=PAD_S, pady=2)
+        tk.Label(money_frame, text="BANK", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._cash_label = tk.Label(money_frame, bg=BG_DARK, fg=COLOR_MONEY_POS, font=self._fonts["mono"], padx=PAD_S, pady=2)
         self._cash_label.pack(side="left")
         self._savings_label = tk.Label(money_frame, bg=BG_DARK, fg=COLOR_MONEY_POS, font=self._fonts["mono"], padx=PAD_S, pady=2)
@@ -54,6 +56,7 @@ class StatusBar(tk.Frame):
         # ── Vitals section ──
         vitals_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         vitals_frame.pack(side="left", fill="y", padx=PAD_S, pady=2)
+        tk.Label(vitals_frame, text="PRESSURE", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._vitals_container = vitals_frame
 
         self._stress_frame = tk.Frame(vitals_frame, bg=BG_DARK)
@@ -77,6 +80,7 @@ class StatusBar(tk.Frame):
         # ── Score badge (right-aligned) ──
         score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         score_frame.pack(side="right", fill="y", padx=(PAD_S, 0), pady=2)
+        tk.Label(score_frame, text="RANK", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._score_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["heading"], padx=PAD_M, pady=2)
         self._score_label.pack(side="left")
         self._tier_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SCORE_TIER, padx=PAD_S, pady=2)
@@ -89,9 +93,10 @@ class StatusBar(tk.Frame):
         self._age_label.configure(text=f"Age {state.current_age}  Yr {state.current_year}")
         self._progress_canvas.delete("all")
         pct = state.current_month / max(1, state.total_months)
-        fill_w = int(80 * pct)
+        fill_w = int(92 * pct)
         bar_color = COLOR_MONEY_POS if pct < 0.8 else "#f0a840"
-        self._progress_canvas.create_rectangle(0, 0, fill_w, 8, fill=bar_color, outline="")
+        self._progress_canvas.create_rectangle(0, 0, 92, 10, fill=BG_CARD, outline="")
+        self._progress_canvas.create_rectangle(0, 0, fill_w, 10, fill=bar_color, outline="")
 
         # Money
         cash_color = COLOR_MONEY_POS if player.cash >= 0 else COLOR_MONEY_NEG

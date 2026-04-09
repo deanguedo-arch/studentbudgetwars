@@ -17,7 +17,7 @@ from ..theme import (
 def _card(parent: tk.Misc, accent: str) -> tuple[tk.Frame, tk.Frame]:
     """Return (outer_frame, inner_frame) for a card with colored left border."""
     outer = tk.Frame(parent, bg=accent, bd=0)
-    inner = tk.Frame(outer, bg=BG_ELEVATED, bd=0, padx=PAD_M, pady=PAD_S)
+    inner = tk.Frame(outer, bg=BG_ELEVATED, bd=0, padx=PAD_M, pady=PAD_M)
     inner.pack(side="right", fill="both", expand=True, padx=(CARD_BORDER_W, 0))
     return outer, inner
 
@@ -123,6 +123,16 @@ class LifePanel(tk.Frame):
         )
         headline.pack(fill="x", pady=(0, PAD_S))
         self._cards.append(headline)
+        subtitle = tk.Label(
+            self._scroll_frame,
+            text="Build identity and pressure anchors",
+            bg=BG_CARD,
+            fg=TEXT_MUTED,
+            font=FONT_TINY,
+            anchor="w",
+        )
+        subtitle.pack(fill="x", pady=(0, PAD_S))
+        self._cards.append(subtitle)
 
         for system in snapshot.systems:
             accent = BORDER
@@ -150,7 +160,7 @@ class LifePanel(tk.Frame):
 
             tk.Label(
                 inner,
-                text=system.system,
+                text=system.system.upper(),
                 bg=BG_ELEVATED,
                 fg=TEXT_HEADING,
                 font=FONT_SMALL if not self._large else ("Segoe UI", 11, "bold"),

@@ -116,7 +116,8 @@ class FinancePanel(tk.Frame):
 
         left = tk.Frame(top, bg=BG_CARD)
         left.pack(side="left", fill="y", padx=(0, PAD_M))
-        tk.Label(left, text=f"{summary.projected_score:.1f}", bg=BG_CARD, fg=TEXT_HEADING, font=("Segoe UI", 18, "bold"), anchor="w").pack(anchor="w")
+        tk.Label(left, text="RUN DIAGNOSIS", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(anchor="w")
+        tk.Label(left, text=f"{summary.projected_score:.1f}", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING if compact else ("Georgia", 20, "bold"), anchor="w").pack(anchor="w")
         tk.Label(left, text=summary.tier, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SUBHEADING, anchor="w").pack(anchor="w")
         tk.Label(
             left,
@@ -172,9 +173,9 @@ class FinancePanel(tk.Frame):
                 wraplength=300,
             ).pack(anchor="w")
 
-        credit_frame = tk.Frame(left, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=1)
+        credit_frame = tk.Frame(left, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
         credit_frame.pack(fill="x", pady=(PAD_S, 0))
-        tk.Label(credit_frame, text="Credit", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x")
+        tk.Label(credit_frame, text="CREDIT POSITION", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
         tk.Label(
             credit_frame,
             text=f"{summary.credit_score} {summary.credit_tier}",
@@ -182,7 +183,7 @@ class FinancePanel(tk.Frame):
             fg=TEXT_PRIMARY,
             font=FONT_SUBHEADING,
             anchor="w",
-        ).pack(fill="x")
+        ).pack(fill="x", padx=PAD_S)
         tk.Label(
             credit_frame,
             text=summary.credit_progress_label,
@@ -190,7 +191,7 @@ class FinancePanel(tk.Frame):
             fg=TEXT_SECONDARY,
             font=FONT_SMALL,
             anchor="w",
-        ).pack(fill="x")
+        ).pack(fill="x", padx=PAD_S)
         tk.Label(
             credit_frame,
             text=summary.credit_progress_detail,
@@ -198,8 +199,8 @@ class FinancePanel(tk.Frame):
             fg=TEXT_MUTED,
             font=FONT_SMALL,
             anchor="w",
-        ).pack(fill="x")
-        _progress_bar(credit_frame, summary.credit_progress_fraction, COLOR_WARNING).pack(anchor="w", pady=(PAD_S, 0))
+        ).pack(fill="x", padx=PAD_S)
+        _progress_bar(credit_frame, summary.credit_progress_fraction, COLOR_WARNING).pack(anchor="w", padx=PAD_S, pady=(PAD_S, 0))
         if credit_delta is not None:
             tk.Label(
                 credit_frame,
@@ -208,11 +209,11 @@ class FinancePanel(tk.Frame):
                 fg=COLOR_POSITIVE if credit_delta >= 0 else COLOR_NEGATIVE,
                 font=FONT_SMALL,
                 anchor="w",
-            ).pack(fill="x", pady=(1, 0))
+            ).pack(fill="x", padx=PAD_S, pady=(1, PAD_S))
 
         progress_frame = tk.Frame(left, bg=BG_CARD)
         progress_frame.pack(fill="x", pady=(PAD_S, 0))
-        tk.Label(progress_frame, text=summary.progress_label, bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x")
+        tk.Label(progress_frame, text=summary.progress_label.upper(), bg=BG_CARD, fg=TEXT_HEADING, font=FONT_TINY, anchor="w").pack(fill="x")
         tk.Label(progress_frame, text=summary.progress_detail, bg=BG_CARD, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x")
         _progress_bar(progress_frame, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", pady=(PAD_S, 0))
 
@@ -224,16 +225,16 @@ class FinancePanel(tk.Frame):
         primary_row = tk.Frame(right, bg=BG_CARD)
         primary_row.pack(fill="x", pady=(PAD_S, PAD_S))
         for metric in summary.primary_metrics[: (3 if compact else len(summary.primary_metrics))]:
-            card = tk.Frame(primary_row, bg=BG_ELEVATED, bd=0, highlightbackground=BORDER, highlightthickness=1)
+            card = tk.Frame(primary_row, bg=BG_ELEVATED, bd=0, highlightbackground=BORDER, highlightthickness=2)
             card.pack(side="left", fill="both", expand=True, padx=(0, PAD_S))
-            tk.Label(card, text=metric.label, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x")
-            tk.Label(card, text=metric.primary, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_BODY, anchor="w").pack(fill="x")
+            tk.Label(card, text=metric.label.upper(), bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+            tk.Label(card, text=metric.primary, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_BODY, anchor="w").pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
 
-        progress_card = tk.Frame(right, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=1)
+        progress_card = tk.Frame(right, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
         progress_card.pack(fill="x", pady=(0, PAD_S))
-        tk.Label(progress_card, text=summary.progress_label, bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x")
-        tk.Label(progress_card, text=summary.progress_detail, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x")
-        _progress_bar(progress_card, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", padx=0, pady=(PAD_S, 0))
+        tk.Label(progress_card, text=summary.progress_label.upper(), bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+        tk.Label(progress_card, text=summary.progress_detail, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x", padx=PAD_S)
+        _progress_bar(progress_card, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", padx=PAD_S, pady=(PAD_S, PAD_S))
 
         secondary = tk.Frame(right, bg=BG_CARD)
         secondary.pack(fill="x", pady=(PAD_S, 0))

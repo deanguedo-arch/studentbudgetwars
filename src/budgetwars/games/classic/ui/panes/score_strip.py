@@ -57,6 +57,8 @@ class ScoreStrip(tk.Frame):
         left = tk.Frame(self, bg=BG_CARD)
         left.pack(side="left", fill="y", padx=PAD_M, pady=PAD_S)
 
+        tk.Label(left, text="SEASON SCORE", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(anchor="w")
+
         self._score_label = tk.Label(left, text="0.0", bg=BG_CARD, fg=TEXT_HEADING,
                                      font=FONT_SCORE, anchor="w")
         self._score_label.pack(side="left")
@@ -81,7 +83,7 @@ class ScoreStrip(tk.Frame):
 
         # Risk label
         self._risk_label = tk.Label(self, text="", bg=BG_CARD, fg=COLOR_WARNING,
-                                    font=FONT_SMALL, anchor="w", wraplength=300, justify="left")
+                                    font=FONT_SMALL, anchor="w", wraplength=380, justify="left")
         self._risk_label.pack(side="left", fill="both", expand=True, padx=PAD_M)
 
         # Category mini-bars on the right
@@ -97,7 +99,7 @@ class ScoreStrip(tk.Frame):
             lbl = tk.Label(row_frame, text=label, bg=BG_CARD, fg=TEXT_MUTED,
                            font=FONT_TINY, anchor="w", width=8)
             lbl.pack(side="left")
-            canvas = tk.Canvas(row_frame, width=40, height=6, bg=BG_DARKEST,
+            canvas = tk.Canvas(row_frame, width=54, height=7, bg=BG_DARKEST,
                                bd=0, highlightthickness=0)
             canvas.pack(side="left", padx=(2, 0))
             self._bar_canvases[key] = canvas
@@ -143,9 +145,10 @@ class ScoreStrip(tk.Frame):
         for key, canvas in self._bar_canvases.items():
             canvas.delete("all")
             value = snapshot.breakdown.get(key, 0)
-            fill_w = max(0, min(40, int(40 * value / 100)))
+            fill_w = max(0, min(54, int(54 * value / 100)))
             color = _CATEGORY_COLORS.get(key, TEXT_SECONDARY)
-            canvas.create_rectangle(0, 0, fill_w, 6, fill=color, outline="")
+            canvas.create_rectangle(0, 0, 54, 7, fill=BG_DARK, outline="")
+            canvas.create_rectangle(0, 0, fill_w, 7, fill=color, outline="")
 
         if delta is not None and abs(delta.delta) >= 0.25:
             self._flash(delta.delta)

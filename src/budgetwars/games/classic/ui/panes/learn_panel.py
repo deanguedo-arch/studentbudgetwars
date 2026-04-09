@@ -74,7 +74,7 @@ class LearnDrawer(tk.Toplevel):
             bg=BG_ELEVATED,
             fg=TEXT_PRIMARY,
             selectbackground=COLOR_POSITIVE,
-            selectforeground=BG_DARKEST,
+            selectforeground=TEXT_HEADING,
             font=FONT_BODY,
             relief="flat",
             bd=0,
