@@ -25,6 +25,9 @@ SEVERITY_EVENT_IDS = {
     "job_layoff",
     "burnout_month",
     "credit_limit_review",
+    "collections_warning",
+    "security_deposit_shock",
+    "financed_car_insurance_spike",
 }
 
 
@@ -197,6 +200,12 @@ def event_severity_multiplier(bundle: ContentBundle, state: GameState, event: Ev
         multiplier += 0.12
     if event.id == "credit_limit_review" and state.player.credit_score < 580:
         multiplier += 0.16
+    if event.id == "collections_warning" and state.player.credit_score < 600:
+        multiplier += 0.2
+    if event.id == "security_deposit_shock" and state.player.credit_score < 620:
+        multiplier += 0.16
+    if event.id == "financed_car_insurance_spike" and state.player.credit_score < 640:
+        multiplier += 0.12
     return max(0.7, min(1.8, multiplier))
 
 
@@ -274,6 +283,13 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         if player.education.intensity_level == "intensive":
             pass
         elif player.selected_focus_action_id not in {"overtime", "study_push", "promotion_hunt"}:
+            return False
+    if event.id == "prime_refi_bridge":
+        if player.monthly_surplus > 80:
+            return False
+        if player.debt < 4500:
+            return False
+        if player.credit_score < 740:
             return False
     if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
         return False
@@ -414,6 +430,15 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.35
         if state.player.monthly_surplus < 0:
             weight *= 1.3
+        if state.player.cash + state.player.savings < 600:
+            weight *= 1.2
+    if event.id == "prime_refi_bridge":
+        if state.player.credit_score >= 760:
+            weight *= 1.2
+        if state.player.debt >= 7000:
+            weight *= 1.25
+        if state.player.monthly_surplus < 0:
+            weight *= 1.25
         if state.player.cash + state.player.savings < 600:
             weight *= 1.2
 

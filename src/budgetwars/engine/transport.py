@@ -30,8 +30,15 @@ def can_switch_transport(bundle: ContentBundle, state: GameState, transport_id: 
     if transport.id == "financed_car":
         if state.player.monthly_surplus < 0:
             return False, "A financed payment on an already negative monthly swing is too risky right now."
+        if state.player.credit_score < 660 and state.player.monthly_surplus < 120:
+            return False, "Financing needs either stronger credit or a cleaner monthly cushion."
+        if state.player.credit_score < 680 and state.player.debt >= 9000:
+            return False, "Debt plus fair credit is still too fragile for this financing lane."
         if state.player.debt >= 18000 and state.player.credit_score < 700:
             return False, "Your debt pressure is too high for this financing lane right now."
+    if transport.id == "reliable_used_car":
+        if state.player.credit_score < 600 and state.player.debt >= 12000:
+            return False, "Used-car financing terms are blocked until credit or debt improves."
     if transport.id == "luxury_financed_car":
         if state.player.monthly_surplus < 250:
             return False, "That payment needs a much stronger monthly cushion."

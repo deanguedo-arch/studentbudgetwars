@@ -2591,5 +2591,53 @@
       }
     ],
     "log_entry": "Coordination-first play unlocked a cleaner growth lane."
+  },
+  {
+    "id": "prime_refi_bridge",
+    "name": "Prime Credit Bridge",
+    "description": "Your strong credit still opens a temporary bridge line even in a rough month. You can stabilize now or preserve flexibility and keep grinding.",
+    "weight": 3,
+    "min_month": 12,
+    "minimum_credit_score": 740,
+    "minimum_debt": 4500,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "lock_bridge_relief",
+        "label": "Lock the bridge",
+        "description": "Use prime credit to reduce immediate pressure and stabilize your monthly lane.",
+        "stat_effects": {
+          "cash": 260,
+          "debt": -280,
+          "stress": -2,
+          "credit_score": -3
+        },
+        "modifier": {
+          "id": "bridge_relief_terms",
+          "label": "Bridge Relief Terms",
+          "duration_months": 3,
+          "stat_effects": {},
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": -60,
+          "transport_cost_delta": -40,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 180
+        }
+      },
+      {
+        "id": "preserve_credit_headroom",
+        "label": "Preserve headroom",
+        "description": "Avoid new credit use and absorb the pressure this month.",
+        "stat_effects": {
+          "stress": 1,
+          "life_satisfaction": -1,
+          "credit_score": 1
+        }
+      }
+    ],
+    "log_entry": "Prime credit created a recovery door that weaker files cannot access."
   }
 ]

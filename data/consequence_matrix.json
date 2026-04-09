@@ -445,6 +445,7 @@
       "event_weights": {
         "credit_limit_review": 1.6,
         "collections_warning": 1.45,
+        "prime_refi_bridge": 0.2,
         "refinance_window": 0.25
       },
       "event_severity": {
@@ -458,6 +459,7 @@
       "event_weights": {
         "credit_limit_review": 1.15,
         "collections_warning": 1.15,
+        "prime_refi_bridge": 0.45,
         "refinance_window": 0.75
       }
     },
@@ -468,6 +470,7 @@
       "event_weights": {
         "credit_limit_review": 0.6,
         "collections_warning": 0.65,
+        "prime_refi_bridge": 0.95,
         "refinance_window": 1.2
       }
     },
@@ -479,6 +482,7 @@
       "event_weights": {
         "credit_limit_review": 0.3,
         "collections_warning": 0.35,
+        "prime_refi_bridge": 1.45,
         "refinance_window": 1.5
       },
       "event_severity": {

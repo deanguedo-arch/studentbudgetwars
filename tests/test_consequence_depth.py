@@ -468,6 +468,31 @@ def test_negative_month_blocks_financed_car_even_with_score(bundle, controller_f
     assert "monthly" in reason.lower() or "payment" in reason.lower()
 
 
+def test_fragile_credit_and_debt_can_block_roommates_access(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.player.housing.option_id = "student_residence"
+    controller.state.player.credit_score = 558
+    controller.state.player.debt = 10800
+    controller.state.player.monthly_surplus = -180
+
+    allowed, reason = can_switch_housing(bundle, controller.state, "roommates")
+
+    assert not allowed
+    assert "credit" in reason.lower() or "debt" in reason.lower()
+
+
+def test_fair_credit_with_thin_surplus_blocks_financed_car(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.player.credit_score = 645
+    controller.state.player.debt = 9800
+    controller.state.player.monthly_surplus = 40
+
+    allowed, reason = can_switch_transport(bundle, controller.state, "financed_car")
+
+    assert not allowed
+    assert "credit" in reason.lower() or "monthly" in reason.lower() or "debt" in reason.lower()
+
+
 def test_strong_credit_and_stable_finances_unlock_financed_doors(bundle, controller_factory):
     controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
     controller.state.player.credit_score = 748
@@ -586,6 +611,30 @@ def test_vehicle_repair_events_do_not_show_up_without_vehicle(bundle, controller
     assert "missed_shift_after_breakdown" not in event_ids
 
 
+def test_prime_credit_distressed_run_gets_recovery_window_event(bundle, controller_factory):
+    prime = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    prime.state.current_month = 16
+    prime.state.player.credit_score = 756
+    prime.state.player.debt = 8400
+    prime.state.player.monthly_surplus = -120
+    prime.state.player.cash = 220
+    prime.state.player.savings = 140
+
+    fair = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    fair.state.current_month = 16
+    fair.state.player.credit_score = 628
+    fair.state.player.debt = 8400
+    fair.state.player.monthly_surplus = -120
+    fair.state.player.cash = 220
+    fair.state.player.savings = 140
+
+    prime_ids = {event.id for event in eligible_events(bundle, prime.state)}
+    fair_ids = {event.id for event in eligible_events(bundle, fair.state)}
+
+    assert "prime_refi_bridge" in prime_ids
+    assert "prime_refi_bridge" not in fair_ids
+
+
 def test_heavy_debt_month_can_lower_credit(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
@@ -667,6 +716,31 @@ def test_major_risk_events_have_higher_severity_for_fragile_builds(bundle, contr
         fragile_mult = event_severity_multiplier(bundle, fragile.state, event)
         resilient_mult = event_severity_multiplier(bundle, resilient.state, event)
         assert fragile_mult > resilient_mult
+
+
+def test_credit_fragility_increases_security_deposit_shock_severity(bundle, controller_factory):
+    fragile = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    resilient = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    event = next(item for item in bundle.events if item.id == "security_deposit_shock")
+
+    fragile.state.player.credit_score = 548
+    fragile.state.player.debt = 9800
+    fragile.state.player.cash = 220
+    fragile.state.player.savings = 100
+    fragile.state.player.monthly_surplus = -140
+    fragile.state.player.housing.housing_stability = 42
+
+    resilient.state.player.credit_score = 758
+    resilient.state.player.debt = 2200
+    resilient.state.player.cash = 2200
+    resilient.state.player.savings = 1800
+    resilient.state.player.monthly_surplus = 260
+    resilient.state.player.housing.housing_stability = 78
+
+    fragile_mult = event_severity_multiplier(bundle, fragile.state, event)
+    resilient_mult = event_severity_multiplier(bundle, resilient.state, event)
+
+    assert fragile_mult > resilient_mult
 
 
 def test_resolve_event_scales_car_repair_damage_by_resilience(bundle, controller_factory):
