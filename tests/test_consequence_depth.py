@@ -373,6 +373,86 @@ def test_wealth_strategy_events_change_with_strategy(bundle, controller_factory)
     assert "dry_powder_window" not in chaser_ids
 
 
+def test_market_chaser_has_unique_liquidity_trap_event(bundle, controller_factory):
+    chaser = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    chaser.state.current_month = 16
+    chaser.state.player.wealth_strategy_id = "market_chaser"
+    chaser.state.current_market_regime_id = "correction"
+    chaser.state.player.debt = 11200
+    chaser.state.player.cash = 120
+    chaser.state.player.savings = 80
+    chaser.state.player.monthly_surplus = -140
+    chaser.state.player.credit_score = 612
+
+    cushion = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    cushion.state.current_month = 16
+    cushion.state.player.wealth_strategy_id = "cushion_first"
+    cushion.state.current_market_regime_id = "correction"
+    cushion.state.player.debt = 11200
+    cushion.state.player.cash = 120
+    cushion.state.player.savings = 80
+    cushion.state.player.monthly_surplus = -140
+    cushion.state.player.credit_score = 612
+
+    chaser_ids = {event.id for event in eligible_events(bundle, chaser.state)}
+    cushion_ids = {event.id for event in eligible_events(bundle, cushion.state)}
+
+    assert "market_margin_call" in chaser_ids
+    assert "market_margin_call" not in cushion_ids
+
+
+def test_debt_crusher_has_unique_cash_tightrope_event(bundle, controller_factory):
+    crusher = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    crusher.state.current_month = 14
+    crusher.state.player.wealth_strategy_id = "debt_crusher"
+    crusher.state.player.debt = 9600
+    crusher.state.player.cash = 180
+    crusher.state.player.savings = 60
+    crusher.state.player.monthly_surplus = 90
+    crusher.state.player.stress = 62
+
+    steady = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    steady.state.current_month = 14
+    steady.state.player.wealth_strategy_id = "steady_builder"
+    steady.state.player.debt = 9600
+    steady.state.player.cash = 180
+    steady.state.player.savings = 60
+    steady.state.player.monthly_surplus = 90
+    steady.state.player.stress = 62
+
+    crusher_ids = {event.id for event in eligible_events(bundle, crusher.state)}
+    steady_ids = {event.id for event in eligible_events(bundle, steady.state)}
+
+    assert "debt_paydown_tightrope" in crusher_ids
+    assert "debt_paydown_tightrope" not in steady_ids
+
+
+def test_cushion_first_has_unique_strong_market_regret_event(bundle, controller_factory):
+    cushion = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    cushion.state.current_month = 16
+    cushion.state.player.wealth_strategy_id = "cushion_first"
+    cushion.state.current_market_regime_id = "strong"
+    cushion.state.player.cash = 3200
+    cushion.state.player.savings = 2400
+    cushion.state.player.debt = 1800
+    cushion.state.player.monthly_surplus = 380
+
+    steady = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    steady.state.current_month = 16
+    steady.state.player.wealth_strategy_id = "steady_builder"
+    steady.state.current_market_regime_id = "strong"
+    steady.state.player.cash = 3200
+    steady.state.player.savings = 2400
+    steady.state.player.debt = 1800
+    steady.state.player.monthly_surplus = 380
+
+    cushion_ids = {event.id for event in eligible_events(bundle, cushion.state)}
+    steady_ids = {event.id for event in eligible_events(bundle, steady.state)}
+
+    assert "cash_drag_regret" in cushion_ids
+    assert "cash_drag_regret" not in steady_ids
+
+
 def test_credit_specific_event_pools_change_with_housing_and_transport_doors(bundle, controller_factory):
     fragile = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
     fragile.state.current_month = 14

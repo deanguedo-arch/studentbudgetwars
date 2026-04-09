@@ -291,6 +291,21 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
             return False
         if player.credit_score < 740:
             return False
+    if event.id == "market_margin_call":
+        if player.monthly_surplus > -40:
+            return False
+        if (player.cash + player.savings) > 900:
+            return False
+    if event.id == "debt_paydown_tightrope":
+        if player.monthly_surplus < 50:
+            return False
+        if (player.cash + player.savings) > 700:
+            return False
+    if event.id == "cash_drag_regret":
+        if player.monthly_surplus < 180:
+            return False
+        if (player.cash + player.savings) < 1800:
+            return False
     if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
         return False
     if event.id in {"car_repair", "beater_breakdown", "missed_shift_after_breakdown", "used_car_window"} and not _uses_vehicle(player.transport_id):
@@ -440,6 +455,25 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         if state.player.monthly_surplus < 0:
             weight *= 1.25
         if state.player.cash + state.player.savings < 600:
+            weight *= 1.2
+    if event.id == "market_margin_call":
+        if state.player.monthly_surplus < -120:
+            weight *= 1.2
+        if state.player.cash + state.player.savings < 300:
+            weight *= 1.25
+        if state.player.debt >= 10000:
+            weight *= 1.2
+    if event.id == "debt_paydown_tightrope":
+        if state.player.debt >= 8500:
+            weight *= 1.25
+        if state.player.cash + state.player.savings < 300:
+            weight *= 1.2
+        if state.player.stress >= 60:
+            weight *= 1.15
+    if event.id == "cash_drag_regret":
+        if state.player.cash + state.player.savings >= 2400:
+            weight *= 1.25
+        if state.player.monthly_surplus >= 280:
             weight *= 1.2
 
     weight *= _matrix_weight_multiplier(bundle, state, event)

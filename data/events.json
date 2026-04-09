@@ -2639,5 +2639,131 @@
       }
     ],
     "log_entry": "Prime credit created a recovery door that weaker files cannot access."
+  },
+  {
+    "id": "market_margin_call",
+    "name": "Market Margin Call",
+    "description": "Aggressive positioning collided with fragile monthly cash. You can protect liquidity now or defend upside and absorb pressure.",
+    "weight": 4,
+    "min_month": 12,
+    "eligible_wealth_strategy_ids": [
+      "market_chaser"
+    ],
+    "eligible_market_regime_ids": [
+      "weak",
+      "correction"
+    ],
+    "minimum_debt": 7000,
+    "maximum_credit_score": 700,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "cut_risk_now",
+        "label": "Cut risk now",
+        "description": "Stabilize monthly pressure and reduce downside exposure.",
+        "stat_effects": {
+          "cash": 220,
+          "stress": -1,
+          "life_satisfaction": -1
+        }
+      },
+      {
+        "id": "hold_the_line",
+        "label": "Hold the line",
+        "description": "Protect upside exposure and accept a rougher month.",
+        "stat_effects": {
+          "stress": 4,
+          "energy": -2,
+          "credit_score": -5
+        }
+      }
+    ],
+    "log_entry": "Aggressive wealth posture turned a weak market into immediate monthly pressure."
+  },
+  {
+    "id": "debt_paydown_tightrope",
+    "name": "Debt Paydown Tightrope",
+    "description": "Debt-first discipline is working, but your monthly cushion is now razor-thin.",
+    "weight": 4,
+    "min_month": 10,
+    "eligible_wealth_strategy_ids": [
+      "debt_crusher"
+    ],
+    "minimum_debt": 6000,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "keep_crushing",
+        "label": "Keep crushing",
+        "description": "Hold debt pressure reduction and accept higher stress this month.",
+        "stat_effects": {
+          "debt": -260,
+          "stress": 3,
+          "life_satisfaction": -1
+        }
+      },
+      {
+        "id": "pause_for_breathing_room",
+        "label": "Pause for room",
+        "description": "Protect day-to-day stability and sacrifice some debt momentum.",
+        "stat_effects": {
+          "cash": 140,
+          "stress": -1,
+          "promotion_progress": -1
+        }
+      }
+    ],
+    "log_entry": "Debt-crusher posture created a real discipline-versus-breathing-room decision."
+  },
+  {
+    "id": "cash_drag_regret",
+    "name": "Cash Drag Regret",
+    "description": "A strong market month made your defensive positioning feel expensive.",
+    "weight": 3,
+    "min_month": 10,
+    "eligible_wealth_strategy_ids": [
+      "cushion_first"
+    ],
+    "eligible_market_regime_ids": [
+      "strong"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "stay_defensive",
+        "label": "Stay defensive",
+        "description": "Keep resilience high even if upside lags.",
+        "stat_effects": {
+          "stress": -1,
+          "life_satisfaction": 1,
+          "social_stability": 1
+        }
+      },
+      {
+        "id": "tilt_into_upside",
+        "label": "Tilt into upside",
+        "description": "Shift toward growth and accept higher future volatility.",
+        "stat_effects": {
+          "cash": -120,
+          "stress": 2,
+          "credit_score": -1
+        },
+        "modifier": {
+          "id": "opportunity_chase_tilt",
+          "label": "Opportunity Chase Tilt",
+          "duration_months": 3,
+          "stat_effects": {},
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      }
+    ],
+    "log_entry": "Defensive wealth posture forced an upside-versus-resilience call."
   }
 ]
