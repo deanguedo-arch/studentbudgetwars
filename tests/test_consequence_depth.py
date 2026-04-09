@@ -284,6 +284,75 @@ def test_late_run_branch_promotion_offers_diverge_by_warehouse_branch(bundle, co
     assert "dispatch_lead_offer" not in equipment_ids
 
 
+def test_clienteling_branch_has_unique_opportunity_and_failure_hooks(bundle, controller_factory):
+    stable = controller_factory(opening_path_id="full_time_work")
+    stable.change_career("retail_service")
+    stable.state.current_month = 20
+    stable.state.player.career.tier_index = 2
+    stable.state.player.career.branch_id = "retail_clienteling_track"
+    stable.state.player.social_stability = 72
+    stable.state.player.stress = 42
+
+    strained = controller_factory(opening_path_id="full_time_work")
+    strained.change_career("retail_service")
+    strained.state.current_month = 20
+    strained.state.player.career.tier_index = 2
+    strained.state.player.career.branch_id = "retail_clienteling_track"
+    strained.state.player.social_stability = 44
+    strained.state.player.stress = 74
+
+    management = controller_factory(opening_path_id="full_time_work")
+    management.change_career("retail_service")
+    management.state.current_month = 20
+    management.state.player.career.tier_index = 2
+    management.state.player.career.branch_id = "retail_management_track"
+    management.state.player.social_stability = 72
+
+    stable_ids = {event.id for event in eligible_events(bundle, stable.state)}
+    strained_ids = {event.id for event in eligible_events(bundle, strained.state)}
+    management_ids = {event.id for event in eligible_events(bundle, management.state)}
+
+    assert "clienteling_key_account_offer" in stable_ids
+    assert "client_book_attrition_risk" not in stable_ids
+    assert "client_book_attrition_risk" in strained_ids
+    assert "clienteling_key_account_offer" not in management_ids
+
+
+def test_warehouse_ops_branch_has_unique_failure_and_offer_hooks(bundle, controller_factory):
+    stable_ops = controller_factory(opening_path_id="full_time_work")
+    stable_ops.state.current_month = 22
+    stable_ops.state.player.career.tier_index = 2
+    stable_ops.state.player.career.branch_id = "warehouse_ops_track"
+    stable_ops.state.player.transport.reliability_score = 78
+    stable_ops.state.player.energy = 58
+    stable_ops.state.player.stress = 48
+
+    strained_ops = controller_factory(opening_path_id="full_time_work")
+    strained_ops.state.current_month = 22
+    strained_ops.state.player.career.tier_index = 2
+    strained_ops.state.player.career.branch_id = "warehouse_ops_track"
+    strained_ops.state.player.transport.reliability_score = 58
+    strained_ops.state.player.energy = 33
+    strained_ops.state.player.stress = 76
+
+    dispatch = controller_factory(opening_path_id="full_time_work")
+    dispatch.state.current_month = 22
+    dispatch.state.player.career.tier_index = 2
+    dispatch.state.player.career.branch_id = "warehouse_dispatch_track"
+    dispatch.state.player.transport.reliability_score = 78
+    dispatch.state.player.energy = 58
+    dispatch.state.player.stress = 48
+
+    stable_ids = {event.id for event in eligible_events(bundle, stable_ops.state)}
+    strained_ids = {event.id for event in eligible_events(bundle, strained_ops.state)}
+    dispatch_ids = {event.id for event in eligible_events(bundle, dispatch.state)}
+
+    assert "warehouse_foreman_offer" in stable_ids
+    assert "warehouse_safety_crunch" not in stable_ids
+    assert "warehouse_safety_crunch" in strained_ids
+    assert "warehouse_foreman_offer" not in dispatch_ids
+
+
 def test_wealth_strategy_events_change_with_strategy(bundle, controller_factory):
     cushion = controller_factory(opening_path_id="stay_home_stack_cash")
     cushion.state.current_month = 14

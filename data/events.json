@@ -2212,5 +2212,204 @@
     "chained_event_id": "credit_limit_review",
     "chained_delay_months": 1,
     "log_entry": "Debt pressure moved from background risk to direct warning."
+  },
+  {
+    "id": "clienteling_key_account_offer",
+    "name": "Key Account Offer",
+    "description": "A high-value client book is opening. You can take the larger upside lane or bank a steadier account mix.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_clienteling_track"
+    ],
+    "minimum_social_stability": 64,
+    "maximum_life_satisfaction": 100,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_the_key_book",
+        "label": "Take the key book",
+        "description": "Higher upside and pressure from bigger account expectations.",
+        "stat_effects": {
+          "cash": 420,
+          "promotion_progress": 4,
+          "stress": 3,
+          "energy": -2
+        },
+        "modifier": {
+          "id": "key_account_lane",
+          "label": "Key Account Lane",
+          "duration_months": 3,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.05,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "keep_the_book_stable",
+        "label": "Keep it stable",
+        "description": "Lower upside, steadier social and stress profile.",
+        "stat_effects": {
+          "cash": 170,
+          "promotion_progress": 2,
+          "stress": -1,
+          "social_stability": 2
+        }
+      }
+    ],
+    "log_entry": "Clienteling opened a real upside-versus-stability fork."
+  },
+  {
+    "id": "client_book_attrition_risk",
+    "name": "Client Book Attrition Risk",
+    "description": "Inconsistent follow-through is starting to cost repeat business. You can overcompensate now or accept a slower decline and protect your energy.",
+    "weight": 5,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_clienteling_track"
+    ],
+    "maximum_social_stability": 52,
+    "minimum_stress": 60,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "overrecover_the_book",
+        "label": "Overrecover",
+        "description": "Win clients back this month at a heavy personal cost.",
+        "stat_effects": {
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -3,
+          "cash": 120
+        }
+      },
+      {
+        "id": "accept_the_dip",
+        "label": "Accept the dip",
+        "description": "Protect your energy, take the immediate career and cash hit.",
+        "stat_effects": {
+          "cash": -220,
+          "promotion_progress": -2,
+          "life_satisfaction": -2,
+          "stress": -1
+        }
+      }
+    ],
+    "chained_event_id": "sales_cold_streak",
+    "chained_delay_months": 1,
+    "log_entry": "Your relationship lane slipped and forced a recovery decision."
+  },
+  {
+    "id": "warehouse_foreman_offer",
+    "name": "Foreman Offer",
+    "description": "Ops leadership opened up. You can take command with higher pressure or stay on a steadier floor trajectory.",
+    "weight": 4,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_ops_track"
+    ],
+    "minimum_social_stability": 42,
+    "minimum_stress": 0,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_foreman_role",
+        "label": "Take foreman role",
+        "description": "Higher pay lane with heavier operational pressure.",
+        "stat_effects": {
+          "cash": 360,
+          "promotion_progress": 4,
+          "stress": 3,
+          "energy": -2
+        },
+        "modifier": {
+          "id": "foreman_scope",
+          "label": "Foreman Scope",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.05,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "stay_floor_anchor",
+        "label": "Stay floor anchor",
+        "description": "Keep the month steadier and avoid taking on maximum pressure.",
+        "stat_effects": {
+          "cash": 140,
+          "promotion_progress": 2,
+          "stress": -1,
+          "energy": 1
+        }
+      }
+    ],
+    "log_entry": "Warehouse ops offered a clear command-versus-stability decision."
+  },
+  {
+    "id": "warehouse_safety_crunch",
+    "name": "Warehouse Safety Crunch",
+    "description": "Fatigue and floor pressure produced a safety scare. You can push through or pull back and absorb a short-term output hit.",
+    "weight": 6,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_ops_track"
+    ],
+    "minimum_stress": 65,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "push_through_shift",
+        "label": "Push through",
+        "description": "Keep output high but raise burnout risk.",
+        "stat_effects": {
+          "cash": 110,
+          "stress": 4,
+          "energy": -4,
+          "life_satisfaction": -2
+        }
+      },
+      {
+        "id": "slow_and_reset",
+        "label": "Slow and reset",
+        "description": "Protect the team and your body, lose some immediate momentum.",
+        "stat_effects": {
+          "cash": -180,
+          "promotion_progress": -1,
+          "stress": -2,
+          "energy": 2
+        }
+      }
+    ],
+    "chained_event_id": "burnout_month",
+    "chained_delay_months": 1,
+    "log_entry": "Ops fatigue turned into a real safety-pressure decision."
   }
 ]
