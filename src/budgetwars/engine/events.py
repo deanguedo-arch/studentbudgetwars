@@ -260,6 +260,21 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
             return False
         if (player.cash + player.savings) < 1200:
             return False
+    if event.id == "collections_warning":
+        if player.monthly_surplus > -50:
+            return False
+    if event.id == "beater_cascade_choice":
+        if player.transport.option_id != "beater_car":
+            return False
+        if player.transport.reliability_score > 55:
+            return False
+    if event.id == "overtime_exam_collision":
+        if not player.education.is_active:
+            return False
+        if player.education.intensity_level == "intensive":
+            pass
+        elif player.selected_focus_action_id not in {"overtime", "study_push", "promotion_hunt"}:
+            return False
     if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
         return False
     if event.id in {"car_repair", "beater_breakdown", "missed_shift_after_breakdown", "used_car_window"} and not _uses_vehicle(player.transport_id):
@@ -368,6 +383,39 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.25
         if state.player.housing.missed_payment_streak > 0:
             weight *= 0.2
+    if event.id == "beater_cascade_choice":
+        if state.player.transport.option_id == "beater_car":
+            weight *= 1.45
+        if state.player.transport.reliability_score <= 45:
+            weight *= 1.35
+        if state.player.debt >= 7000:
+            weight *= 1.2
+        if state.player.cash + state.player.savings < 500:
+            weight *= 1.15
+    if event.id == "overtime_exam_collision":
+        if state.player.education.is_active:
+            weight *= 1.25
+        if state.player.selected_focus_action_id in {"overtime", "study_push"}:
+            weight *= 1.35
+        if state.player.energy <= 45:
+            weight *= 1.2
+        if state.player.stress >= 65:
+            weight *= 1.2
+        if state.player.education.intensity_level == "intensive":
+            weight *= 1.2
+        if state.player.education.program_id == "none":
+            weight *= 0.15
+    if event.id == "collections_warning":
+        if state.player.credit_score < 580:
+            weight *= 1.45
+        elif state.player.credit_score >= 700:
+            weight *= 0.2
+        if state.player.debt >= 9000:
+            weight *= 1.35
+        if state.player.monthly_surplus < 0:
+            weight *= 1.3
+        if state.player.cash + state.player.savings < 600:
+            weight *= 1.2
 
     weight *= _matrix_weight_multiplier(bundle, state, event)
     return max(0.05, weight * difficulty.event_weight_multiplier)

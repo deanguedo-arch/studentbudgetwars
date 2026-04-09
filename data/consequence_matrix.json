@@ -182,6 +182,7 @@
       "event_weights": {
         "car_repair": 1.4,
         "beater_breakdown": 1.6,
+        "beater_cascade_choice": 1.5,
         "missed_shift_after_breakdown": 1.35,
         "used_car_window": 1.2
       },
@@ -248,7 +249,8 @@
         "opportunity_window": 0.1
       },
       "event_weights": {
-        "scholarship_relief": 1.2
+        "scholarship_relief": 1.2,
+        "overtime_exam_collision": 1.15
       }
     },
     "full_time_university": {
@@ -257,7 +259,8 @@
         "opportunity_window": 0.15
       },
       "event_weights": {
-        "scholarship_relief": 1.35
+        "scholarship_relief": 1.35,
+        "overtime_exam_collision": 1.25
       }
     },
     "apprenticeship": {
@@ -293,7 +296,8 @@
       },
       "event_weights": {
         "burnout_month": 1.3,
-        "promotion_window": 1.1
+        "promotion_window": 1.1,
+        "overtime_exam_collision": 1.2
       },
       "event_severity": {
         "burnout_month": 1.15
@@ -326,6 +330,7 @@
       },
       "event_weights": {
         "scholarship_relief": 1.2,
+        "overtime_exam_collision": 1.25,
         "burnout_month": 1.1
       }
     },
@@ -439,6 +444,7 @@
       },
       "event_weights": {
         "credit_limit_review": 1.6,
+        "collections_warning": 1.45,
         "refinance_window": 0.25
       },
       "event_severity": {
@@ -451,6 +457,7 @@
       },
       "event_weights": {
         "credit_limit_review": 1.15,
+        "collections_warning": 1.15,
         "refinance_window": 0.75
       }
     },
@@ -460,6 +467,7 @@
       },
       "event_weights": {
         "credit_limit_review": 0.6,
+        "collections_warning": 0.65,
         "refinance_window": 1.2
       }
     },
@@ -470,6 +478,7 @@
       },
       "event_weights": {
         "credit_limit_review": 0.3,
+        "collections_warning": 0.35,
         "refinance_window": 1.5
       },
       "event_severity": {

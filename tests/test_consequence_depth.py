@@ -426,6 +426,85 @@ def test_used_car_window_requires_actual_vehicle(bundle, controller_factory):
     assert "used_car_window" in car_events
 
 
+def test_transport_fragility_build_surfaces_breakdown_cascade_events(bundle, controller_factory):
+    fragile = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    fragile.state.current_month = 10
+    fragile.state.player.transport.option_id = "beater_car"
+    fragile.state.player.transport.reliability_score = 36
+    fragile.state.player.debt = 8800
+    fragile.state.player.cash = 180
+    fragile.state.player.savings = 0
+
+    stable = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    stable.state.current_month = 10
+    stable.state.player.transport.option_id = "transit"
+    stable.state.player.transport.reliability_score = 88
+    stable.state.player.debt = 1400
+    stable.state.player.cash = 1800
+    stable.state.player.savings = 1200
+
+    fragile_ids = {event.id for event in eligible_events(bundle, fragile.state)}
+    stable_ids = {event.id for event in eligible_events(bundle, stable.state)}
+
+    assert "beater_cascade_choice" in fragile_ids
+    assert "beater_cascade_choice" not in stable_ids
+
+    cascade = next(event for event in bundle.events if event.id == "beater_cascade_choice")
+    assert event_weight(bundle, fragile.state, cascade) >= event_weight(bundle, stable.state, cascade) * 4
+
+
+def test_school_pressure_build_surfaces_exam_collision_choice(bundle, controller_factory):
+    school_heavy = controller_factory(opening_path_id="college_university", city_id="mid_size_city")
+    school_heavy.state.current_month = 9
+    school_heavy.state.player.education.program_id = "full_time_university"
+    school_heavy.state.player.education.is_active = True
+    school_heavy.state.player.selected_focus_action_id = "overtime"
+    school_heavy.state.player.stress = 69
+    school_heavy.state.player.energy = 42
+
+    worker_first = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+    worker_first.state.current_month = 9
+    worker_first.state.player.education.program_id = "none"
+    worker_first.state.player.education.is_active = False
+    worker_first.state.player.selected_focus_action_id = "recovery_month"
+
+    school_ids = {event.id for event in eligible_events(bundle, school_heavy.state)}
+    worker_ids = {event.id for event in eligible_events(bundle, worker_first.state)}
+
+    assert "overtime_exam_collision" in school_ids
+    assert "overtime_exam_collision" not in worker_ids
+
+    collision = next(event for event in bundle.events if event.id == "overtime_exam_collision")
+    assert event_weight(bundle, school_heavy.state, collision) >= event_weight(bundle, worker_first.state, collision) * 3
+
+
+def test_credit_squeeze_build_surfaces_collections_warning(bundle, controller_factory):
+    squeezed = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    squeezed.state.current_month = 12
+    squeezed.state.player.credit_score = 548
+    squeezed.state.player.debt = 11200
+    squeezed.state.player.monthly_surplus = -220
+    squeezed.state.player.cash = 120
+    squeezed.state.player.savings = 0
+
+    healthy = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    healthy.state.current_month = 12
+    healthy.state.player.credit_score = 752
+    healthy.state.player.debt = 2100
+    healthy.state.player.monthly_surplus = 340
+    healthy.state.player.cash = 2400
+    healthy.state.player.savings = 1800
+
+    squeezed_ids = {event.id for event in eligible_events(bundle, squeezed.state)}
+    healthy_ids = {event.id for event in eligible_events(bundle, healthy.state)}
+
+    assert "collections_warning" in squeezed_ids
+    assert "collections_warning" not in healthy_ids
+
+    warning = next(event for event in bundle.events if event.id == "collections_warning")
+    assert event_weight(bundle, squeezed.state, warning) >= event_weight(bundle, healthy.state, warning) * 4
+
+
 def test_vehicle_repair_events_do_not_show_up_without_vehicle(bundle, controller_factory):
     controller = controller_factory(opening_path_id="stay_home_stack_cash")
     controller.state.current_month = 6

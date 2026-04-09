@@ -2074,5 +2074,143 @@
       }
     ],
     "log_entry": "For once, good credit and a stable lease history put the renewal in your favor."
+  },
+  {
+    "id": "beater_cascade_choice",
+    "name": "Beater Cascade",
+    "description": "The beater is no longer one repair away from stable. You choose whether to patch it and pray or take the immediate hit to protect next month.",
+    "weight": 6,
+    "min_month": 6,
+    "eligible_transport_ids": [
+      "beater_car"
+    ],
+    "maximum_transport_reliability": 55,
+    "minimum_debt": 2500,
+    "immediate_effects": {
+      "stress": 2
+    },
+    "choices": [
+      {
+        "id": "patch_and_keep_grinding",
+        "label": "Patch it and keep grinding",
+        "description": "Lower upfront pain, higher risk of missed work if it fails again.",
+        "stat_effects": {
+          "cash": -260,
+          "stress": 4,
+          "energy": -3,
+          "life_satisfaction": -2
+        }
+      },
+      {
+        "id": "eat_the_upgrade_hit",
+        "label": "Eat the upgrade hit",
+        "description": "Take the bigger immediate cost to reduce near-term instability.",
+        "stat_effects": {
+          "cash": -520,
+          "stress": 1,
+          "life_satisfaction": -1
+        },
+        "modifier": {
+          "id": "temporary_transport_stability",
+          "label": "Temporary Transport Stability",
+          "duration_months": 2,
+          "stat_effects": {},
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": -40,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 250
+        }
+      }
+    ],
+    "chained_event_id": "missed_shift_after_breakdown",
+    "chained_delay_months": 1,
+    "log_entry": "Transport fragility forced an expensive gamble."
+  },
+  {
+    "id": "overtime_exam_collision",
+    "name": "Overtime vs Exam Collision",
+    "description": "Work pressure and school deadlines hit the same week. You can protect short-term cash or protect academic momentum.",
+    "weight": 5,
+    "min_month": 5,
+    "eligible_education_ids": [
+      "part_time_college",
+      "full_time_university",
+      "certificate",
+      "upgrading"
+    ],
+    "minimum_stress": 55,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "protect_grades",
+        "label": "Protect grades",
+        "description": "Drop some shifts and preserve your education lane.",
+        "stat_effects": {
+          "cash": -280,
+          "stress": -2,
+          "energy": 2,
+          "education_progress": 3,
+          "promotion_progress": -1
+        }
+      },
+      {
+        "id": "protect_paycheck",
+        "label": "Protect paycheck",
+        "description": "Take the income and absorb the academic drag.",
+        "stat_effects": {
+          "cash": 180,
+          "stress": 4,
+          "energy": -3,
+          "education_progress": -3,
+          "life_satisfaction": -2
+        }
+      }
+    ],
+    "chained_event_id": "burnout_month",
+    "chained_delay_months": 1,
+    "log_entry": "You had to choose which lane to disappoint this month."
+  },
+  {
+    "id": "collections_warning",
+    "name": "Collections Warning",
+    "description": "Missed payments and weak credit triggered a direct warning. You can pay now to hold the line or float it and risk a harsher follow-up.",
+    "weight": 7,
+    "min_month": 8,
+    "minimum_debt": 7000,
+    "maximum_credit_score": 610,
+    "immediate_effects": {
+      "stress": 3,
+      "life_satisfaction": -2
+    },
+    "choices": [
+      {
+        "id": "stabilize_now",
+        "label": "Stabilize now",
+        "description": "Cover the warning and protect your credit floor.",
+        "stat_effects": {
+          "cash": -420,
+          "stress": -1,
+          "credit_score": 5
+        }
+      },
+      {
+        "id": "float_it",
+        "label": "Float it",
+        "description": "Keep cash now and risk a deeper credit hit next month.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": 4,
+          "credit_score": -10,
+          "social_stability": -2
+        }
+      }
+    ],
+    "chained_event_id": "credit_limit_review",
+    "chained_delay_months": 1,
+    "log_entry": "Debt pressure moved from background risk to direct warning."
   }
 ]
