@@ -353,6 +353,44 @@ def test_warehouse_ops_branch_has_unique_failure_and_offer_hooks(bundle, control
     assert "warehouse_foreman_offer" not in dispatch_ids
 
 
+def test_warehouse_equipment_branch_has_unique_failure_and_offer_hooks(bundle, controller_factory):
+    stable_equipment = controller_factory(opening_path_id="full_time_work")
+    stable_equipment.state.current_month = 24
+    stable_equipment.state.player.career.tier_index = 2
+    stable_equipment.state.player.career.branch_id = "warehouse_equipment_track"
+    stable_equipment.state.player.transport.reliability_score = 82
+    stable_equipment.state.player.energy = 60
+    stable_equipment.state.player.stress = 44
+    stable_equipment.state.player.social_stability = 56
+
+    strained_equipment = controller_factory(opening_path_id="full_time_work")
+    strained_equipment.state.current_month = 24
+    strained_equipment.state.player.career.tier_index = 2
+    strained_equipment.state.player.career.branch_id = "warehouse_equipment_track"
+    strained_equipment.state.player.transport.reliability_score = 56
+    strained_equipment.state.player.energy = 34
+    strained_equipment.state.player.stress = 74
+    strained_equipment.state.player.social_stability = 42
+
+    dispatch = controller_factory(opening_path_id="full_time_work")
+    dispatch.state.current_month = 24
+    dispatch.state.player.career.tier_index = 2
+    dispatch.state.player.career.branch_id = "warehouse_dispatch_track"
+    dispatch.state.player.transport.reliability_score = 82
+    dispatch.state.player.energy = 60
+    dispatch.state.player.stress = 44
+    dispatch.state.player.social_stability = 56
+
+    stable_ids = {event.id for event in eligible_events(bundle, stable_equipment.state)}
+    strained_ids = {event.id for event in eligible_events(bundle, strained_equipment.state)}
+    dispatch_ids = {event.id for event in eligible_events(bundle, dispatch.state)}
+
+    assert "equipment_specialist_offer" in stable_ids
+    assert "equipment_safety_recall" not in stable_ids
+    assert "equipment_safety_recall" in strained_ids
+    assert "equipment_specialist_offer" not in dispatch_ids
+
+
 def test_wealth_strategy_events_change_with_strategy(bundle, controller_factory):
     cushion = controller_factory(opening_path_id="stay_home_stack_cash")
     cushion.state.current_month = 14

@@ -90,6 +90,12 @@ python -m venv .venv
 pip install -e .[dev]
 ```
 
+One-command Windows bootstrap (Python + `.venv` + deps + Cursor extensions):
+
+```bat
+bootstrap_windows.bat
+```
+
 ## Simulation Tooling
 
 Run deterministic balance batches against the real monthly loop:

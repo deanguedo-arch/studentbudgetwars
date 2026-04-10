@@ -1951,6 +1951,106 @@
     "log_entry": "Specialized equipment work finally offered real upside and real strain."
   },
   {
+    "id": "equipment_specialist_offer",
+    "name": "Equipment Specialist Offer",
+    "description": "Your reliability record opened a specialist lane with better pay and heavier responsibility.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_equipment_track"
+    ],
+    "minimum_social_stability": 52,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "accept_specialist_rotation",
+        "label": "Accept rotation",
+        "description": "Take the specialist lane now and absorb the heavier operating pressure.",
+        "stat_effects": {
+          "cash": 260,
+          "promotion_progress": 3,
+          "stress": 3,
+          "energy": -2
+        },
+        "modifier": {
+          "id": "equipment_specialist_lane",
+          "label": "Equipment Specialist Lane",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.04,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "stay_current_floor",
+        "label": "Stay current lane",
+        "description": "Keep the month steadier and decline the bigger specialist pressure.",
+        "stat_effects": {
+          "cash": 100,
+          "stress": -1,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Reliable equipment work created a real upside-versus-pressure decision."
+  },
+  {
+    "id": "equipment_safety_recall",
+    "name": "Equipment Safety Recall",
+    "description": "A safety recall hit your lane during a high-pressure stretch and forced a hard call on output versus stability.",
+    "weight": 5,
+    "min_month": 16,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_equipment_track"
+    ],
+    "minimum_stress": 68,
+    "maximum_transport_reliability": 62,
+    "maximum_social_stability": 48,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "work_through_recall",
+        "label": "Work through recall",
+        "description": "Push through the disruption to protect short-term output.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": 4,
+          "energy": -3,
+          "life_satisfaction": -2
+        }
+      },
+      {
+        "id": "slow_for_safety",
+        "label": "Slow for safety",
+        "description": "Protect stability and reliability, accepting a short-term cash hit.",
+        "stat_effects": {
+          "cash": -200,
+          "stress": -2,
+          "energy": 2,
+          "promotion_progress": -1
+        }
+      }
+    ],
+    "chained_event_id": "burnout_month",
+    "chained_delay_months": 1,
+    "log_entry": "Equipment pressure turned into a safety-versus-output choice."
+  },
+  {
     "id": "security_deposit_shock",
     "name": "Security Deposit Shock",
     "description": "Weak credit turned a normal housing move into an expensive screening and deposit problem.",
