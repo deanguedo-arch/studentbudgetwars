@@ -129,8 +129,6 @@ class FinancePanel(tk.Frame):
         left = tk.Frame(top, bg=BG_CARD)
         left.pack(side="left" if not compact else "top", fill="y" if not compact else "x", padx=(0, PAD_M) if not compact else (0, 0))
         tk.Label(left, text="RUN DIAGNOSIS", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(anchor="w")
-        tk.Label(left, text=f"{summary.projected_score:.1f}", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING if compact else ("Georgia", 20, "bold"), anchor="w").pack(anchor="w")
-        tk.Label(left, text=summary.tier, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SUBHEADING, anchor="w").pack(anchor="w")
         tk.Label(
             left,
             text=f"Risk: {summary.biggest_risk}",

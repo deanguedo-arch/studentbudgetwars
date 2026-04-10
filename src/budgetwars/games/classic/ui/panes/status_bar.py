@@ -128,13 +128,14 @@ class StatusBar(tk.Frame):
             self._category_canvases[key] = canvas
 
         # ── Score badge (right-aligned) ──
-        score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1, width=170)
+        score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1, width=250)
         score_frame.pack(side="right", fill="y", padx=(PAD_S, 0), pady=2)
         score_frame.pack_propagate(False)
+        self._score_frame = score_frame
         tk.Label(score_frame, text="RANK", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
-        self._score_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["score"], padx=PAD_M, pady=1)
+        self._score_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["score"], padx=6, pady=1)
         self._score_label.pack(side="left")
-        self._tier_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SCORE_TIER, padx=PAD_S, pady=2)
+        self._tier_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SCORE_TIER, padx=4, pady=2)
         self._tier_label.pack(side="left")
 
     def render(
@@ -210,4 +211,5 @@ class StatusBar(tk.Frame):
         self._energy_val.configure(font=self._fonts["small"])
         self._life_val.configure(font=self._fonts["small"])
         self._score_label.configure(font=self._fonts["score"])
+        self._score_frame.configure(width=280 if enabled else 250)
         self._season_detail.configure(font=self._fonts["small"])
