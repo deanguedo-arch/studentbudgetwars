@@ -43,8 +43,6 @@ def test_build_snapshot_returns_structured_items(controller_factory):
         "Education",
         "Housing",
         "Transport",
-        "Budget",
-        "Credit",
         "Wealth",
         "Focus",
     ]

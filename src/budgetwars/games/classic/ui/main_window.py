@@ -714,13 +714,10 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
     education = next(program for program in controller.bundle.education_programs if program.id == player.education.program_id)
     housing = next(item for item in controller.bundle.housing_options if item.id == player.housing_id)
     transport = next(item for item in controller.bundle.transport_options if item.id == player.transport_id)
-    stance = next(item for item in controller.bundle.config.budget_stances if item.id == player.budget_stance_id)
     wealth = next(item for item in controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
     focus = next(item for item in controller.bundle.focus_actions if item.id == player.selected_focus_action_id)
     branch = next((item for item in career_track.branches if item.id == player.career.branch_id), None)
     focus_name = _current_focus_name(controller)
-    credit_tier = credit_tier_label(player.credit_score)
-    credit_progress_label, credit_progress_detail, _ = credit_progress_summary(player.credit_score)
     career_progress = f"Progress: {player.career.promotion_progress}/{career_track.tiers[player.career.tier_index].promotion_target}"
     if player.career.tier_index >= len(career_track.tiers) - 1:
         career_progress = f"Progress: max tier reached | momentum {player.career.promotion_momentum}"
@@ -763,20 +760,6 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
             "transport",
         ),
         BuildSystemVM(
-            "Budget",
-            stance.name,
-            f"Cash flow stance: {_money(player.monthly_surplus)}",
-            f"Progress: runway {_money(max(0, player.cash + player.savings - player.debt))}",
-            "budget",
-        ),
-        BuildSystemVM(
-            "Credit",
-            f"{player.credit_score} {credit_tier}",
-            "What lenders see when this run needs a door open.",
-            f"Progress: {credit_progress_label} | {credit_progress_detail}",
-            "credit",
-        ),
-        BuildSystemVM(
             "Wealth",
             wealth.name,
             f"Portfolio: {_money(player.high_interest_savings + player.index_fund + player.aggressive_growth_fund)}",
@@ -792,8 +775,7 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
         ),
     ]
     identity_line = (
-        f"{career_track.name} | {branch.name if branch is not None else 'Uncommitted lane'} | "
-        f"{wealth.name} | Credit {credit_tier}"
+        f"{career_track.name} | {branch.name if branch is not None else 'Uncommitted lane'} | {wealth.name}"
     )
     return BuildSnapshotVM(
         player_name=player.name,

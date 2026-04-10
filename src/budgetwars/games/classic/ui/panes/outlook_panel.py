@@ -114,13 +114,6 @@ class OutlookPanel(tk.Frame):
         grid.grid_columnconfigure(0, weight=1)
         grid.grid_columnconfigure(1, weight=1)
 
-        progress = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=ACCENT_FOCUS, highlightthickness=2)
-        progress.pack(fill="x", pady=(PAD_S, 0))
-        self._widgets.append(progress)
-        tk.Label(progress, text=forecast.progress_label.upper(), bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
-        tk.Label(progress, text=forecast.progress_detail, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x", padx=PAD_S)
-        _progress_bar(progress, forecast.progress_fraction).pack(anchor="w", padx=PAD_S, pady=(PAD_S, PAD_S))
-
         focus_frame = tk.Frame(self._content, bg=BG_CARD)
         focus_frame.pack(fill="x", pady=(PAD_S, 0))
         self._widgets.append(focus_frame)
