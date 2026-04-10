@@ -63,7 +63,7 @@ class ActionsPanel(tk.Frame):
 
         if compact:
             container = tk.Frame(self, bg=BG_CARD)
-            container.pack(fill="x", padx=PAD_S, pady=(PAD_S, PAD_S))
+            container.pack(fill="x", padx=PAD_S, pady=(PAD_S // 2, PAD_S // 2))
             self._section_frames.append(container)
             for column, (section_title, actions) in enumerate(groups):
                 section = tk.Frame(container, bg=BG_CARD)
@@ -86,8 +86,6 @@ class ActionsPanel(tk.Frame):
                 resolve_action = next((a for a in actions if a[0].lower() == "resolve month"), None)
 
                 for index, (label, callback) in enumerate(regular_actions):
-                    row = index // 2
-                    column_index = index % 2
                     accent = _button_fg(label)
                     font = FONT_BUTTON_LG if self._large_text_enabled else FONT_BUTTON
                     btn = tk.Button(
@@ -95,12 +93,12 @@ class ActionsPanel(tk.Frame):
                         bg=_button_bg(label), fg=accent,
                         activebackground=BG_HOVER, activeforeground=TEXT_HEADING,
                         relief="flat", bd=0, font=font,
-                        padx=PAD_S, pady=PAD_S // 2,
+                        padx=PAD_S, pady=max(1, PAD_S // 3),
                         cursor="hand2",
                         highlightbackground=accent, highlightthickness=2,
-                        wraplength=130,
+                        wraplength=118,
                     )
-                    btn.grid(row=row, column=column_index, padx=2, pady=2, sticky="ew")
+                    btn.grid(row=0, column=index, padx=2, pady=1, sticky="ew")
                     btn.bind("<Enter>", lambda e, b=btn: b.configure(bg=BG_HOVER))
                     btn.bind("<Leave>", lambda e, b=btn: b.configure(bg=_button_bg(b.cget("text"))))
                     self._buttons.append(btn)
@@ -113,18 +111,23 @@ class ActionsPanel(tk.Frame):
                         bg="#60451f", fg=ACCENT_RESOLVE,
                         activebackground="#75572a", activeforeground="#fff8d0",
                         relief="flat", bd=0, font=resolve_font,
-                        pady=PAD_S // 2, padx=PAD_M,
+                        pady=max(1, PAD_S // 3), padx=PAD_S,
                         cursor="hand2",
                         highlightbackground=ACCENT_RESOLVE, highlightthickness=2,
                     )
-                    resolve_row = (len(regular_actions) + 1) // 2
-                    resolve_btn.grid(row=resolve_row, column=0, columnspan=2,
-                                     padx=PAD_S, pady=(PAD_S, PAD_S // 2), sticky="ew")
+                    resolve_btn.grid(
+                        row=0,
+                        column=len(regular_actions),
+                        padx=2,
+                        pady=1,
+                        sticky="ew",
+                    )
                     resolve_btn.bind("<Enter>", lambda e: resolve_btn.configure(bg="#75572a"))
                     resolve_btn.bind("<Leave>", lambda e: resolve_btn.configure(bg="#60451f"))
                     self._buttons.append(resolve_btn)
 
-                for i in range(2):
+                group_columns = len(regular_actions) + (1 if resolve_action else 0)
+                for i in range(max(1, group_columns)):
                     buttons_frame.grid_columnconfigure(i, weight=1)
             return
 

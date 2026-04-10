@@ -1587,6 +1587,7 @@ class MainWindow(tk.Frame):
         notebook.add(build_tab, text="Build")
         notebook.add(month_tab, text="This Month")
         notebook.add(pressure_tab, text="Score & Pressure")
+        notebook.select(month_tab)
 
         self.life_panel = LifePanel(build_tab, "Build")
         self.life_panel.pack(fill="both", expand=True)
@@ -1786,7 +1787,7 @@ class MainWindow(tk.Frame):
         self.outlook_panel.render_forecast(
             build_monthly_forecast_vm(self.controller),
             compact=compact,
-            show_resolve_button=False,
+            show_resolve_button=compact,
         )
         self.finance_panel.render_summary(
             build_pressure_summary_vm(self.controller, snapshot=self._latest_snapshot),
