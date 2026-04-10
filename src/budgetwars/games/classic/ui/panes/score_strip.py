@@ -1,4 +1,4 @@
-"""Prominent score strip with tier badge and category breakdown mini-bars."""
+"""Prominent score strip with score delta, risk, and tier progress."""
 from __future__ import annotations
 
 import tkinter as tk
@@ -14,29 +14,6 @@ from ..theme import (
     PAD_S, PAD_M,
     tier_color,
 )
-
-_CATEGORY_COLORS = {
-    "net_worth": "#48d878",
-    "monthly_surplus": "#60b0f0",
-    "debt_ratio": "#e85050",
-    "career_tier": "#f0a030",
-    "credentials_education": "#4ea8de",
-    "housing_stability": "#48b880",
-    "life_satisfaction": "#60b0f0",
-    "stress_burnout": "#e87040",
-}
-
-_CATEGORY_LABELS = {
-    "net_worth": "Net Worth",
-    "monthly_surplus": "Cash Flow",
-    "debt_ratio": "Debt",
-    "career_tier": "Career",
-    "credentials_education": "Education",
-    "housing_stability": "Housing",
-    "life_satisfaction": "Life",
-    "stress_burnout": "Wellness",
-}
-
 
 def _next_tier(score: float) -> tuple[str | None, float | None]:
     if score < 40:
@@ -83,27 +60,9 @@ class ScoreStrip(tk.Frame):
 
         # Risk label
         self._risk_label = tk.Label(self, text="", bg=BG_CARD, fg=COLOR_WARNING,
-                                    font=FONT_SMALL, anchor="w", wraplength=380, justify="left")
+                                    font=FONT_SMALL, anchor="w", wraplength=620, justify="left")
         self._risk_label.pack(side="left", fill="both", expand=True, padx=PAD_M)
-
-        # Category mini-bars on the right
-        self._bars_frame = tk.Frame(self, bg=BG_CARD)
-        self._bars_frame.pack(side="right", fill="y", padx=PAD_M, pady=PAD_S)
-        self._bar_canvases: dict[str, tk.Canvas] = {}
-        self._bar_labels: dict[str, tk.Label] = {}
         self._flash_job: str | None = None
-
-        for i, (key, label) in enumerate(_CATEGORY_LABELS.items()):
-            row_frame = tk.Frame(self._bars_frame, bg=BG_CARD)
-            row_frame.grid(row=i // 4, column=(i % 4) * 2, padx=(0, 2), pady=1, sticky="w")
-            lbl = tk.Label(row_frame, text=label, bg=BG_CARD, fg=TEXT_MUTED,
-                           font=FONT_TINY, anchor="w", width=8)
-            lbl.pack(side="left")
-            canvas = tk.Canvas(row_frame, width=54, height=7, bg=BG_DARKEST,
-                               bd=0, highlightthickness=0)
-            canvas.pack(side="left", padx=(2, 0))
-            self._bar_canvases[key] = canvas
-            self._bar_labels[key] = lbl
 
         if on_click:
             for widget in [self, self._score_label, self._tier_label, self._risk_label]:
@@ -141,14 +100,6 @@ class ScoreStrip(tk.Frame):
             self._credit_label.configure(text=credit_text, fg=TEXT_SECONDARY)
         else:
             self._credit_label.configure(text="")
-
-        for key, canvas in self._bar_canvases.items():
-            canvas.delete("all")
-            value = snapshot.breakdown.get(key, 0)
-            fill_w = max(0, min(54, int(54 * value / 100)))
-            color = _CATEGORY_COLORS.get(key, TEXT_SECONDARY)
-            canvas.create_rectangle(0, 0, 54, 7, fill=BG_DARK, outline="")
-            canvas.create_rectangle(0, 0, fill_w, 7, fill=color, outline="")
 
         if delta is not None and abs(delta.delta) >= 0.25:
             self._flash(delta.delta)

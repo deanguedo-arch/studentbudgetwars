@@ -1540,7 +1540,7 @@ class MainWindow(tk.Frame):
         content.grid_columnconfigure(1, weight=5)
         content.grid_columnconfigure(2, weight=3)
 
-        self.life_panel = LifePanel(content, "Build")
+        self.life_panel = LifePanel(content, "Build", on_action=self._on_build_card_action)
         self.life_panel.grid(row=0, column=0, sticky="nsew", padx=(0, PAD_S))
 
         center = tk.Frame(content, bg=BG_DARKEST)
@@ -1573,7 +1573,7 @@ class MainWindow(tk.Frame):
         notebook.add(pressure_tab, text="Score & Pressure")
         notebook.select(month_tab)
 
-        self.life_panel = LifePanel(build_tab, "Build")
+        self.life_panel = LifePanel(build_tab, "Build", on_action=self._on_build_card_action)
         self.life_panel.pack(fill="both", expand=True)
 
         month_tab.grid_rowconfigure(0, weight=2)
@@ -1604,10 +1604,10 @@ class MainWindow(tk.Frame):
         self._layout_compact_active = None
         self._build_main_content(self._desired_compact_layout(use_current_window=False))
 
-        # ── Actions bar (bottom) ──
+        # ── Actions bar (bottom) ── (hidden; replaced by clickable side cards)
         self.actions_panel = ActionsPanel(self)
         self.actions_panel.grid(row=3, column=0, sticky="ew", padx=PAD_M, pady=(0, PAD_M))
-        self.actions_panel.set_grouped_actions(self._build_action_groups())
+        self.actions_panel.grid_remove()
 
         self.master.config(
             menu=build_menu_bar(
@@ -1779,7 +1779,7 @@ class MainWindow(tk.Frame):
         self.outlook_panel.render_forecast(
             build_monthly_forecast_vm(self.controller),
             compact=panel_compact,
-            show_resolve_button=panel_compact,
+            show_resolve_button=True,
         )
         self.finance_panel.render_summary(
             build_pressure_summary_vm(self.controller, snapshot=self._latest_snapshot),
@@ -1790,10 +1790,6 @@ class MainWindow(tk.Frame):
         if self._learn_drawer is not None and self._learn_drawer.winfo_exists():
             self._learn_drawer.render(build_learn_drawer_vm(self.controller))
         self.log_panel.render(self._run_feedback_lines(), limit=6 if panel_compact else 10)
-        self.actions_panel.set_grouped_actions(
-            self._build_action_groups(compact=panel_compact),
-            compact=panel_compact,
-        )
         size_tag = "Large Text" if self._large_text else "Normal Text"
         self.master.title(f"{state.game_title} - {state.player.name} ({size_tag})")
 
@@ -1836,8 +1832,23 @@ class MainWindow(tk.Frame):
         self.outlook_panel.set_large_text(self._large_text)
         self.finance_panel.set_large_text(self._large_text)
         self.log_panel.set_large_text(self._large_text)
-        self.actions_panel.set_large_text(self._large_text)
+        if self.actions_panel is not None:
+            self.actions_panel.set_large_text(self._large_text)
         self.score_strip.set_large_text(self._large_text)
+
+    def _on_build_card_action(self, action_key: str) -> None:
+        action_map = {
+            "career": self.change_career,
+            "education": self.change_education,
+            "housing": self.change_housing,
+            "transport": self.change_transport,
+            "wealth": self.change_wealth,
+            "focus": self.change_focus,
+        }
+        callback = action_map.get(action_key)
+        if callback is None:
+            return
+        self._run_action(callback)
 
     def toggle_large_text(self) -> None:
         self._large_text = not self._large_text

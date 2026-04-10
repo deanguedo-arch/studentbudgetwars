@@ -12,6 +12,28 @@ from ..theme import (
     tier_color, money_str, stat_bar,
 )
 
+_CATEGORY_COLORS = {
+    "net_worth": "#48d878",
+    "monthly_surplus": "#60b0f0",
+    "debt_ratio": "#e85050",
+    "career_tier": "#f05f5f",
+    "credentials_education": "#4ea8de",
+    "housing_stability": "#48b880",
+    "life_satisfaction": "#60b0f0",
+    "stress_burnout": "#e87040",
+}
+
+_CATEGORY_LABELS = {
+    "net_worth": "Net Worth",
+    "monthly_surplus": "Cash Flow",
+    "debt_ratio": "Debt",
+    "career_tier": "Career",
+    "credentials_education": "Education",
+    "housing_stability": "Housing",
+    "life_satisfaction": "Life",
+    "stress_burnout": "Wellness",
+}
+
 
 class StatusBar(tk.Frame):
     def __init__(self, master: tk.Misc):
@@ -77,6 +99,20 @@ class StatusBar(tk.Frame):
         self._life_val = tk.Label(self._life_frame, bg=BG_DARK, fg=TEXT_PRIMARY, font=self._fonts["small"])
         self._life_val.pack(side="left", padx=(2, 0))
 
+        # ── Category bars (top row info moved from score strip) ──
+        category_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
+        category_frame.pack(side="right", fill="y", padx=(PAD_S, PAD_S), pady=2)
+        self._category_canvases: dict[str, tk.Canvas] = {}
+        for i, (key, label) in enumerate(_CATEGORY_LABELS.items()):
+            row = i // 4
+            col = i % 4
+            item = tk.Frame(category_frame, bg=BG_DARK)
+            item.grid(row=row, column=col, padx=(5, 4), pady=1, sticky="w")
+            tk.Label(item, text=label, bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL).pack(side="left", padx=(0, 2))
+            canvas = tk.Canvas(item, width=54, height=7, bg=BG_DARKEST, bd=0, highlightthickness=0)
+            canvas.pack(side="left")
+            self._category_canvases[key] = canvas
+
         # ── Score badge (right-aligned) ──
         score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         score_frame.pack(side="right", fill="y", padx=(PAD_S, 0), pady=2)
@@ -114,6 +150,13 @@ class StatusBar(tk.Frame):
         tc = tier_color(snapshot.score_tier)
         self._score_label.configure(text=f"{snapshot.projected_score:.1f}", fg=tc)
         self._tier_label.configure(text=snapshot.score_tier, fg=tc)
+        for key, canvas in self._category_canvases.items():
+            canvas.delete("all")
+            value = snapshot.breakdown.get(key, 0)
+            fill_w = max(0, min(54, int(54 * value / 100)))
+            color = _CATEGORY_COLORS.get(key, TEXT_SECONDARY)
+            canvas.create_rectangle(0, 0, 54, 7, fill=BG_CARD, outline="")
+            canvas.create_rectangle(0, 0, fill_w, 7, fill=color, outline="")
 
     def set_large_text(self, enabled: bool) -> None:
         self._fonts = self._large_fonts if enabled else self._normal_fonts

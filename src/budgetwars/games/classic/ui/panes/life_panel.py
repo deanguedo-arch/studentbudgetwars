@@ -39,10 +39,11 @@ def _mini_bar(parent: tk.Misc, value: int, max_val: int, color: str,
 class LifePanel(tk.Frame):
     """Structured left-column panel with colored cards for each life system."""
 
-    def __init__(self, master: tk.Misc, title: str = "Build"):
+    def __init__(self, master: tk.Misc, title: str = "Build", on_action: callable | None = None):
         super().__init__(master, bg=BG_CARD, bd=1, relief="solid",
                          highlightbackground=BORDER, highlightthickness=1)
         self._large = False
+        self._on_action = on_action
 
         header = tk.Label(self, text=f"  {title}  ", bg=BG_CARD, fg=TEXT_HEADING,
                           font=FONT_SUBHEADING, anchor="w")
@@ -207,6 +208,13 @@ class LifePanel(tk.Frame):
                     wraplength=260 if compact else 280,
                 ).pack(fill="x")
 
+            action_key = system.system.lower().strip()
+            if self._on_action is not None and action_key in {"career", "education", "housing", "transport", "wealth", "focus"}:
+                self._bind_click_action(outer, action_key)
+                self._bind_click_action(inner, action_key)
+                for child in inner.winfo_children():
+                    self._bind_click_action(child, action_key)
+
     def set_large_text(self, enabled: bool) -> None:
         self._large = enabled
 
@@ -225,3 +233,7 @@ class LifePanel(tk.Frame):
 
     def _unbind_mousewheel(self, _event=None) -> None:
         self.unbind_all("<MouseWheel>")
+
+    def _bind_click_action(self, widget: tk.Widget, action_key: str) -> None:
+        widget.configure(cursor="hand2")
+        widget.bind("<Button-1>", lambda _e, key=action_key: self._on_action(key))
