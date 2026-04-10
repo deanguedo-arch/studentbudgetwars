@@ -184,6 +184,7 @@ class EventChoice(BaseModel):
     description: str
     stat_effects: StatEffects = Field(default_factory=dict)
     modifier: ModifierTemplate | None = None
+    persistent_tag: str | None = None
 
 
 class EventDefinition(BaseModel):
@@ -200,6 +201,7 @@ class EventDefinition(BaseModel):
     eligible_education_ids: list[str] = Field(default_factory=list)
     eligible_opening_path_ids: list[str] = Field(default_factory=list)
     eligible_modifier_ids: list[str] = Field(default_factory=list)
+    eligible_persistent_tags: list[str] = Field(default_factory=list)
     eligible_wealth_strategy_ids: list[str] = Field(default_factory=list)
     minimum_stress: int | None = Field(default=None, ge=0)
     minimum_debt: int | None = Field(default=None, ge=0)

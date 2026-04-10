@@ -260,6 +260,15 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             )
             if sorted(set(event.eligible_modifier_ids) - modifier_ids):
                 raise ValueError(f"Event '{event.id}' references unknown modifier ids")
+        if event.eligible_persistent_tags:
+            persistent_tags = {
+                choice.persistent_tag
+                for entry in bundle.events
+                for choice in entry.choices
+                if choice.persistent_tag
+            }
+            if sorted(set(event.eligible_persistent_tags) - persistent_tags):
+                raise ValueError(f"Event '{event.id}' references unknown persistent tags")
         if event.eligible_market_regime_ids:
             valid_regime_ids = {regime.id for regime in bundle.config.market_regimes}
             if sorted(set(event.eligible_market_regime_ids) - valid_regime_ids):

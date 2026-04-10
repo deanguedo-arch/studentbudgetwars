@@ -134,6 +134,7 @@ class PlayerState(BaseModel):
     opening_path_id: str
     selected_focus_action_id: str
     wealth_milestones_hit: list[str] = Field(default_factory=list)
+    persistent_tags: list[str] = Field(default_factory=list)
     consecutive_correction_months: int = 0
     emergency_liquidation_count: int = 0
     credit_score: int = Field(ge=300, le=850, default=650)

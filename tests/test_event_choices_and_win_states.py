@@ -160,6 +160,8 @@ def test_promotion_window_scope_choices_have_persistent_modifiers(bundle) -> Non
     assert by_id["bank_consistency"].modifier is not None
     assert by_id["push_for_scope"].modifier.duration_months >= 8
     assert by_id["bank_consistency"].modifier.duration_months >= 8
+    assert by_id["push_for_scope"].persistent_tag == "scope_push_lane"
+    assert by_id["bank_consistency"].persistent_tag == "consistency_lane"
 
 
 def test_branch_promotion_offer_events_are_choice_events(bundle) -> None:
@@ -181,6 +183,7 @@ def test_retail_promotion_choice_alters_future_event_pool(bundle, controller_fac
     offer = next(item for item in bundle.events if item.id == "retail_leadership_offer")
     resolve_event(bundle, push.state, offer)
     push.resolve_event_choice("take_closing_command")
+    push.state.active_modifiers = []
     push_ids = {event.id for event in eligible_events(bundle, push.state)}
 
     stabilize = controller_factory(opening_path_id="full_time_work")
@@ -192,6 +195,7 @@ def test_retail_promotion_choice_alters_future_event_pool(bundle, controller_fac
     stabilize.state.player.transport.reliability_score = 70
     resolve_event(bundle, stabilize.state, offer)
     stabilize.resolve_event_choice("stabilize_the_floor")
+    stabilize.state.active_modifiers = []
     stabilize_ids = {event.id for event in eligible_events(bundle, stabilize.state)}
 
     assert "management_overload_wave" in push_ids
@@ -210,6 +214,7 @@ def test_dispatch_promotion_choice_alters_future_event_pool(bundle, controller_f
     offer = next(item for item in bundle.events if item.id == "dispatch_lead_offer")
     resolve_event(bundle, command.state, offer)
     command.resolve_event_choice("own_the_board")
+    command.state.active_modifiers = []
     command_ids = {event.id for event in eligible_events(bundle, command.state)}
 
     coordination = controller_factory(opening_path_id="full_time_work")
@@ -220,12 +225,23 @@ def test_dispatch_promotion_choice_alters_future_event_pool(bundle, controller_f
     coordination.state.player.social_stability = 60
     resolve_event(bundle, coordination.state, offer)
     coordination.resolve_event_choice("stay_coordination")
+    coordination.state.active_modifiers = []
     coordination_ids = {event.id for event in eligible_events(bundle, coordination.state)}
 
     assert "dispatch_fire_drill" in command_ids
     assert "dispatch_process_upgrade" not in command_ids
     assert "dispatch_process_upgrade" in coordination_ids
     assert "dispatch_fire_drill" not in coordination_ids
+
+
+def test_persistent_career_tag_is_saved_on_choice(bundle, controller_factory) -> None:
+    controller = controller_factory()
+    event = next(item for item in bundle.events if item.id == "promotion_window")
+
+    resolve_event(bundle, controller.state, event)
+    controller.resolve_event_choice("push_for_scope")
+
+    assert "scope_push_lane" in controller.state.player.persistent_tags
 
 
 def test_declare_victory_finishes_run_with_multiplier(controller_factory) -> None:

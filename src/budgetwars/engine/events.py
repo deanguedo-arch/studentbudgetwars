@@ -236,6 +236,8 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         return False
     if event.eligible_modifier_ids and not set(event.eligible_modifier_ids).issubset(active_modifier_ids):
         return False
+    if event.eligible_persistent_tags and not set(event.eligible_persistent_tags).issubset(set(player.persistent_tags)):
+        return False
     if event.eligible_wealth_strategy_ids and player.wealth_strategy_id not in event.eligible_wealth_strategy_ids:
         return False
     if event.minimum_stress is not None and player.stress < event.minimum_stress:
@@ -541,6 +543,9 @@ def resolve_event_choice(
     if choice.modifier is not None:
         state.active_modifiers.append(create_modifier(choice.modifier))
         append_log(state, f"Modifier gained: {choice.modifier.label} ({choice.modifier.duration_months} months)")
+    if choice.persistent_tag and choice.persistent_tag not in state.player.persistent_tags:
+        state.player.persistent_tags.append(choice.persistent_tag)
+        append_log(state, f"Career commitment set: {choice.persistent_tag.replace('_', ' ')}")
     if event.chained_event_id:
         state.pending_events.append(
             PendingEvent(

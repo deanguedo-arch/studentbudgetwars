@@ -173,7 +173,8 @@
           "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "scope_push_lane"
       },
       {
         "id": "bank_consistency",
@@ -200,7 +201,8 @@
           "promotion_progress_delta": 0,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "consistency_lane"
       }
     ],
     "modifier": null,
@@ -1717,7 +1719,8 @@
           "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "retail_management_command_lane"
       },
       {
         "id": "stabilize_the_floor",
@@ -1745,7 +1748,8 @@
           "promotion_progress_delta": 0,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "retail_management_stability_lane"
       }
     ],
     "log_entry": "Management scope is on the table if you want the pressure that comes with it."
@@ -1862,7 +1866,8 @@
           "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "dispatch_command_lane"
       },
       {
         "id": "stay_coordination",
@@ -1889,7 +1894,8 @@
           "promotion_progress_delta": 0,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "dispatch_coordination_lane"
       }
     ],
     "log_entry": "Dispatch stopped being background work and turned into a real fork."
@@ -2788,8 +2794,9 @@
     "eligible_branch_ids": [
       "retail_management_track"
     ],
-    "eligible_modifier_ids": [
-      "management_scope"
+    "eligible_modifier_ids": [],
+    "eligible_persistent_tags": [
+      "retail_management_command_lane"
     ],
     "immediate_effects": {},
     "choices": [
@@ -2829,8 +2836,9 @@
     "eligible_branch_ids": [
       "retail_management_track"
     ],
-    "eligible_modifier_ids": [
-      "retail_rhythm"
+    "eligible_modifier_ids": [],
+    "eligible_persistent_tags": [
+      "retail_management_stability_lane"
     ],
     "immediate_effects": {},
     "choices": [
@@ -2870,8 +2878,9 @@
     "eligible_branch_ids": [
       "warehouse_dispatch_track"
     ],
-    "eligible_modifier_ids": [
-      "dispatch_authority"
+    "eligible_modifier_ids": [],
+    "eligible_persistent_tags": [
+      "dispatch_command_lane"
     ],
     "immediate_effects": {},
     "choices": [
@@ -2911,8 +2920,9 @@
     "eligible_branch_ids": [
       "warehouse_dispatch_track"
     ],
-    "eligible_modifier_ids": [
-      "coordination_anchor"
+    "eligible_modifier_ids": [],
+    "eligible_persistent_tags": [
+      "dispatch_coordination_lane"
     ],
     "immediate_effects": {},
     "choices": [
