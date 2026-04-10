@@ -48,8 +48,20 @@ class LifePanel(tk.Frame):
                           font=FONT_SUBHEADING, anchor="w")
         header.pack(fill="x", padx=PAD_S, pady=(PAD_S, 2))
 
-        self._scroll_frame = tk.Frame(self, bg=BG_CARD)
-        self._scroll_frame.pack(fill="both", expand=True, padx=PAD_S, pady=PAD_S)
+        viewport = tk.Frame(self, bg=BG_CARD)
+        viewport.pack(fill="both", expand=True, padx=PAD_S, pady=PAD_S)
+        self._canvas = tk.Canvas(viewport, bg=BG_CARD, bd=0, highlightthickness=0)
+        self._scrollbar = tk.Scrollbar(viewport, orient="vertical", command=self._canvas.yview)
+        self._canvas.configure(yscrollcommand=self._scrollbar.set)
+        self._canvas.pack(side="left", fill="both", expand=True)
+        self._scrollbar.pack(side="right", fill="y")
+
+        self._scroll_frame = tk.Frame(self._canvas, bg=BG_CARD)
+        self._canvas_window = self._canvas.create_window((0, 0), window=self._scroll_frame, anchor="nw")
+        self._scroll_frame.bind("<Configure>", self._on_frame_configure)
+        self._canvas.bind("<Configure>", self._on_canvas_configure)
+        self._canvas.bind("<Enter>", self._bind_mousewheel)
+        self._canvas.bind("<Leave>", self._unbind_mousewheel)
 
         # We'll store card widgets for dynamic rebuild
         self._cards: list[tk.Frame] = []
@@ -197,3 +209,19 @@ class LifePanel(tk.Frame):
 
     def set_large_text(self, enabled: bool) -> None:
         self._large = enabled
+
+    def _on_frame_configure(self, _event=None) -> None:
+        self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+
+    def _on_canvas_configure(self, event) -> None:
+        self._canvas.itemconfigure(self._canvas_window, width=event.width)
+
+    def _on_mousewheel(self, event) -> None:
+        delta = int(-1 * (event.delta / 120))
+        self._canvas.yview_scroll(delta, "units")
+
+    def _bind_mousewheel(self, _event=None) -> None:
+        self.bind_all("<MouseWheel>", self._on_mousewheel)
+
+    def _unbind_mousewheel(self, _event=None) -> None:
+        self.unbind_all("<MouseWheel>")

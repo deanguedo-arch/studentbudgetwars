@@ -45,7 +45,12 @@ class LogPanel(tk.Frame):
             insertbackground=BG_ELEVATED,
             selectbackground=BG_DARK,
         )
-        self.text.pack(fill="both", expand=True, padx=PAD_S, pady=(0, PAD_S))
+        text_wrap = tk.Frame(self, bg=BG_CARD)
+        text_wrap.pack(fill="both", expand=True, padx=PAD_S, pady=(0, PAD_S))
+        scrollbar = tk.Scrollbar(text_wrap, orient="vertical", command=self.text.yview)
+        self.text.configure(yscrollcommand=scrollbar.set)
+        self.text.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
         self.text.configure(state="disabled")
 
         # Configure color tags
