@@ -22,10 +22,17 @@ class BudgetWarsTkApp:
         self.root.update_idletasks()
         screen_w = self.root.winfo_screenwidth()
         screen_h = self.root.winfo_screenheight()
-        width = min(max(1280, int(screen_w * 0.92)), max(1180, screen_w - 40))
-        height = min(max(700, int(screen_h * 0.9)), max(660, screen_h - 60))
+        work_w = max(800, self.root.winfo_vrootwidth() or screen_w)
+        work_h = max(600, self.root.winfo_vrootheight() or screen_h)
+        width = min(max(1080, int(work_w * 0.92)), max(980, work_w - 24))
+        height = min(max(620, int(work_h * 0.9)), max(580, work_h - 24))
         self.root.geometry(f"{width}x{height}")
-        self.root.minsize(min(1180, width), min(660, height))
+        self.root.minsize(min(980, width), min(580, height))
+        if work_h <= 820:
+            try:
+                self.root.state("zoomed")
+            except tk.TclError:
+                pass
         self.root.option_add("*Font", FONT_BODY)
         self.root.option_add("*Background", BG_DARKEST)
 

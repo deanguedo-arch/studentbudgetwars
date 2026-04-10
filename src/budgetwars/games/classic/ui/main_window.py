@@ -357,8 +357,8 @@ def compute_setup_dialog_geometry(
     margin = 24
     width_cap = max(640, min(parent_width - margin * 2, screen_width - margin * 2, 1320))
     height_cap = max(560, min(parent_height - margin * 2, screen_height - margin * 2, 860))
-    width = min(max(980, int(parent_width * 0.84)), width_cap)
-    height = min(max(700, int(parent_height * 0.84)), height_cap)
+    width = min(max(860, int(parent_width * 0.84)), width_cap)
+    height = min(max(600, int(parent_height * 0.84)), height_cap)
     x = parent_x + max(margin, (parent_width - width) // 2)
     y = parent_y + max(margin, (parent_height - height) // 2)
     x = max(0, min(x, screen_width - width))
@@ -1387,7 +1387,7 @@ class ClassicSetupDialog(simpledialog.Dialog):
             screen_height=self.winfo_screenheight(),
         )
         self.geometry(f"{width}x{height}+{x}+{y}")
-        self.minsize(960, 700)
+        self.minsize(min(860, width), min(600, height))
 
         self._refresh_summary()
         return self.name_entry
