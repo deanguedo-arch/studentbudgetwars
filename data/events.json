@@ -161,7 +161,7 @@
         "modifier": {
           "id": "promotion_push",
           "label": "Stretch Assignment",
-          "duration_months": 3,
+          "duration_months": 10,
           "stat_effects": {
             "stress": 1
           },
@@ -188,7 +188,7 @@
         "modifier": {
           "id": "promotion_stability",
           "label": "Credibility Build",
-          "duration_months": 3,
+          "duration_months": 10,
           "stat_effects": {
             "social_stability": 1
           },
@@ -1705,7 +1705,7 @@
         "modifier": {
           "id": "management_scope",
           "label": "Management Scope",
-          "duration_months": 3,
+          "duration_months": 8,
           "stat_effects": {
             "stress": 1
           },
@@ -1733,7 +1733,7 @@
         "modifier": {
           "id": "retail_rhythm",
           "label": "Retail Rhythm",
-          "duration_months": 3,
+          "duration_months": 8,
           "stat_effects": {
             "social_stability": 1
           },
@@ -1778,7 +1778,7 @@
         "modifier": {
           "id": "commission_pressure",
           "label": "Commission Pressure",
-          "duration_months": 3,
+          "duration_months": 8,
           "stat_effects": {
             "stress": 2
           },
@@ -1806,7 +1806,7 @@
         "modifier": {
           "id": "sales_book_build",
           "label": "Sales Book Build",
-          "duration_months": 3,
+          "duration_months": 8,
           "stat_effects": {
             "social_stability": 1
           },
@@ -1850,7 +1850,7 @@
         "modifier": {
           "id": "dispatch_authority",
           "label": "Dispatch Authority",
-          "duration_months": 3,
+          "duration_months": 8,
           "stat_effects": {
             "stress": 1
           },
@@ -1877,7 +1877,7 @@
         "modifier": {
           "id": "coordination_anchor",
           "label": "Coordination Anchor",
-          "duration_months": 3,
+          "duration_months": 8,
           "stat_effects": {
             "social_stability": 1
           },
@@ -1922,7 +1922,7 @@
         "modifier": {
           "id": "shift_premium",
           "label": "Shift Premium",
-          "duration_months": 3,
+          "duration_months": 6,
           "stat_effects": {
             "stress": 1,
             "energy": -1
@@ -1978,7 +1978,7 @@
         "modifier": {
           "id": "equipment_specialist_lane",
           "label": "Equipment Specialist Lane",
-          "duration_months": 3,
+          "duration_months": 6,
           "stat_effects": {
             "stress": 1
           },
@@ -2458,7 +2458,7 @@
         "modifier": {
           "id": "foreman_scope",
           "label": "Foreman Scope",
-          "duration_months": 3,
+          "duration_months": 8,
           "stat_effects": {
             "stress": 1
           },

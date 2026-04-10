@@ -153,13 +153,21 @@ def show_event_choice_popup(
             detail = preview_choice_detail(detail, stat_effects)
         else:
             label, choice_id, detail = choice
+
+        def _choose(_choice_id: str = choice_id) -> None:
+            dialog.result = _choice_id  # type: ignore[attr-defined]
+            dialog._close()
+
         card = tk.Frame(dialog._content, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=1)
         card.pack(fill="x", pady=4)
-        tk.Label(card, text=label, bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_SUBHEADING, anchor="w").pack(
+        card.configure(cursor="hand2")
+        title_label = tk.Label(card, text=label, bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_SUBHEADING, anchor="w", cursor="hand2")
+        title_label.pack(
             fill="x", padx=PAD_M, pady=(PAD_S, 0)
         )
+        detail_label: tk.Label | None = None
         if detail:
-            tk.Label(
+            detail_label = tk.Label(
                 card,
                 text=detail,
                 bg=BG_ELEVATED,
@@ -168,11 +176,14 @@ def show_event_choice_popup(
                 wraplength=500,
                 justify="left",
                 anchor="w",
-            ).pack(fill="x", padx=PAD_M, pady=(2, PAD_S))
+                cursor="hand2",
+            )
+            detail_label.pack(fill="x", padx=PAD_M, pady=(2, PAD_S))
 
-        def _choose(_choice_id: str = choice_id) -> None:
-            dialog.result = _choice_id  # type: ignore[attr-defined]
-            dialog._close()
+        card.bind("<Button-1>", lambda _event, fn=_choose: fn())
+        title_label.bind("<Button-1>", lambda _event, fn=_choose: fn())
+        if detail_label is not None:
+            detail_label.bind("<Button-1>", lambda _event, fn=_choose: fn())
 
         btn = tk.Button(
             dialog._button_frame,

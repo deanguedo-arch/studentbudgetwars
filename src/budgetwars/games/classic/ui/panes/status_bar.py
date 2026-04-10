@@ -44,14 +44,14 @@ class StatusBar(tk.Frame):
             "body": FONT_BODY,
             "mono": FONT_MONO,
             "small": FONT_SMALL,
-            "score": FONT_SCORE,
+            "score": ("Georgia", 22, "bold"),
         }
         self._large_fonts = {
             "heading": ("Georgia", 13, "bold"),
             "body": ("Trebuchet MS", 12),
             "mono": ("Consolas", 12),
             "small": ("Trebuchet MS", 10),
-            "score": ("Georgia", 30, "bold"),
+            "score": ("Georgia", 24, "bold"),
         }
         self._fonts = self._normal_fonts
 
@@ -111,7 +111,7 @@ class StatusBar(tk.Frame):
             anchor="w",
             justify="left",
         )
-        self._season_detail.pack(side="left", fill="x", expand=True, padx=(PAD_S, PAD_S), pady=2)
+        self._season_detail.pack(side="bottom", fill="x", expand=False, padx=(PAD_S, PAD_S), pady=(1, 0))
 
         # ── Category bars (top row info moved from score strip) ──
         category_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
@@ -128,8 +128,9 @@ class StatusBar(tk.Frame):
             self._category_canvases[key] = canvas
 
         # ── Score badge (right-aligned) ──
-        score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
+        score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1, width=170)
         score_frame.pack(side="right", fill="y", padx=(PAD_S, 0), pady=2)
+        score_frame.pack_propagate(False)
         tk.Label(score_frame, text="RANK", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._score_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["score"], padx=PAD_M, pady=1)
         self._score_label.pack(side="left")

@@ -152,6 +152,16 @@ def test_promotion_window_is_a_real_choice_event(bundle) -> None:
     assert len(event.choices) >= 2
 
 
+def test_promotion_window_scope_choices_have_persistent_modifiers(bundle) -> None:
+    event = next(item for item in bundle.events if item.id == "promotion_window")
+    by_id = {choice.id: choice for choice in event.choices}
+
+    assert by_id["push_for_scope"].modifier is not None
+    assert by_id["bank_consistency"].modifier is not None
+    assert by_id["push_for_scope"].modifier.duration_months >= 8
+    assert by_id["bank_consistency"].modifier.duration_months >= 8
+
+
 def test_branch_promotion_offer_events_are_choice_events(bundle) -> None:
     retail_offer = next(item for item in bundle.events if item.id == "retail_leadership_offer")
     warehouse_offer = next(item for item in bundle.events if item.id == "dispatch_lead_offer")
