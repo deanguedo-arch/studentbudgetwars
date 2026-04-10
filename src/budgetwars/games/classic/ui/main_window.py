@@ -27,7 +27,7 @@ from .theme import (
 )
 from .panes import (
     ActionsPanel, FinancePanel, LearnDrawer, LifePanel, LogPanel, OutlookPanel,
-    ScoreStrip, StatusBar, build_menu_bar,
+    StatusBar, build_menu_bar,
     configure_dark_combobox_style, configure_dark_menu_style,
     show_event_choice_popup, show_milestone_popup, show_endgame_popup,
 )
@@ -1504,11 +1504,12 @@ class MainWindow(tk.Frame):
         self._previous_snapshot = None
         self._previous_credit_score = None
         self._latest_snapshot = None
+        self.score_strip = None
         self._learn_visible = False
         self._learn_drawer = None
         self.pack(fill="both", expand=True)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(1, weight=1)
         self._build_layout()
         self._apply_text_scale()
         self.refresh()
@@ -1592,14 +1593,10 @@ class MainWindow(tk.Frame):
         self.status_bar = StatusBar(self)
         self.status_bar.grid(row=0, column=0, sticky="ew", padx=PAD_M, pady=(PAD_M, PAD_S))
 
-        # ── Score strip ──
-        self.score_strip = ScoreStrip(self, on_click=self.show_score_projection)
-        self.score_strip.grid(row=1, column=0, sticky="ew", padx=PAD_M, pady=(0, PAD_S))
-
         # ── Main content area ──
         content = tk.Frame(self, bg=BG_DARKEST)
         self._content_frame = content
-        content.grid(row=2, column=0, sticky="nsew", padx=PAD_M, pady=(0, PAD_S))
+        content.grid(row=1, column=0, sticky="nsew", padx=PAD_M, pady=(0, PAD_S))
         self._compact_notebook = None
         self._layout_compact_active = None
         self._build_main_content(self._desired_compact_layout(use_current_window=False))
@@ -1773,8 +1770,14 @@ class MainWindow(tk.Frame):
         self._previous_credit_score = state.player.credit_score
         delta_vm = build_score_delta_vm(self._previous_snapshot, self._latest_snapshot)
         credit_delta = None if previous_credit is None else state.player.credit_score - previous_credit
-        self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
-        self.score_strip.render(self._latest_snapshot, delta_vm, credit_score=state.player.credit_score, credit_delta=credit_delta)
+        self.status_bar.render(
+            state,
+            self.controller.bundle,
+            self._latest_snapshot,
+            delta_vm,
+            credit_score=state.player.credit_score,
+            credit_delta=credit_delta,
+        )
         self.life_panel.render_snapshot(build_build_snapshot_vm(self.controller), compact=panel_compact)
         self.outlook_panel.render_forecast(
             build_monthly_forecast_vm(self.controller),
@@ -1834,7 +1837,8 @@ class MainWindow(tk.Frame):
         self.log_panel.set_large_text(self._large_text)
         if self.actions_panel is not None:
             self.actions_panel.set_large_text(self._large_text)
-        self.score_strip.set_large_text(self._large_text)
+        if self.score_strip is not None:
+            self.score_strip.set_large_text(self._large_text)
 
     def _on_build_card_action(self, action_key: str) -> None:
         action_map = {

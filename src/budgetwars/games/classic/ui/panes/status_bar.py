@@ -99,6 +99,18 @@ class StatusBar(tk.Frame):
         self._life_val = tk.Label(self._life_frame, bg=BG_DARK, fg=TEXT_PRIMARY, font=self._fonts["small"])
         self._life_val.pack(side="left", padx=(2, 0))
 
+        # ── Season score detail ──
+        self._season_detail = tk.Label(
+            self,
+            text="",
+            bg=BG_DARKEST,
+            fg=TEXT_SECONDARY,
+            font=FONT_SMALL,
+            anchor="w",
+            justify="left",
+        )
+        self._season_detail.pack(side="left", fill="x", expand=True, padx=(PAD_S, PAD_S), pady=2)
+
         # ── Category bars (top row info moved from score strip) ──
         category_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         category_frame.pack(side="right", fill="y", padx=(PAD_S, PAD_S), pady=2)
@@ -122,7 +134,16 @@ class StatusBar(tk.Frame):
         self._tier_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SCORE_TIER, padx=PAD_S, pady=2)
         self._tier_label.pack(side="left")
 
-    def render(self, state: GameState, bundle: ContentBundle, snapshot: LiveScoreSnapshot) -> None:
+    def render(
+        self,
+        state: GameState,
+        bundle: ContentBundle,
+        snapshot: LiveScoreSnapshot,
+        delta=None,
+        *,
+        credit_score: int | None = None,
+        credit_delta: int | None = None,
+    ) -> None:
         player = state.player
         # Timeline
         self._month_label.configure(text=f"Month {state.current_month}/{state.total_months}")
@@ -150,6 +171,23 @@ class StatusBar(tk.Frame):
         tc = tier_color(snapshot.score_tier)
         self._score_label.configure(text=f"{snapshot.projected_score:.1f}", fg=tc)
         self._tier_label.configure(text=snapshot.score_tier, fg=tc)
+        detail_parts: list[str] = []
+        if delta is not None:
+            detail_parts.append(f"Delta {delta.delta:+.2f}")
+            detail_parts.append(f"Best {delta.strongest_category}")
+            detail_parts.append(f"Weakest {delta.weakest_category}")
+        if snapshot.projected_score < 40:
+            detail_parts.append(f"{40 - snapshot.projected_score:.1f} to Silver")
+        elif snapshot.projected_score < 60:
+            detail_parts.append(f"{60 - snapshot.projected_score:.1f} to Gold")
+        elif snapshot.projected_score < 80:
+            detail_parts.append(f"{80 - snapshot.projected_score:.1f} to Elite")
+        if credit_score is not None:
+            credit_text = f"Credit {credit_score}"
+            if credit_delta is not None:
+                credit_text += f" | Trend {credit_delta:+d}"
+            detail_parts.append(credit_text)
+        self._season_detail.configure(text="   ".join(detail_parts))
         for key, canvas in self._category_canvases.items():
             canvas.delete("all")
             value = snapshot.breakdown.get(key, 0)
@@ -169,3 +207,4 @@ class StatusBar(tk.Frame):
         self._energy_val.configure(font=self._fonts["small"])
         self._life_val.configure(font=self._fonts["small"])
         self._score_label.configure(font=self._fonts["heading"])
+        self._season_detail.configure(font=self._fonts["small"])
