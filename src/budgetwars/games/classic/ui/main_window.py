@@ -1773,11 +1773,16 @@ class MainWindow(tk.Frame):
 
     def refresh(self) -> None:
         state = self.controller.state
+        window_width = max(1, self.master.winfo_width())
+        window_height = max(1, self.master.winfo_height())
+        if self._large_text and (window_height < 1080 or window_width < 1900):
+            # Prevent layout blowups on common laptop/desktop sizes.
+            self._large_text = False
+            self._apply_text_scale()
         compact = self._desired_compact_layout()
         if compact != self._layout_compact_active:
             self._build_main_content(compact)
             self._apply_text_scale()
-        window_height = max(1, self.master.winfo_height())
         dense_noncompact = (not compact) and (self._large_text or window_height < 980)
         panel_compact = compact or dense_noncompact
         previous_credit = self._previous_credit_score
