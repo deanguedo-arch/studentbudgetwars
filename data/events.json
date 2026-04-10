@@ -2529,6 +2529,254 @@
     "log_entry": "Ops fatigue turned into a real safety-pressure decision."
   },
   {
+    "id": "office_deadline_overflow",
+    "name": "Deadline Overflow",
+    "description": "The operations queue is stacking and leadership wants a same-week fix. You can brute-force the month or protect your runway.",
+    "weight": 6,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_operations_track"
+    ],
+    "minimum_stress": 58,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "force_the_queue",
+        "label": "Force the queue",
+        "description": "Preserve delivery metrics now and absorb a heavier personal hit.",
+        "stat_effects": {
+          "cash": 160,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -3
+        }
+      },
+      {
+        "id": "stabilize_sla",
+        "label": "Stabilize delivery",
+        "description": "Protect team reliability and accept slower short-term progress.",
+        "stat_effects": {
+          "cash": -140,
+          "promotion_progress": -1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "chained_event_id": "burnout_month",
+    "chained_delay_months": 1,
+    "log_entry": "Operations pressure forced a speed-versus-recovery decision."
+  },
+  {
+    "id": "office_automation_rollout",
+    "name": "Automation Rollout",
+    "description": "You can lead a workflow automation push. It can compound your lane if you manage the rollout cleanly.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_operations_track"
+    ],
+    "maximum_stress": 74,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "own_the_rollout",
+        "label": "Own rollout",
+        "description": "Take the initiative and push hard for process gains.",
+        "stat_effects": {
+          "cash": 260,
+          "promotion_progress": 3,
+          "stress": 2,
+          "energy": -1
+        }
+      },
+      {
+        "id": "stage_the_rollout",
+        "label": "Stage rollout",
+        "description": "Roll out slower and preserve consistency.",
+        "stat_effects": {
+          "cash": 120,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Process ownership opened a measurable office upside window."
+  },
+  {
+    "id": "office_team_retention_wave",
+    "name": "Team Retention Wave",
+    "description": "Your people lane is stabilizing turnover. You can bank the culture win or push for productivity while morale is high.",
+    "weight": 4,
+    "min_month": 16,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_people_track"
+    ],
+    "minimum_social_stability": 65,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_morale",
+        "label": "Bank morale",
+        "description": "Use the retention momentum to reduce pressure and strengthen social support.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": -2,
+          "social_stability": 3,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "push_output_window",
+        "label": "Push output",
+        "description": "Turn the stable team into a productivity spike this month.",
+        "stat_effects": {
+          "cash": 230,
+          "stress": 2,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "People coordination created a morale-versus-output fork."
+  },
+  {
+    "id": "office_conflict_spillover",
+    "name": "Conflict Spillover",
+    "description": "Repeated conflicts are spilling into your queue and draining your reliability bandwidth.",
+    "weight": 5,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_people_track"
+    ],
+    "maximum_social_stability": 54,
+    "minimum_stress": 55,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "mediate_hard",
+        "label": "Mediate hard",
+        "description": "Contain conflict now and pay the stress cost.",
+        "stat_effects": {
+          "cash": 90,
+          "stress": 4,
+          "energy": -2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "contain_scope",
+        "label": "Contain scope",
+        "description": "Protect your energy and accept immediate coordination slippage.",
+        "stat_effects": {
+          "cash": -180,
+          "promotion_progress": -2,
+          "stress": -1,
+          "life_satisfaction": -1
+        }
+      }
+    ],
+    "chained_event_id": "career_stall",
+    "chained_delay_months": 1,
+    "log_entry": "People friction spilled into performance risk."
+  },
+  {
+    "id": "office_audit_window",
+    "name": "Audit Window",
+    "description": "Strong controls put you in line for an audit-cycle upgrade. You can lock standards in or stretch for a bigger efficiency jump.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_compliance_track"
+    ],
+    "minimum_credit_score": 690,
+    "maximum_debt": 9000,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "lock_controls",
+        "label": "Lock controls",
+        "description": "Take a lower-risk quality win and keep the month stable.",
+        "stat_effects": {
+          "cash": 150,
+          "stress": -1,
+          "promotion_progress": 1,
+          "credit_score": 3
+        }
+      },
+      {
+        "id": "optimize_controls",
+        "label": "Optimize controls",
+        "description": "Push harder for efficiency gains and accept moderate pressure.",
+        "stat_effects": {
+          "cash": 240,
+          "promotion_progress": 2,
+          "stress": 2,
+          "energy": -1
+        }
+      }
+    ],
+    "log_entry": "Compliance discipline opened a cleaner advancement lane."
+  },
+  {
+    "id": "office_compliance_backlog",
+    "name": "Compliance Backlog",
+    "description": "Documentation debt is piling up and controls are slipping. You can burn down the backlog now or carry it and protect short-term energy.",
+    "weight": 5,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_compliance_track"
+    ],
+    "minimum_stress": 52,
+    "maximum_energy": 58,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "burn_down_backlog",
+        "label": "Burn it down",
+        "description": "Stabilize controls now at a short-term fatigue cost.",
+        "stat_effects": {
+          "cash": 110,
+          "promotion_progress": 1,
+          "stress": 3,
+          "energy": -3
+        }
+      },
+      {
+        "id": "carry_and_triage",
+        "label": "Carry and triage",
+        "description": "Protect your energy and accept a quality/performance dip.",
+        "stat_effects": {
+          "cash": -160,
+          "promotion_progress": -1,
+          "stress": -1,
+          "credit_score": -3
+        }
+      }
+    ],
+    "chained_event_id": "career_stall",
+    "chained_delay_months": 1,
+    "log_entry": "Compliance debt became a direct promotion drag."
+  },
+  {
     "id": "management_overload_wave",
     "name": "Management Overload Wave",
     "description": "You took command and the floor now routes every fire through you. Hold the line for upside or absorb an immediate reset.",

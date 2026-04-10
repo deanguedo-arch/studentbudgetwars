@@ -419,6 +419,56 @@
     "volatility_profile": 30,
     "transport_sensitivity": 28,
     "city_sensitivity": 40,
+    "branches": [
+      {
+        "id": "office_operations_track",
+        "name": "Operations Desk",
+        "description": "Deadline-heavy coordination lane with higher upside and faster pressure buildup.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": null,
+        "min_social_stability": 45,
+        "min_energy": 34,
+        "max_stress": 84,
+        "income_multiplier": 1.07,
+        "stress_delta": 2,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      },
+      {
+        "id": "office_people_track",
+        "name": "People Coordination",
+        "description": "Relationship-driven lane with steadier outcomes when social consistency is strong.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": null,
+        "min_social_stability": 62,
+        "min_energy": 30,
+        "max_stress": 80,
+        "income_multiplier": 1.05,
+        "stress_delta": 0,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      },
+      {
+        "id": "office_compliance_track",
+        "name": "Compliance / Controls",
+        "description": "Lower-volatility lane focused on audit discipline, stronger stability, and slower peaks.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": null,
+        "min_social_stability": 40,
+        "min_energy": 32,
+        "max_stress": 78,
+        "income_multiplier": 1.04,
+        "stress_delta": -1,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      }
+    ],
     "tiers": [
       {
         "label": "Reception / Admin Clerk",

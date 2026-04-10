@@ -936,6 +936,66 @@ def test_branching_available_for_retail_and_warehouse_tracks(controller_factory)
     assert {"warehouse_ops_track", "warehouse_dispatch_track", "warehouse_equipment_track"} <= warehouse_ids
 
 
+def test_branching_available_for_office_admin_track(controller_factory):
+    office = controller_factory(opening_path_id="college_university")
+    office.change_career("office_admin")
+    office.state.player.career.tier_index = 1
+    office.state.player.social_stability = 70
+    office.state.player.energy = 60
+
+    office_branches = office.available_career_branches()
+    office_ids = {branch.id for branch, _, _ in office_branches}
+
+    assert {"office_operations_track", "office_people_track", "office_compliance_track"} <= office_ids
+
+
+def test_office_branch_event_pools_diverge_by_selected_branch(bundle, controller_factory):
+    operations = controller_factory(opening_path_id="college_university")
+    operations.change_career("office_admin")
+    operations.state.current_month = 20
+    operations.state.player.career.tier_index = 1
+    operations.state.player.career.branch_id = "office_operations_track"
+    operations.state.player.stress = 62
+    operations.state.player.energy = 56
+    operations.state.player.social_stability = 58
+
+    people = controller_factory(opening_path_id="college_university")
+    people.change_career("office_admin")
+    people.state.current_month = 20
+    people.state.player.career.tier_index = 1
+    people.state.player.career.branch_id = "office_people_track"
+    people.state.player.stress = 50
+    people.state.player.energy = 62
+    people.state.player.social_stability = 70
+
+    compliance = controller_factory(opening_path_id="college_university")
+    compliance.change_career("office_admin")
+    compliance.state.current_month = 20
+    compliance.state.player.career.tier_index = 1
+    compliance.state.player.career.branch_id = "office_compliance_track"
+    compliance.state.player.stress = 54
+    compliance.state.player.energy = 52
+    compliance.state.player.credit_score = 725
+    compliance.state.player.debt = 4200
+
+    operations_ids = {event.id for event in eligible_events(bundle, operations.state)}
+    people_ids = {event.id for event in eligible_events(bundle, people.state)}
+    compliance_ids = {event.id for event in eligible_events(bundle, compliance.state)}
+
+    assert "office_deadline_overflow" in operations_ids
+    assert "office_automation_rollout" in operations_ids
+    assert "office_deadline_overflow" not in people_ids
+    assert "office_deadline_overflow" not in compliance_ids
+
+    assert "office_team_retention_wave" in people_ids
+    assert "office_team_retention_wave" not in operations_ids
+    assert "office_team_retention_wave" not in compliance_ids
+
+    assert "office_audit_window" in compliance_ids
+    assert "office_audit_window" not in operations_ids
+    assert "office_audit_window" not in people_ids
+
+
 def test_selected_branch_changes_income_profile(bundle, controller_factory):
     mgmt = controller_factory(opening_path_id="full_time_work")
     mgmt.change_career("retail_service")
