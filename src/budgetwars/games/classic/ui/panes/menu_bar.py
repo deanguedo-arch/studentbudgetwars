@@ -93,6 +93,7 @@ def build_menu_bar(root: tk.Tk, callbacks: dict[str, object]) -> tk.Menu:
     view_menu = tk.Menu(menu, tearoff=False)
     configure_dark_menu_style(view_menu)
     view_menu.add_command(label="Toggle Large Text", command=callbacks["text_size"])
+    view_menu.add_command(label="Toggle Compact Layout", command=callbacks["compact_layout"])
     menu.add_cascade(label="View", menu=view_menu)
 
     info_menu = tk.Menu(menu, tearoff=False)

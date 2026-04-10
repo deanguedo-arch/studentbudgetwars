@@ -1483,7 +1483,11 @@ class MainWindow(tk.Frame):
         self._result_announced = False
         self._shown_milestone_count = 0
         self._large_text = False
-        self._compact_layout = should_use_compact_layout(self.master.winfo_screenwidth(), self.master.winfo_screenheight())
+        self._compact_layout_auto = should_use_compact_layout(
+            self.master.winfo_screenwidth(),
+            self.master.winfo_screenheight(),
+        )
+        self._compact_layout_override: bool | None = None
         self._previous_snapshot = None
         self._previous_credit_score = None
         self._latest_snapshot = None
@@ -1558,6 +1562,7 @@ class MainWindow(tk.Frame):
                     "focus": self.change_focus,
                     "resolve": self.resolve_month,
                     "text_size": self.toggle_large_text,
+                    "compact_layout": self.toggle_compact_layout,
                     "score": self.show_score_projection,
                     "learn": self.show_learn,
                     "help": self.show_help,
@@ -1679,10 +1684,11 @@ class MainWindow(tk.Frame):
 
     def refresh(self) -> None:
         state = self.controller.state
-        compact = self._compact_layout or should_use_compact_layout(
+        auto_compact = self._compact_layout_auto or should_use_compact_layout(
             max(1, self.master.winfo_width()),
             max(1, self.master.winfo_height()),
         )
+        compact = self._compact_layout_override if self._compact_layout_override is not None else auto_compact
         previous_credit = self._previous_credit_score
         self._previous_snapshot = self._latest_snapshot
         self._latest_snapshot = self.controller.live_score_snapshot()
@@ -1755,6 +1761,15 @@ class MainWindow(tk.Frame):
     def toggle_large_text(self) -> None:
         self._large_text = not self._large_text
         self._apply_text_scale()
+        self.refresh()
+
+    def toggle_compact_layout(self) -> None:
+        auto_compact = self._compact_layout_auto or should_use_compact_layout(
+            max(1, self.master.winfo_width()),
+            max(1, self.master.winfo_height()),
+        )
+        current = self._compact_layout_override if self._compact_layout_override is not None else auto_compact
+        self._compact_layout_override = not current
         self.refresh()
 
     def _check_milestones(self) -> None:

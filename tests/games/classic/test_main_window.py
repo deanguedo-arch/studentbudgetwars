@@ -351,6 +351,7 @@ def test_menu_bar_exposes_learn_action():
                 "focus": lambda: None,
                 "resolve": lambda: None,
                 "text_size": lambda: None,
+                "compact_layout": lambda: None,
                 "score": lambda: None,
                 "learn": lambda: None,
                 "help": lambda: None,
@@ -399,6 +400,7 @@ def test_build_menu_bar_includes_learn_entry(monkeypatch):
         "focus": lambda: None,
         "resolve": lambda: None,
         "text_size": lambda: None,
+        "compact_layout": lambda: None,
         "score": lambda: None,
         "learn": lambda: None,
         "help": lambda: None,
@@ -407,7 +409,9 @@ def test_build_menu_bar_includes_learn_entry(monkeypatch):
     menu = build_menu_bar(object(), callbacks)
 
     info_menu = next(entry[2] for entry in menu.entries if entry[:2] == ("cascade", "Info"))
+    view_menu = next(entry[2] for entry in menu.entries if entry[:2] == ("cascade", "View"))
     assert ("command", "Learn", callbacks["learn"]) in info_menu.entries
+    assert ("command", "Toggle Compact Layout", callbacks["compact_layout"]) in view_menu.entries
 
 
 def test_compact_layout_prefers_smaller_screens():
@@ -552,6 +556,22 @@ def test_compact_action_groups_keep_focus_and_resolve():
     groups = MainWindow._build_action_groups(window, compact=True)
 
     assert [name for name, _ in groups[-1][1]] == ["Focus", "Resolve Month"]
+
+
+def test_toggle_compact_layout_flips_manual_override():
+    window = object.__new__(MainWindow)
+    window._compact_layout_auto = False
+    window._compact_layout_override = None
+    window.master = type("Master", (), {"winfo_width": lambda self=None: 1920, "winfo_height": lambda self=None: 1080})()
+    refresh_calls = []
+    window.refresh = lambda: refresh_calls.append(True)
+
+    MainWindow.toggle_compact_layout(window)
+    assert window._compact_layout_override is True
+
+    MainWindow.toggle_compact_layout(window)
+    assert window._compact_layout_override is False
+    assert len(refresh_calls) == 2
 
 
 def test_show_learn_toggles_drawer_and_renders_content(controller_factory):
