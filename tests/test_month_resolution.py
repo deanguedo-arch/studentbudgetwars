@@ -5,7 +5,7 @@ from budgetwars.engine.month_resolution import resolve_month
 from budgetwars.engine.scoring import calculate_final_score
 from budgetwars.engine.housing import monthly_housing_cost
 from budgetwars.engine.transport import monthly_transport_cost
-from budgetwars.models import ActiveMonthlyModifier
+from budgetwars.models import ActiveMonthlyModifier, PendingEvent
 
 
 def test_start_state_from_full_setup_modifiers(controller_factory):
@@ -747,3 +747,78 @@ def test_branch_run_receives_branch_aware_ending_label(bundle, controller_factor
     summary = calculate_final_score(bundle, controller.state)
 
     assert summary.ending_label == "Dispatch-Built Stabilizer"
+
+
+def test_scoring_penalizes_unresolved_consequence_pressure(bundle, controller_factory):
+    stable = controller_factory(opening_path_id="full_time_work")
+    unstable = controller_factory(opening_path_id="full_time_work")
+
+    for controller in (stable, unstable):
+        player = controller.state.player
+        player.cash = 32000
+        player.savings = 18000
+        player.high_interest_savings = 7000
+        player.index_fund = 12000
+        player.aggressive_growth_fund = 4000
+        player.debt = 2800
+        player.monthly_surplus = 520
+        player.credit_score = 744
+        player.housing.housing_stability = 78
+        player.social_stability = 70
+        player.stress = 34
+        player.energy = 76
+        player.career.tier_index = 3
+        player.career.branch_id = "warehouse_dispatch_track"
+
+    unstable.state.pending_events.append(
+        PendingEvent(
+            event_id="credit_limit_review",
+            months_remaining=1,
+            source_event_id="collections_warning",
+        )
+    )
+    unstable.state.pending_user_choice_event_id = "collections_warning"
+    unstable.state.player.housing.missed_payment_streak = 1
+    unstable.state.player.emergency_liquidation_count = 2
+
+    stable_score = calculate_final_score(bundle, stable.state).final_score
+    unstable_score = calculate_final_score(bundle, unstable.state).final_score
+
+    assert stable_score > unstable_score
+
+
+def test_scoring_penalizes_pending_fallout_even_with_matching_stats(bundle, controller_factory):
+    clean = controller_factory(opening_path_id="full_time_work")
+    pending = controller_factory(opening_path_id="full_time_work")
+
+    for controller in (clean, pending):
+        player = controller.state.player
+        player.cash = 26000
+        player.savings = 12000
+        player.high_interest_savings = 5000
+        player.index_fund = 7000
+        player.aggressive_growth_fund = 2500
+        player.debt = 2400
+        player.monthly_surplus = 420
+        player.credit_score = 736
+        player.housing.housing_stability = 74
+        player.social_stability = 63
+        player.stress = 38
+        player.energy = 72
+        player.career.tier_index = 3
+        player.career.track_id = "warehouse_logistics"
+        player.career.branch_id = "warehouse_dispatch_track"
+
+    pending.state.pending_events.append(
+        PendingEvent(
+            event_id="credit_limit_review",
+            months_remaining=1,
+            source_event_id="collections_warning",
+        )
+    )
+    pending.state.pending_user_choice_event_id = "collections_warning"
+
+    clean_score = calculate_final_score(bundle, clean.state).final_score
+    pending_score = calculate_final_score(bundle, pending.state).final_score
+
+    assert clean_score > pending_score

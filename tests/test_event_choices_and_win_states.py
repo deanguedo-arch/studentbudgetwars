@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from budgetwars.engine.events import eligible_events, resolve_event
+from budgetwars.models import PendingEvent
 from budgetwars.models.content import EventChoice, EventDefinition, ModifierTemplate
 
 
@@ -336,3 +337,37 @@ def test_client_book_victory_requires_clienteling_branch(controller_factory) -> 
 
     assert "client_book_position" in clienteling_ids
     assert "client_book_position" not in management_ids
+
+
+def test_victory_claims_block_when_major_fallout_is_still_pending(controller_factory) -> None:
+    controller = controller_factory(opening_path_id="full_time_work")
+    player = controller.state.player
+    player.cash = 120_000
+    player.savings = 24_000
+    player.high_interest_savings = 10_000
+    player.index_fund = 14_000
+    player.aggressive_growth_fund = 5_000
+    player.debt = 2_000
+    player.credit_score = 742
+    player.housing.housing_stability = 76
+    player.social_stability = 66
+    player.monthly_surplus = 500
+    player.stress = 40
+    player.energy = 70
+    player.career.tier_index = 4
+    player.career.track_id = "warehouse_logistics"
+    player.career.branch_id = "warehouse_dispatch_track"
+
+    controller.state.pending_events.append(
+        PendingEvent(
+            event_id="credit_limit_review",
+            months_remaining=1,
+            source_event_id="collections_warning",
+        )
+    )
+    controller.state.pending_user_choice_event_id = "collections_warning"
+
+    eligible_ids = {win_state.id for win_state in controller.available_win_states()}
+
+    assert "dispatch_anchor" not in eligible_ids
+    assert "life_position" not in eligible_ids

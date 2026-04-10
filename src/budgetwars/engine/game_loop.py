@@ -107,6 +107,14 @@ class GameController:
         current_track_id = player.career.track_id
         eligible = []
         for win_state in self.bundle.win_states:
+            if self.state.pending_user_choice_event_id or self.state.pending_events:
+                continue
+            if player.housing.missed_payment_streak > 0:
+                continue
+            if player.stress >= self.state.burnout_stress_threshold:
+                continue
+            if player.monthly_surplus < -50:
+                continue
             if snapshot.projected_score < win_state.minimum_score:
                 continue
             if player.cash < win_state.minimum_cash:

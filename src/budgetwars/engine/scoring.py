@@ -138,6 +138,23 @@ def _stress_burnout_score(state: GameState) -> float:
     return _clamp_score((stress_relief * 0.65) + (energy * 0.35) - burnout_penalty - liquidation_penalty)
 
 
+def _consequence_pressure_penalty(state: GameState) -> float:
+    player = state.player
+    penalty = 0.0
+    penalty += len(state.pending_events) * 2.6
+    if state.pending_user_choice_event_id:
+        penalty += 4.2
+    penalty += player.housing.missed_payment_streak * 2.0
+    penalty += player.emergency_liquidation_count * 1.7
+    if player.monthly_surplus < 0:
+        penalty += 1.2
+    if player.credit_score < 580 and player.debt >= 7000:
+        penalty += 1.5
+    if player.transport.reliability_score < 45:
+        penalty += 0.9
+    return penalty
+
+
 def _biggest_risk_label(breakdown: dict[str, float], warnings: list[str]) -> str:
     if warnings:
         return warnings[0]
@@ -208,7 +225,7 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
         "life_satisfaction": round(_life_satisfaction_score(state), 2),
         "stress_burnout": round(_stress_burnout_score(state), 2),
     }
-    final_score = round(
+    weighted_score = (
         (breakdown["net_worth"] * weights.net_worth)
         + (breakdown["monthly_surplus"] * weights.monthly_surplus)
         + (breakdown["debt_ratio"] * weights.debt_ratio)
@@ -216,9 +233,9 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
         + (breakdown["credentials_education"] * weights.credentials_education)
         + (breakdown["housing_stability"] * weights.housing_stability)
         + (breakdown["life_satisfaction"] * weights.life_satisfaction)
-        + (breakdown["stress_burnout"] * weights.stress_burnout),
-        2,
+        + (breakdown["stress_burnout"] * weights.stress_burnout)
     )
+    final_score = round(_clamp_score(weighted_score - _consequence_pressure_penalty(state)), 2)
     branch = _current_branch(bundle, state)
     run_identity = None
     if branch is not None:
