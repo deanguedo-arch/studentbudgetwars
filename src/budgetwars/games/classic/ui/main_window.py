@@ -1777,6 +1777,9 @@ class MainWindow(tk.Frame):
         if compact != self._layout_compact_active:
             self._build_main_content(compact)
             self._apply_text_scale()
+        window_height = max(1, self.master.winfo_height())
+        dense_noncompact = (not compact) and (self._large_text or window_height < 980)
+        panel_compact = compact or dense_noncompact
         previous_credit = self._previous_credit_score
         self._previous_snapshot = self._latest_snapshot
         self._latest_snapshot = self.controller.live_score_snapshot()
@@ -1785,22 +1788,25 @@ class MainWindow(tk.Frame):
         credit_delta = None if previous_credit is None else state.player.credit_score - previous_credit
         self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
         self.score_strip.render(self._latest_snapshot, delta_vm, credit_score=state.player.credit_score, credit_delta=credit_delta)
-        self.life_panel.render_snapshot(build_build_snapshot_vm(self.controller), compact=compact)
+        self.life_panel.render_snapshot(build_build_snapshot_vm(self.controller), compact=panel_compact)
         self.outlook_panel.render_forecast(
             build_monthly_forecast_vm(self.controller),
-            compact=compact,
-            show_resolve_button=compact,
+            compact=panel_compact,
+            show_resolve_button=panel_compact,
         )
         self.finance_panel.render_summary(
             build_pressure_summary_vm(self.controller, snapshot=self._latest_snapshot),
             delta_vm,
             credit_delta=credit_delta,
-            compact=compact,
+            compact=panel_compact,
         )
         if self._learn_drawer is not None and self._learn_drawer.winfo_exists():
             self._learn_drawer.render(build_learn_drawer_vm(self.controller))
-        self.log_panel.render(self._run_feedback_lines(), limit=6 if compact else 10)
-        self.actions_panel.set_grouped_actions(self._build_action_groups(compact=compact), compact=compact)
+        self.log_panel.render(self._run_feedback_lines(), limit=6 if panel_compact else 10)
+        self.actions_panel.set_grouped_actions(
+            self._build_action_groups(compact=panel_compact),
+            compact=panel_compact,
+        )
         size_tag = "Large Text" if self._large_text else "Normal Text"
         self.master.title(f"{state.game_title} - {state.player.name} ({size_tag})")
 
