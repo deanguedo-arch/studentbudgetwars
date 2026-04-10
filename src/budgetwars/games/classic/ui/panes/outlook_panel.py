@@ -135,6 +135,30 @@ class OutlookPanel(tk.Frame):
             wraplength=420,
             justify="left",
         ).pack(fill="x", pady=(1, 0))
+        commitments = list(getattr(forecast, "persistent_commitments", []) or [])
+        if commitments:
+            chips = tk.Frame(focus_frame, bg=BG_CARD)
+            chips.pack(fill="x", pady=(2, 0))
+            tk.Label(
+                chips,
+                text="Committed lanes:",
+                bg=BG_CARD,
+                fg=TEXT_MUTED,
+                font=FONT_TINY,
+                anchor="w",
+            ).pack(side="left")
+            for label in commitments[:3]:
+                tk.Label(
+                    chips,
+                    text=label,
+                    bg=BG_DARK,
+                    fg=TEXT_PRIMARY,
+                    font=FONT_TINY,
+                    padx=6,
+                    pady=1,
+                    highlightbackground=BORDER,
+                    highlightthickness=1,
+                ).pack(side="left", padx=(4, 0))
         if getattr(forecast, "recovery_route", None):
             tk.Label(
                 focus_frame,

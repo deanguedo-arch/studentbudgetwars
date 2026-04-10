@@ -147,6 +147,37 @@ class LifePanel(tk.Frame):
         subtitle.pack(fill="x", pady=(0, PAD_S))
         self._cards.append(subtitle)
 
+        commitments = list(getattr(snapshot, "persistent_commitments", []) or [])
+        if commitments:
+            commits_wrap = tk.Frame(self._scroll_frame, bg=BG_CARD)
+            commits_wrap.pack(fill="x", pady=(0, PAD_S))
+            self._cards.append(commits_wrap)
+            tk.Label(
+                commits_wrap,
+                text="Committed Lanes",
+                bg=BG_CARD,
+                fg=TEXT_MUTED,
+                font=FONT_TINY,
+                anchor="w",
+            ).pack(fill="x", anchor="w", pady=(0, 2))
+            chip_row = tk.Frame(commits_wrap, bg=BG_CARD)
+            chip_row.pack(fill="x", anchor="w")
+            self._cards.append(chip_row)
+            for label in commitments[:4]:
+                chip = tk.Label(
+                    chip_row,
+                    text=label,
+                    bg=BG_DARK,
+                    fg=TEXT_PRIMARY,
+                    font=FONT_TINY,
+                    padx=6,
+                    pady=2,
+                    highlightbackground=BORDER,
+                    highlightthickness=1,
+                )
+                chip.pack(side="left", padx=(0, 4))
+                self._cards.append(chip)
+
         for system in snapshot.systems:
             accent = BORDER
             tone = getattr(system, "tone", "neutral")

@@ -64,6 +64,7 @@ class BuildSnapshotVM:
     player_name: str
     city_name: str
     identity_line: str | None = None
+    persistent_commitments: list[str] = field(default_factory=list)
     items: list[BuildSystemVM] = field(default_factory=list)
 
     @property
@@ -87,6 +88,7 @@ class MonthlyForecastVM:
     progress_label: str
     progress_detail: str
     progress_fraction: float
+    persistent_commitments: list[str] = field(default_factory=list)
     recovery_route: str | None = None
     blocked_doors: list[str] = field(default_factory=list)
     driver_notes: list[str] = field(default_factory=list)
@@ -190,6 +192,28 @@ def _format_preview(base: str, effects: list[str]) -> str:
     if not effects:
         return base
     return f"{base} Likely changes: {', '.join(effects)}."
+
+
+_PERSISTENT_TAG_LABELS = {
+    "scope_push_lane": "Scope Push Lane",
+    "consistency_lane": "Consistency Lane",
+    "retail_management_command_lane": "Retail Command Lane",
+    "retail_management_stability_lane": "Retail Stability Lane",
+    "dispatch_command_lane": "Dispatch Command Lane",
+    "dispatch_coordination_lane": "Dispatch Coordination Lane",
+}
+
+
+def _format_persistent_commitments(tags: list[str]) -> list[str]:
+    labels: list[str] = []
+    seen: set[str] = set()
+    for tag in tags:
+        label = _PERSISTENT_TAG_LABELS.get(tag, tag.replace("_", " ").title())
+        if label in seen:
+            continue
+        seen.add(label)
+        labels.append(label)
+    return labels
 
 
 def _signed_label(value: int, label: str, *, unit: str = "") -> str | None:
@@ -777,10 +801,12 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
     identity_line = (
         f"{career_track.name} | {branch.name if branch is not None else 'Uncommitted lane'} | {wealth.name}"
     )
+    commitments = _format_persistent_commitments(player.persistent_tags)
     return BuildSnapshotVM(
         player_name=player.name,
         city_name=city.name,
         identity_line=identity_line,
+        persistent_commitments=commitments,
         items=systems,
     )
 
@@ -806,6 +832,7 @@ def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
     if not recent_summary:
         recent_summary = _build_month_outlook_lines(state, controller.bundle)[-2:]
     progress_label, progress_detail = _run_progress_text(state)
+    commitments = _format_persistent_commitments(player.persistent_tags)
     return MonthlyForecastVM(
         monthly_focus=focus_description,
         main_threat=main_threat,
@@ -817,6 +844,7 @@ def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
         progress_label=progress_label,
         progress_detail=progress_detail,
         progress_fraction=_run_progress_fraction(state),
+        persistent_commitments=commitments,
         recovery_route=recovery_route,
         blocked_doors=blocked_doors,
         driver_notes=driver_notes,

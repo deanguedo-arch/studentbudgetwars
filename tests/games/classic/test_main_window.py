@@ -74,6 +74,17 @@ def test_build_snapshot_surfaces_branch_identity(controller_factory):
     assert "Warehouse / Logistics" in snapshot.identity_line
 
 
+def test_build_snapshot_surfaces_persistent_commitments(controller_factory):
+    controller = controller_factory()
+    controller.state.player.persistent_tags = ["scope_push_lane", "dispatch_command_lane"]
+
+    snapshot = build_build_snapshot(controller.state, controller.bundle)
+
+    assert hasattr(snapshot, "persistent_commitments")
+    assert "Scope Push Lane" in snapshot.persistent_commitments
+    assert "Dispatch Command Lane" in snapshot.persistent_commitments
+
+
 def test_monthly_forecast_exposes_named_sections(controller_factory):
     controller = controller_factory()
 
@@ -90,6 +101,16 @@ def test_monthly_forecast_exposes_named_sections(controller_factory):
     assert forecast.progress_detail
     assert 0.0 <= forecast.progress_fraction <= 1.0
     assert isinstance(forecast.driver_notes, list)
+
+
+def test_monthly_forecast_surfaces_persistent_commitments(controller_factory):
+    controller = controller_factory()
+    controller.state.player.persistent_tags = ["consistency_lane"]
+
+    forecast = build_monthly_forecast(controller.state, controller.bundle)
+
+    assert hasattr(forecast, "persistent_commitments")
+    assert "Consistency Lane" in forecast.persistent_commitments
 
 
 def test_monthly_forecast_surfaces_recovery_route(controller_factory):
