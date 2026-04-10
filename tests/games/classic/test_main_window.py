@@ -146,6 +146,21 @@ def test_pressure_summary_surfaces_blocked_doors(controller_factory):
     assert any("financed car" in line.lower() for line in summary.blocked_doors)
 
 
+def test_pressure_summary_surfaces_consequence_signals(controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.pending_events.append(controller.bundle.events[0])
+    controller.state.pending_user_choice_event = controller.bundle.events[0]
+    controller.state.pending_user_choice_event_id = controller.bundle.events[0].id
+    controller.state.month_driver_notes = ["Housing squeeze is dominating this month."]
+
+    summary = build_pressure_summary(controller.state, controller.bundle)
+
+    assert summary.pressure_family
+    assert "housing squeeze" in summary.month_driver.lower()
+    assert summary.pending_fallout_count >= 1
+    assert any("situation choice pending" in line.lower() for line in summary.pending_decisions)
+
+
 def test_learn_drawer_surfaces_topics_and_pressure_sources(controller_factory):
     controller = controller_factory()
 
@@ -258,6 +273,24 @@ def test_run_feedback_lines_surface_recovery_and_blocked_doors(controller_factor
 
     assert any("recovery route:" in line.lower() for line in lines)
     assert any("blocked door:" in line.lower() for line in lines)
+
+
+def test_run_feedback_lines_surface_month_driver_and_pending_fallout(controller_factory):
+    controller = controller_factory()
+    controller.state.month_driver_notes = ["Debt anxiety is rising and crowding out flexibility."]
+    controller.state.pending_events.append(controller.bundle.events[0])
+    controller.state.pending_user_choice_event = controller.bundle.events[0]
+    controller.state.pending_user_choice_event_id = controller.bundle.events[0].id
+
+    window = object.__new__(MainWindow)
+    window.session = type("Session", (), {"require_controller": lambda self=None: controller})()
+    window._latest_snapshot = controller.live_score_snapshot()
+
+    lines = MainWindow._run_feedback_lines(window)
+
+    assert any("month driver:" in line.lower() for line in lines)
+    assert any("pending fallout:" in line.lower() for line in lines)
+    assert any("situation choice pending:" in line.lower() for line in lines)
 
 
 def test_dark_combobox_style_prefers_light_text():

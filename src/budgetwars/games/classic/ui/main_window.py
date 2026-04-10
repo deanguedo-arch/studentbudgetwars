@@ -116,8 +116,12 @@ class PressureSummaryVM:
     progress_fraction: float
     run_killer: str = ""
     fastest_fix: str = ""
+    pressure_family: str = ""
+    month_driver: str = ""
     recovery_route: str | None = None
     blocked_doors: list[str] = field(default_factory=list)
+    pending_fallout_count: int = 0
+    pending_decisions: list[str] = field(default_factory=list)
     primary_metrics: list[PressureMetricVM] = field(default_factory=list)
     secondary_metrics: list[PressureMetricVM] = field(default_factory=list)
     active_modifiers: list[str] = field(default_factory=list)
@@ -508,6 +512,22 @@ def _best_recovery_route(state, bundle) -> str | None:
     return None
 
 
+def _pending_decision_lines(state, bundle) -> list[str]:
+    lines: list[str] = []
+    pending_event = state.pending_user_choice_event
+    if pending_event is not None:
+        lines.append(f"Situation choice pending: {pending_event.name}")
+    elif state.pending_user_choice_event_id:
+        event = next((item for item in bundle.events if item.id == state.pending_user_choice_event_id), None)
+        label = event.name if event is not None else state.pending_user_choice_event_id.replace("_", " ").title()
+        lines.append(f"Situation choice pending: {label}")
+    if state.pending_promotion_branch_track_id:
+        track = next((item for item in bundle.careers if item.id == state.pending_promotion_branch_track_id), None)
+        lane = track.name if track is not None else state.pending_promotion_branch_track_id.replace("_", " ").title()
+        lines.append(f"Promotion branch pending: {lane}")
+    return lines
+
+
 def _build_month_outlook_lines(state, bundle) -> list[str]:
     player = state.player
     city = next(item for item in bundle.cities if item.id == player.current_city_id)
@@ -822,8 +842,15 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
     ]
     progress_label, progress_detail = _score_progress_text(snapshot.projected_score)
     run_killer, fastest_fix = _diagnosis_for_family(state)
+    pressure_family = dominant_pressure_family(state)
+    month_driver = (
+        state.month_driver_notes[0]
+        if state.month_driver_notes
+        else _pressure_map_lines(state, controller.bundle)[0]
+    )
     blocked_doors = _blocked_door_lines(state, controller.bundle)
     recovery_route = _best_recovery_route(state, controller.bundle)
+    pending_decisions = _pending_decision_lines(state, controller.bundle)
     return PressureSummaryVM(
         projected_score=snapshot.projected_score,
         score_tier=snapshot.score_tier,
@@ -838,8 +865,12 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
         progress_fraction=_score_progress_fraction(snapshot.projected_score),
         run_killer=run_killer,
         fastest_fix=fastest_fix,
+        pressure_family=pressure_family,
+        month_driver=month_driver,
         recovery_route=recovery_route,
         blocked_doors=blocked_doors,
+        pending_fallout_count=len(state.pending_events),
+        pending_decisions=pending_decisions,
         primary_metrics=primary_metrics,
         secondary_metrics=secondary_metrics,
         active_modifiers=active_modifiers,
@@ -1687,15 +1718,25 @@ class MainWindow(tk.Frame):
         credit_line = f"Credit: {state.player.credit_score} ({credit_tier_label(state.player.credit_score)})"
         recovery_route = _best_recovery_route(state, self.controller.bundle)
         blocked_doors = _blocked_door_lines(state, self.controller.bundle)
+        month_driver = (
+            state.month_driver_notes[0]
+            if state.month_driver_notes
+            else _pressure_map_lines(state, self.controller.bundle)[0]
+        )
+        pending_decisions = _pending_decision_lines(state, self.controller.bundle)
         lines = [
             f"Big Win: {state.recent_summary[0]}" if state.recent_summary else "Big Win: Holding steady.",
             f"Big Hit: {state.recent_summary[1]}" if len(state.recent_summary) > 1 else "Big Hit: No major hit this month.",
             f"Score Change: {self._latest_snapshot.projected_score:.1f}" if self._latest_snapshot else "Score Change: Pending.",
             credit_line,
             f"Situation Family: {family}",
+            f"Month Driver: {month_driver}",
             f"New Threat: {crisis[0]}" if crisis else "New Threat: None right now.",
             f"Next Best Move: {next_best_move}",
         ]
+        if state.pending_events:
+            lines.append(f"Pending Fallout: {len(state.pending_events)} unresolved consequence(s).")
+        lines.extend(pending_decisions)
         if recovery_route:
             lines.append(f"Recovery Route: {recovery_route.replace('Best recovery route: ', '')}")
         if blocked_doors:

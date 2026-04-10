@@ -271,6 +271,35 @@ class FinancePanel(tk.Frame):
             for line in summary.blocked_doors[: (1 if compact else 2)]:
                 tk.Label(right, text=line, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
 
+        consequence_signals: list[str] = []
+        if getattr(summary, "pressure_family", ""):
+            consequence_signals.append(f"Pressure family: {summary.pressure_family}")
+        if getattr(summary, "month_driver", ""):
+            consequence_signals.append(f"Month driver: {summary.month_driver}")
+        if getattr(summary, "pending_fallout_count", 0):
+            consequence_signals.append(f"Pending fallout: {summary.pending_fallout_count} unresolved consequence(s)")
+        if getattr(summary, "pending_decisions", None):
+            consequence_signals.extend(summary.pending_decisions[: (1 if compact else 2)])
+        if consequence_signals:
+            tk.Label(right, text="Consequence Signals", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
+            for line in consequence_signals:
+                line_lower = line.lower()
+                line_fg = TEXT_SECONDARY
+                if "pending" in line_lower:
+                    line_fg = COLOR_WARNING
+                elif "driver" in line_lower:
+                    line_fg = TEXT_MUTED
+                tk.Label(
+                    right,
+                    text=line,
+                    bg=BG_CARD,
+                    fg=line_fg,
+                    font=FONT_SMALL,
+                    anchor="w",
+                    justify="left",
+                    wraplength=320,
+                ).pack(fill="x")
+
         if summary.crisis_watch:
             tk.Label(right, text="Crisis Watch", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
             for warning in summary.crisis_watch[: (2 if compact else 3)]:
