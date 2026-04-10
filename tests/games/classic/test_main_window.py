@@ -416,7 +416,7 @@ def test_build_menu_bar_includes_learn_entry(monkeypatch):
 
 def test_compact_layout_prefers_smaller_screens():
     assert should_use_compact_layout(1366, 768) is True
-    assert should_use_compact_layout(1920, 1080) is False
+    assert should_use_compact_layout(1920, 1080) is True
     assert should_use_compact_layout(2560, 1440) is False
 
 
@@ -562,7 +562,7 @@ def test_toggle_compact_layout_flips_manual_override():
     window = object.__new__(MainWindow)
     window._compact_layout_auto = False
     window._compact_layout_override = None
-    window.master = type("Master", (), {"winfo_width": lambda self=None: 1920, "winfo_height": lambda self=None: 1080})()
+    window.master = type("Master", (), {"winfo_width": lambda self=None: 2560, "winfo_height": lambda self=None: 1440})()
     refresh_calls = []
     window.refresh = lambda: refresh_calls.append(True)
 

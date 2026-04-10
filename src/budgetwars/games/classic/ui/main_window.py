@@ -342,7 +342,35 @@ def _education_intensity_options(program) -> list[tuple[str, str, str]]:
 
 
 def should_use_compact_layout(width: int, height: int) -> bool:
-    return width < 1560 or height < 900
+    return width < 1800 or height < 1200
+
+
+def _configure_dark_notebook_style(master: tk.Misc) -> str:
+    style = ttk.Style(master)
+    try:
+        style.theme_use("clam")
+    except tk.TclError:
+        pass
+    style_name = "ClassicCompact.TNotebook"
+    tab_style = f"{style_name}.Tab"
+    style.configure(
+        style_name,
+        background=BG_DARKEST,
+        borderwidth=0,
+        tabmargins=(0, 0, 0, 0),
+    )
+    style.configure(
+        tab_style,
+        background=BG_CARD,
+        foreground=TEXT_SECONDARY,
+        padding=(12, 7),
+    )
+    style.map(
+        tab_style,
+        background=[("selected", BG_ELEVATED), ("active", BG_MID)],
+        foreground=[("selected", TEXT_HEADING), ("active", TEXT_HEADING)],
+    )
+    return style_name
 
 
 def compute_setup_dialog_geometry(
@@ -1488,6 +1516,7 @@ class MainWindow(tk.Frame):
             self.master.winfo_screenheight(),
         )
         self._compact_layout_override: bool | None = None
+        self._layout_compact_active: bool | None = None
         self._previous_snapshot = None
         self._previous_credit_score = None
         self._latest_snapshot = None
@@ -1504,6 +1533,75 @@ class MainWindow(tk.Frame):
     def controller(self):
         return self.session.require_controller()
 
+    def _desired_compact_layout(self, *, use_current_window: bool = True) -> bool:
+        if self._compact_layout_override is not None:
+            return self._compact_layout_override
+        if use_current_window:
+            current = should_use_compact_layout(
+                max(1, self.master.winfo_width()),
+                max(1, self.master.winfo_height()),
+            )
+        else:
+            current = self._compact_layout_auto
+        return self._compact_layout_auto or current
+
+    def _clear_main_content(self) -> None:
+        for child in self._content_frame.winfo_children():
+            child.destroy()
+
+    def _build_standard_main_content(self) -> None:
+        content = self._content_frame
+        content.grid_rowconfigure(0, weight=1)
+        content.grid_columnconfigure(0, weight=2)
+        content.grid_columnconfigure(1, weight=5)
+        content.grid_columnconfigure(2, weight=3)
+
+        self.life_panel = LifePanel(content, "Build")
+        self.life_panel.grid(row=0, column=0, sticky="nsew", padx=(0, PAD_S))
+
+        center = tk.Frame(content, bg=BG_DARKEST)
+        center.grid(row=0, column=1, sticky="nsew", padx=PAD_S)
+        center.grid_columnconfigure(0, weight=1)
+        center.grid_rowconfigure(0, weight=3)
+        center.grid_rowconfigure(1, weight=2)
+        self.outlook_panel = OutlookPanel(center, "This Month", resolve_callback=self.resolve_month)
+        self.outlook_panel.grid(row=0, column=0, sticky="nsew", pady=(0, PAD_S))
+        self.log_panel = LogPanel(center, "Run Feedback")
+        self.log_panel.grid(row=1, column=0, sticky="nsew")
+
+        self.finance_panel = FinancePanel(content, "Score & Pressure")
+        self.finance_panel.grid(row=0, column=2, sticky="nsew", padx=(PAD_S, 0))
+
+    def _build_compact_main_content(self) -> None:
+        content = self._content_frame
+        content.grid_rowconfigure(0, weight=1)
+        content.grid_columnconfigure(0, weight=1)
+
+        notebook = ttk.Notebook(content, style=_configure_dark_notebook_style(self.master))
+        notebook.grid(row=0, column=0, sticky="nsew")
+        self._compact_notebook = notebook
+
+        build_tab = tk.Frame(notebook, bg=BG_DARKEST)
+        month_tab = tk.Frame(notebook, bg=BG_DARKEST)
+        pressure_tab = tk.Frame(notebook, bg=BG_DARKEST)
+        notebook.add(build_tab, text="Build")
+        notebook.add(month_tab, text="This Month")
+        notebook.add(pressure_tab, text="Score & Pressure")
+
+        self.life_panel = LifePanel(build_tab, "Build")
+        self.life_panel.pack(fill="both", expand=True)
+
+        month_tab.grid_rowconfigure(0, weight=2)
+        month_tab.grid_rowconfigure(1, weight=1)
+        month_tab.grid_columnconfigure(0, weight=1)
+        self.outlook_panel = OutlookPanel(month_tab, "This Month", resolve_callback=self.resolve_month)
+        self.outlook_panel.grid(row=0, column=0, sticky="nsew", pady=(0, PAD_S))
+        self.log_panel = LogPanel(month_tab, "Run Feedback")
+        self.log_panel.grid(row=1, column=0, sticky="nsew")
+
+        self.finance_panel = FinancePanel(pressure_tab, "Score & Pressure")
+        self.finance_panel.pack(fill="both", expand=True)
+
     def _build_layout(self) -> None:
         # ── Status bar (top) ──
         self.status_bar = StatusBar(self)
@@ -1517,30 +1615,9 @@ class MainWindow(tk.Frame):
         content = tk.Frame(self, bg=BG_DARKEST)
         self._content_frame = content
         content.grid(row=2, column=0, sticky="nsew", padx=PAD_M, pady=(0, PAD_S))
-
-        # Left: life panel
-        self.life_panel = LifePanel(content, "Build")
-        self.life_panel.grid(row=0, column=0, sticky="nsew", padx=(0, PAD_S))
-
-        # Center: outlook + log
-        center = tk.Frame(content, bg=BG_DARKEST)
-        center.grid(row=0, column=1, sticky="nsew", padx=PAD_S)
-        center.grid_columnconfigure(0, weight=1)
-        center.grid_rowconfigure(0, weight=3)
-        center.grid_rowconfigure(1, weight=2)
-        self.outlook_panel = OutlookPanel(center, "This Month", resolve_callback=self.resolve_month)
-        self.outlook_panel.grid(row=0, column=0, sticky="nsew", pady=(0, PAD_S))
-        self.log_panel = LogPanel(center, "Run Feedback")
-        self.log_panel.grid(row=1, column=0, sticky="nsew")
-
-        # Right: finance panel
-        self.finance_panel = FinancePanel(content, "Score & Pressure")
-        self.finance_panel.grid(row=0, column=2, sticky="nsew", padx=(PAD_S, 0))
-
-        content.grid_columnconfigure(0, weight=2)
-        content.grid_columnconfigure(1, weight=5)
-        content.grid_columnconfigure(2, weight=3)
-        content.grid_rowconfigure(0, weight=1)
+        self._compact_notebook = None
+        self._layout_compact_active = None
+        self._build_main_content(self._desired_compact_layout(use_current_window=False))
 
         # ── Actions bar (bottom) ──
         self.actions_panel = ActionsPanel(self)
@@ -1570,6 +1647,14 @@ class MainWindow(tk.Frame):
                 },
             )
         )
+
+    def _build_main_content(self, compact: bool) -> None:
+        self._clear_main_content()
+        self._layout_compact_active = compact
+        if compact:
+            self._build_compact_main_content()
+        else:
+            self._build_standard_main_content()
 
     def _choose(self, title: str, prompt: str, options: list[tuple[str, str, str]]) -> str | None:
         if not options:
@@ -1685,11 +1770,10 @@ class MainWindow(tk.Frame):
 
     def refresh(self) -> None:
         state = self.controller.state
-        auto_compact = self._compact_layout_auto or should_use_compact_layout(
-            max(1, self.master.winfo_width()),
-            max(1, self.master.winfo_height()),
-        )
-        compact = self._compact_layout_override if self._compact_layout_override is not None else auto_compact
+        compact = self._desired_compact_layout()
+        if compact != self._layout_compact_active:
+            self._build_main_content(compact)
+            self._apply_text_scale()
         previous_credit = self._previous_credit_score
         self._previous_snapshot = self._latest_snapshot
         self._latest_snapshot = self.controller.live_score_snapshot()
@@ -1698,14 +1782,6 @@ class MainWindow(tk.Frame):
         credit_delta = None if previous_credit is None else state.player.credit_score - previous_credit
         self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
         self.score_strip.render(self._latest_snapshot, delta_vm, credit_score=state.player.credit_score, credit_delta=credit_delta)
-        if compact:
-            self._content_frame.grid_columnconfigure(0, weight=2)
-            self._content_frame.grid_columnconfigure(1, weight=4)
-            self._content_frame.grid_columnconfigure(2, weight=4)
-        else:
-            self._content_frame.grid_columnconfigure(0, weight=2)
-            self._content_frame.grid_columnconfigure(1, weight=5)
-            self._content_frame.grid_columnconfigure(2, weight=3)
         self.life_panel.render_snapshot(build_build_snapshot_vm(self.controller), compact=compact)
         self.outlook_panel.render_forecast(
             build_monthly_forecast_vm(self.controller),
@@ -1773,11 +1849,7 @@ class MainWindow(tk.Frame):
         self.refresh()
 
     def toggle_compact_layout(self) -> None:
-        auto_compact = self._compact_layout_auto or should_use_compact_layout(
-            max(1, self.master.winfo_width()),
-            max(1, self.master.winfo_height()),
-        )
-        current = self._compact_layout_override if self._compact_layout_override is not None else auto_compact
+        current = self._desired_compact_layout()
         self._compact_layout_override = not current
         self.refresh()
 
