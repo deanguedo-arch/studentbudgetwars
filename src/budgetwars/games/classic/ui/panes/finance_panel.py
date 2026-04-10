@@ -51,8 +51,28 @@ class FinancePanel(tk.Frame):
         self._canvas.configure(yscrollcommand=self._scrollbar.set)
         self._canvas.pack(side="left", fill="both", expand=True)
         self._scrollbar.pack(side="right", fill="y")
+        self._bind_mousewheel()
 
         self._widgets: list[tk.Widget] = []
+
+    def _bind_mousewheel(self) -> None:
+        def _on_mousewheel(event):
+            delta = 0
+            if hasattr(event, "delta") and event.delta:
+                delta = -1 if event.delta > 0 else 1
+            elif getattr(event, "num", None) == 4:
+                delta = -1
+            elif getattr(event, "num", None) == 5:
+                delta = 1
+            if delta:
+                self._canvas.yview_scroll(delta, "units")
+
+        self._canvas.bind("<MouseWheel>", _on_mousewheel)
+        self._content.bind("<MouseWheel>", _on_mousewheel)
+        self._canvas.bind("<Button-4>", _on_mousewheel)
+        self._canvas.bind("<Button-5>", _on_mousewheel)
+        self._content.bind("<Button-4>", _on_mousewheel)
+        self._content.bind("<Button-5>", _on_mousewheel)
 
     def render(self, lines: list[str]) -> None:
         for w in self._widgets:
@@ -124,7 +144,7 @@ class FinancePanel(tk.Frame):
         self._widgets.append(top)
 
         left = tk.Frame(top, bg=BG_CARD)
-        left.pack(side="left", fill="y", padx=(0, PAD_M))
+        left.pack(side="left" if not compact else "top", fill="y" if not compact else "x", padx=(0, PAD_M) if not compact else (0, 0))
         tk.Label(left, text="RUN DIAGNOSIS", bg=BG_CARD, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(anchor="w")
         tk.Label(left, text=f"{summary.projected_score:.1f}", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING if compact else ("Georgia", 20, "bold"), anchor="w").pack(anchor="w")
         tk.Label(left, text=summary.tier, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SUBHEADING, anchor="w").pack(anchor="w")
@@ -238,7 +258,12 @@ class FinancePanel(tk.Frame):
         _progress_bar(progress_frame, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", pady=(PAD_S, 0))
 
         right = tk.Frame(top, bg=BG_CARD)
-        right.pack(side="left", fill="both", expand=True)
+        right.pack(
+            side="left" if not compact else "top",
+            fill="both" if not compact else "x",
+            expand=not compact,
+            pady=(0, 0) if not compact else (PAD_S, 0),
+        )
         self._widgets.append(right)
 
         tk.Label(right, text="Pressure Cards", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SUBHEADING, anchor="w").pack(fill="x")

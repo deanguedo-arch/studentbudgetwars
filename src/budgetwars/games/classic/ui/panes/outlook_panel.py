@@ -47,8 +47,28 @@ class OutlookPanel(tk.Frame):
         self._canvas.configure(yscrollcommand=self._scrollbar.set)
         self._canvas.pack(side="left", fill="both", expand=True)
         self._scrollbar.pack(side="right", fill="y")
+        self._bind_mousewheel()
 
         self._widgets: list[tk.Widget] = []
+
+    def _bind_mousewheel(self) -> None:
+        def _on_mousewheel(event):
+            delta = 0
+            if hasattr(event, "delta") and event.delta:
+                delta = -1 if event.delta > 0 else 1
+            elif getattr(event, "num", None) == 4:
+                delta = -1
+            elif getattr(event, "num", None) == 5:
+                delta = 1
+            if delta:
+                self._canvas.yview_scroll(delta, "units")
+
+        self._canvas.bind("<MouseWheel>", _on_mousewheel)
+        self._content.bind("<MouseWheel>", _on_mousewheel)
+        self._canvas.bind("<Button-4>", _on_mousewheel)
+        self._canvas.bind("<Button-5>", _on_mousewheel)
+        self._content.bind("<Button-4>", _on_mousewheel)
+        self._content.bind("<Button-5>", _on_mousewheel)
 
     def render(self, lines: list[str]) -> None:
         for w in self._widgets:

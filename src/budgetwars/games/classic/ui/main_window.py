@@ -1515,6 +1515,7 @@ class MainWindow(tk.Frame):
 
         # ── Main content area ──
         content = tk.Frame(self, bg=BG_DARKEST)
+        self._content_frame = content
         content.grid(row=2, column=0, sticky="nsew", padx=PAD_M, pady=(0, PAD_S))
 
         # Left: life panel
@@ -1697,6 +1698,14 @@ class MainWindow(tk.Frame):
         credit_delta = None if previous_credit is None else state.player.credit_score - previous_credit
         self.status_bar.render(state, self.controller.bundle, self._latest_snapshot)
         self.score_strip.render(self._latest_snapshot, delta_vm, credit_score=state.player.credit_score, credit_delta=credit_delta)
+        if compact:
+            self._content_frame.grid_columnconfigure(0, weight=2)
+            self._content_frame.grid_columnconfigure(1, weight=4)
+            self._content_frame.grid_columnconfigure(2, weight=4)
+        else:
+            self._content_frame.grid_columnconfigure(0, weight=2)
+            self._content_frame.grid_columnconfigure(1, weight=5)
+            self._content_frame.grid_columnconfigure(2, weight=3)
         self.life_panel.render_snapshot(build_build_snapshot_vm(self.controller), compact=compact)
         self.outlook_panel.render_forecast(
             build_monthly_forecast_vm(self.controller),
