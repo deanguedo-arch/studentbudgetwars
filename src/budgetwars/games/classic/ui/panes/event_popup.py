@@ -64,7 +64,7 @@ class _DarkDialog(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=BG_DARKEST)
-        self.geometry(f"{width}x{height}")
+        self._center_over_parent(parent, width, height)
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
@@ -82,6 +82,32 @@ class _DarkDialog(tk.Toplevel):
     def _close(self) -> None:
         self.grab_release()
         self.destroy()
+
+    def _center_over_parent(self, parent: tk.Misc, width: int, height: int) -> None:
+        self.update_idletasks()
+        try:
+            parent.update_idletasks()
+            px = parent.winfo_rootx()
+            py = parent.winfo_rooty()
+            pw = parent.winfo_width()
+            ph = parent.winfo_height()
+        except tk.TclError:
+            px = py = 0
+            pw = self.winfo_screenwidth()
+            ph = self.winfo_screenheight()
+
+        if pw <= 1 or ph <= 1:
+            pw = self.winfo_screenwidth()
+            ph = self.winfo_screenheight()
+            px = py = 0
+
+        x = px + max(0, (pw - width) // 2)
+        y = py + max(0, (ph - height) // 2)
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        x = max(0, min(x, screen_w - width))
+        y = max(0, min(y, screen_h - height))
+        self.geometry(f"{width}x{height}+{x}+{y}")
 
     def _add_ok_button(self) -> None:
         btn = tk.Button(
