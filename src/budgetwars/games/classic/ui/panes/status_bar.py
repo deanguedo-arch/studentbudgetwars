@@ -7,7 +7,7 @@ from budgetwars.models import ContentBundle, GameState, LiveScoreSnapshot
 from ..theme import (
     BG_CARD, BG_DARK, BG_DARKEST, BORDER, TEXT_HEADING, TEXT_PRIMARY, TEXT_SECONDARY,
     COLOR_STRESS, COLOR_ENERGY, COLOR_LIFE, COLOR_MONEY_POS, COLOR_MONEY_NEG,
-    FONT_HEADING, FONT_SUBHEADING, FONT_BODY, FONT_MONO, FONT_SMALL,
+    FONT_HEADING, FONT_SUBHEADING, FONT_BODY, FONT_MONO, FONT_SMALL, FONT_SCORE,
     FONT_SCORE_TIER, PAD_S, PAD_M,
     tier_color, money_str, stat_bar,
 )
@@ -44,12 +44,14 @@ class StatusBar(tk.Frame):
             "body": FONT_BODY,
             "mono": FONT_MONO,
             "small": FONT_SMALL,
+            "score": FONT_SCORE,
         }
         self._large_fonts = {
             "heading": ("Georgia", 13, "bold"),
             "body": ("Trebuchet MS", 12),
             "mono": ("Consolas", 12),
             "small": ("Trebuchet MS", 10),
+            "score": ("Georgia", 30, "bold"),
         }
         self._fonts = self._normal_fonts
 
@@ -129,7 +131,7 @@ class StatusBar(tk.Frame):
         score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         score_frame.pack(side="right", fill="y", padx=(PAD_S, 0), pady=2)
         tk.Label(score_frame, text="RANK", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
-        self._score_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["heading"], padx=PAD_M, pady=2)
+        self._score_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["score"], padx=PAD_M, pady=1)
         self._score_label.pack(side="left")
         self._tier_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SCORE_TIER, padx=PAD_S, pady=2)
         self._tier_label.pack(side="left")
@@ -206,5 +208,5 @@ class StatusBar(tk.Frame):
         self._stress_val.configure(font=self._fonts["small"])
         self._energy_val.configure(font=self._fonts["small"])
         self._life_val.configure(font=self._fonts["small"])
-        self._score_label.configure(font=self._fonts["heading"])
+        self._score_label.configure(font=self._fonts["score"])
         self._season_detail.configure(font=self._fonts["small"])
