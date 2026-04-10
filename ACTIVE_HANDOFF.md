@@ -2,42 +2,50 @@
 
 ## Current State
 - **Branch**: `main`
-- **Worktree**: Cleaned up and modernized.
-- **Completed**: Phase 1, 2, 3, and 4 engine changes are fully implemented and verified. 
-- **Testing**: 54/54 tests passing. (Note: `test_desktop_windowing.py` may fail in headless CI environments because it requires Tkinter display).
-- **Saves**: Version bumped to 9. Old saves are correctly invalidated.
+- **Latest pushed commit**: `bf1c1e1` (`classic ui: expose consequence signals in pressure and feedback`)
+- **Scope**: Classic mode consequence-depth roadmap passes through UI exposure are implemented.
+- **Desktop mode**: untouched in this sequence.
+
+## Completed Passes (Shipped)
+1. `stateful-situations-v2` (`5eba51e`)
+2. `career-branches-v2` (`a9c61c0`)
+3. `promotion-choice-nodes-v2` (`2d1e210`)
+4. `credit-access-pressure-v2` (`690d5aa`)
+5. `wealth-risk-signatures-v1` (`162fdaf`)
+6. `recovery-routes-v1` (`27616a0`)
+7. `score-and-victory-truth-pass` (`74661ee`)
+8. `ui-exposure-pass` (`bf1c1e1`)
 
 ## What Changed Most Recently
-- **Phase 3 (Chained Events)**: `GameState` now has a `pending_events` queue. Events like "Beater Breakdown" set a ticking time-bomb for "Vehicle Total Loss" 4 months later. Engine force-fires these when the timer hits zero.
-- **Phase 4 (Mechanical Constraints)**: 
-  - **Energy Cap**: Player income from gig-work and variable tracks is heavily penalized (0.6x) if Energy drops below 30.
-  - **Social Lifeline**: If Social Stability > 80, the player's network will automatically bail them out of up to $300 in shortfall once per year, protecting investments from emergency liquidation.
-- **UI Warnings**: Outlook panel and Status bar updated to show new dynamic red/green warnings for Energy Caps, Social Isolation, pending consequences, and lifeline availability.
+- Added explicit consequence exposure in Classic UI:
+  - `Pressure family`
+  - `Month driver`
+  - `Pending fallout` count
+  - pending decision signals (situation choice / promotion branch)
+- Added causal `Month Driver` line in `Run Feedback`.
+- Wired these through `PressureSummaryVM` and `MainWindow` feedback builders.
 
-## What the Game Needs to be "Amazing" (Next Steps Roadmap)
+## Files Touched In Latest Pass
+- `src/budgetwars/games/classic/ui/main_window.py`
+- `src/budgetwars/games/classic/ui/panes/finance_panel.py`
+- `tests/games/classic/test_main_window.py`
 
-The simulation engine is incredibly robust, but the game is still largely a passive spreadsheet. To elevate it to an "amazing" strategy experience, it needs the following three pillars. Here is the surgical guide on how to prompt the next AI (Codex/Claude/etc) to achieve them:
+## Verification
+- Full test suite (venv): `158 passed`
+- Command used: `.\.venv\Scripts\python -m pytest -q`
 
-### 1. Interactive Event Choices (The RPG Layer)
-**The Gap**: Right now, events just *happen* to the player. They get a log message and stats drop. Amazing narrative games present dilemmas.
-**The Fix**: Transform `events.json` so events have 2-3 explicit Choices (e.g., "Car broke down: [Pay $400] | [Ignore it: -40 Reliability] | [Beg Parents: -20 Family Support]").
-**How to prompt the AI**: 
-> "Refactor the `EventDefinition` model to include a `choices: list[EventChoice]` array instead of flat `immediate_effects`. Each choice should have a label, cost, and stat effects. Update `GameController.resolve_month()` so that if an event fires, the game state pauses and sets a `pending_user_choice_event_id`. Update the Classic UI so `ActionsPanel` gets replaced by choice buttons until the event is resolved."
-
-### 2. High-Impact Visual 'Juice' (The Game Feel Layer)
-**The Gap**: Tkinter is static. Hitting a massive sales bonus or suffering a total car loss looks identical in the UI—just numbers changing instantly. 
-**The Fix**: Add micro-animations and color flashes to the UI to make positive/negative outcomes viscerally felt.
-**How to prompt the AI**:
-> "Update `score_strip.py` and `life_panel.py` to use Tkinter's `.after()` loop to smoothly animate the progress bar canvases ticking up/down over 400ms instead of instantly snapping. In `main_window.py`, if the player's `monthly_surplus` drops below zero after a resolve, flash the `FinancePanel`'s background `COLOR_NEGATIVE` fading back to `BG_CARD` over 3 frames."
-
-### 3. Ultimate Win Conditions (The Escape Hatch)
-**The Gap**: The game currently ends arbitrarily after 120 months. Players need aspirational targets right from month 1.
-**The Fix**: Add ultimate "Win States" (e.g., *Buy a House*, *Start a Business*, *Coast FIRE*) that the player can trigger early if they achieve specific wealth and milestone targets. 
-**How to prompt the AI**:
-> "Create a `WinStateDefinition` model. Add a new `win_states.json` data file. Update `GameController` to check for eligibility every month. If a player meets the criteria (e.g., $50k net worth and Elite tier), surface a glowing 'Declare Victory: [Goal Name]' button in the `ActionsPanel`. Triggering it ends the run immediately with a massive score multiplier and a specialized endgame screen."
+## Known Gaps / Next Work
+The checklist phase sequence is complete, but gameplay depth can still be pushed in these targeted follow-ups:
+1. **Situation depth v3**: more high-impact branch/build-locked chains, especially mid/late game.
+2. **Career breadth**: extend full branch depth beyond retail + warehouse families.
+3. **Credit model v3**: tighten growth/decay cadence and make access consequences more consistently felt.
+4. **Wealth model v2**: deepen liquidity/drawdown/upside windows and corresponding event hooks.
+5. **Balance pass**: stress and credit pacing tuning, especially on easy mode.
+6. **Layout polish pass**: fullscreen fit/density cleanup now that consequence signals are surfaced.
 
 ## Quick Technical Reference
-- **Classic Entry**: `python3 -m budgetwars.main --mode classic`
-- **Tests**: `pytest tests/`
-- **Core Loop File**: `src/budgetwars/engine/month_resolution.py`
-- **UI Main Window**: `src/budgetwars/games/classic/ui/main_window.py`
+- **Classic entry**: `python -m budgetwars.main --mode classic`
+- **Tests**: `.\.venv\Scripts\python -m pytest -q`
+- **Core turn loop**: `src/budgetwars/engine/month_resolution.py`
+- **Event selection/scaling**: `src/budgetwars/engine/events.py`
+- **Classic UI root**: `src/budgetwars/games/classic/ui/main_window.py`
