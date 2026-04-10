@@ -342,7 +342,9 @@ def _education_intensity_options(program) -> list[tuple[str, str, str]]:
 
 
 def should_use_compact_layout(width: int, height: int) -> bool:
-    return width < 1800 or height < 1200
+    # Keep full three-column "one screen" layout on common laptop/desktop sizes.
+    # Compact tab mode is now reserved for genuinely constrained windows.
+    return width < 1500 or height < 860
 
 
 def _configure_dark_notebook_style(master: tk.Misc) -> str:

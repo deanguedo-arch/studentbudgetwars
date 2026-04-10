@@ -416,7 +416,7 @@ def test_build_menu_bar_includes_learn_entry(monkeypatch):
 
 def test_compact_layout_prefers_smaller_screens():
     assert should_use_compact_layout(1366, 768) is True
-    assert should_use_compact_layout(1920, 1080) is True
+    assert should_use_compact_layout(1920, 1080) is False
     assert should_use_compact_layout(2560, 1440) is False
 
 
