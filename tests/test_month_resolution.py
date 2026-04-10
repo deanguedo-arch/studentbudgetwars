@@ -142,6 +142,61 @@ def test_easy_mode_risky_month_can_still_raise_stress(bundle, controller_factory
     assert controller.state.player.stress > starting_stress
 
 
+def test_easy_mode_big_city_recovery_can_reduce_stress(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(
+        difficulty_id="easy",
+        city_id="high_opportunity_metro",
+        family_support_level_id="low",
+        savings_band_id="none",
+        opening_path_id="move_out_immediately",
+    )
+    controller.state.player.selected_focus_action_id = "recovery_month"
+    controller.state.player.stress = 66
+    controller.state.player.energy = 62
+    controller.state.player.housing.housing_stability = 58
+    controller.state.player.transport.reliability_score = 72
+    controller.state.player.debt = 3800
+    controller.state.player.credit_score = 660
+    controller.state.player.social_stability = 56
+    controller.state.player.family_support = 36
+    starting_stress = controller.state.player.stress
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert controller.state.player.stress < starting_stress
+
+
+def test_easy_big_city_recovery_reports_easing_pressure_trend(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(
+        difficulty_id="easy",
+        city_id="high_opportunity_metro",
+        family_support_level_id="low",
+        savings_band_id="none",
+        opening_path_id="move_out_immediately",
+    )
+    player = controller.state.player
+    player.selected_focus_action_id = "recovery_month"
+    player.stress = 82
+    player.energy = 24
+    player.housing.housing_stability = 46
+    player.transport.reliability_score = 54
+    player.debt = 14000
+    player.credit_score = 620
+    player.social_stability = 40
+    player.family_support = 30
+    player.cash = 100
+    player.savings = 50
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    trend_line = next((line for line in controller.state.recent_summary if line.startswith("Pressure trend:")), "")
+    assert "easing" in trend_line
+
+
 def test_stress_pressure_map_rises_for_fragile_build_and_relieves_for_stable_build(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})

@@ -325,7 +325,7 @@ def _pressure_map(state: GameState) -> list[tuple[str, int]]:
     )
 
 
-def _apply_pressure_dynamics(state: GameState) -> tuple[list[str], str]:
+def _apply_pressure_dynamics(state: GameState, *, difficulty_stress_multiplier: float = 1.0) -> tuple[list[str], str]:
     pressures = _pressure_map(state)
     top = [(name, value) for name, value in pressures if value > 0][:3]
     if not top:
@@ -346,13 +346,33 @@ def _apply_pressure_dynamics(state: GameState) -> tuple[list[str], str]:
     else:
         stress_shift = -1
     if state.player.selected_focus_action_id in {"recovery_month", "social_maintenance"}:
-        stress_shift -= 1
+        stress_shift -= 2
     if state.player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
         stress_shift += 1
         if avg >= 45:
             stress_shift += 1
         elif avg >= 32:
             stress_shift = max(stress_shift, 1)
+    if difficulty_stress_multiplier < 1.0:
+        ease_bias = max(1, int(round((1.0 - difficulty_stress_multiplier) * 10)))
+        if stress_shift > 0:
+            stress_shift = max(0, stress_shift - ease_bias)
+        elif stress_shift < 0:
+            stress_shift -= ease_bias
+    elif difficulty_stress_multiplier > 1.0:
+        pressure_bias = max(1, int(round((difficulty_stress_multiplier - 1.0) * 10)))
+        if stress_shift > 0:
+            stress_shift += pressure_bias
+        elif stress_shift < 0:
+            stress_shift = min(-1, stress_shift + pressure_bias)
+    if (
+        stress_shift == 0
+        and difficulty_stress_multiplier <= 1.0
+        and state.player.selected_focus_action_id in {"recovery_month", "social_maintenance"}
+        and avg >= 30
+    ):
+        stress_shift = -1
+
     state.player.stress += stress_shift
     labels = [f"{name} {value}" for name, value in top]
     if stress_shift > 0:
@@ -843,7 +863,10 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     state.player.monthly_surplus = end_net - start_net
     _update_momentum_and_drag(state)
     _apply_system_signatures(bundle, state)
-    pressure_top, pressure_trend = _apply_pressure_dynamics(state)
+    pressure_top, pressure_trend = _apply_pressure_dynamics(
+        state,
+        difficulty_stress_multiplier=difficulty.stress_multiplier,
+    )
     _apply_recovery_routes(state, bundle)
     _apply_credit_drift(
         state,
