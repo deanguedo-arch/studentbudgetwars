@@ -20,19 +20,19 @@ class BudgetWarsTkApp:
         self.root = tk.Tk()
         self.root.configure(bg=BG_DARKEST)
         self.root.update_idletasks()
-        screen_w = self.root.winfo_screenwidth()
-        screen_h = self.root.winfo_screenheight()
-        work_w = max(800, self.root.winfo_vrootwidth() or screen_w)
-        work_h = max(600, self.root.winfo_vrootheight() or screen_h)
-        width = min(max(1080, int(work_w * 0.92)), max(980, work_w - 24))
-        height = min(max(620, int(work_h * 0.9)), max(580, work_h - 24))
-        self.root.geometry(f"{width}x{height}")
-        self.root.minsize(min(980, width), min(580, height))
-        if work_h <= 820:
-            try:
-                self.root.state("zoomed")
-            except tk.TclError:
-                pass
+        # Use a bounded, centered launch size to avoid oversized "blown up" startup windows.
+        screen_w = max(1024, self.root.winfo_screenwidth())
+        screen_h = max(720, self.root.winfo_screenheight())
+        margin = 80
+        max_w = max(980, screen_w - margin)
+        max_h = max(640, screen_h - margin)
+        width = min(max(1220, int(screen_w * 0.82)), max_w, 1680)
+        height = min(max(760, int(screen_h * 0.82)), max_h, 980)
+        x = max(0, (screen_w - width) // 2)
+        y = max(0, (screen_h - height) // 2)
+        self.root.state("normal")
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+        self.root.minsize(980, 620)
         self.root.option_add("*Font", FONT_BODY)
         self.root.option_add("*Background", BG_DARKEST)
 
