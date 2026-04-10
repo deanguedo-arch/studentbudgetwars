@@ -40,8 +40,17 @@ class FinancePanel(tk.Frame):
                           font=FONT_SUBHEADING, anchor="w")
         header.pack(fill="x", padx=PAD_S, pady=(PAD_S, 2))
 
-        self._content = tk.Frame(self, bg=BG_CARD)
-        self._content.pack(fill="both", expand=True, padx=PAD_S, pady=PAD_S)
+        scroll_host = tk.Frame(self, bg=BG_CARD)
+        scroll_host.pack(fill="both", expand=True, padx=PAD_S, pady=PAD_S)
+        self._canvas = tk.Canvas(scroll_host, bg=BG_CARD, highlightthickness=0, bd=0)
+        self._scrollbar = tk.Scrollbar(scroll_host, orient="vertical", command=self._canvas.yview)
+        self._content = tk.Frame(self._canvas, bg=BG_CARD)
+        self._content.bind("<Configure>", lambda _e: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
+        self._content_window = self._canvas.create_window((0, 0), window=self._content, anchor="nw")
+        self._canvas.bind("<Configure>", lambda e: self._canvas.itemconfigure(self._content_window, width=e.width))
+        self._canvas.configure(yscrollcommand=self._scrollbar.set)
+        self._canvas.pack(side="left", fill="both", expand=True)
+        self._scrollbar.pack(side="right", fill="y")
 
         self._widgets: list[tk.Widget] = []
 
