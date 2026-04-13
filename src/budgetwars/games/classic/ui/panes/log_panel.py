@@ -47,10 +47,10 @@ class LogPanel(tk.Frame):
         )
         text_wrap = tk.Frame(self, bg=BG_CARD)
         text_wrap.pack(fill="both", expand=True, padx=PAD_S, pady=(0, PAD_S))
-        scrollbar = tk.Scrollbar(text_wrap, orient="vertical", command=self.text.yview)
-        self.text.configure(yscrollcommand=scrollbar.set)
+        self._scrollbar = tk.Scrollbar(text_wrap, orient="vertical", command=self.text.yview)
+        self.text.configure(yscrollcommand=self._scrollbar.set)
         self.text.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        self._scrollbar.pack(side="right", fill="y")
         self.text.configure(state="disabled")
 
         # Configure color tags
@@ -78,8 +78,18 @@ class LogPanel(tk.Frame):
             self.text.insert("end", msg + "\n", tag)
         self.text.configure(state="disabled")
         self.text.see("end")
+        self._update_scrollbar_visibility()
 
     def set_large_text(self, enabled: bool) -> None:
         self._large = enabled
         font = ("Consolas", 12) if enabled else FONT_MONO
         self.text.configure(font=font)
+
+    def _update_scrollbar_visibility(self) -> None:
+        first, last = self.text.yview()
+        if (last - first) < 0.999:
+            if not self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack(side="right", fill="y")
+        else:
+            if self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack_forget()

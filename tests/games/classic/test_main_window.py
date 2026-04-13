@@ -23,6 +23,7 @@ from budgetwars.games.classic.ui.main_window import (
 )
 from budgetwars.games.classic.ui.panes.life_panel import LifePanel
 from budgetwars.games.classic.ui.panes.finance_panel import FinancePanel
+from budgetwars.games.classic.ui.panes.outlook_panel import OutlookPanel
 from budgetwars.games.classic.ui.panes.event_popup import preview_choice_detail
 from budgetwars.games.classic.ui.panes.menu_bar import (
     build_menu_bar,
@@ -286,7 +287,7 @@ def test_score_delta_summary_compares_current_and_previous_snapshots():
     assert delta.diagnosis
 
 
-def test_run_feedback_lines_surface_recovery_and_blocked_doors(controller_factory):
+def test_run_feedback_lines_surface_recovery_without_repeating_blocked_doors(controller_factory):
     controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
     controller.state.player.credit_score = 690
     controller.state.player.debt = 16500
@@ -303,7 +304,7 @@ def test_run_feedback_lines_surface_recovery_and_blocked_doors(controller_factor
     lines = MainWindow._run_feedback_lines(window)
 
     assert any("recovery route:" in line.lower() for line in lines)
-    assert any("blocked door:" in line.lower() for line in lines)
+    assert not any("blocked door:" in line.lower() for line in lines)
 
 
 def test_run_feedback_lines_surface_month_driver_and_pending_fallout(controller_factory):
@@ -762,5 +763,57 @@ def test_finance_panel_desktop_shows_more_commitment_chips_with_overflow_note(co
         assert "Office Scope Lane" in texts
         assert "Healthcare Continuity Lane" not in texts
         assert "+2 more" in texts
+    finally:
+        root.destroy()
+
+
+def test_phase8_default_layout_hides_primary_panel_scrollbars(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        root.geometry("1700x980")
+        host = tk.Frame(root)
+        host.pack(fill="both", expand=True)
+        host.grid_columnconfigure(0, weight=1)
+        host.grid_columnconfigure(1, weight=1)
+        host.grid_columnconfigure(2, weight=1)
+        host.grid_rowconfigure(0, weight=1)
+
+        controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+        controller.state.player.credit_score = 680
+        controller.state.player.debt = 5200
+        controller.state.player.monthly_surplus = 180
+        controller.state.player.stress = 52
+        controller.state.player.energy = 60
+
+        life_panel = LifePanel(host)
+        life_panel.grid(row=0, column=0, sticky="nsew")
+        life_panel.render_snapshot(build_build_snapshot(controller.state, controller.bundle), compact=False)
+
+        outlook_panel = OutlookPanel(host, resolve_callback=lambda: None)
+        outlook_panel.grid(row=0, column=1, sticky="nsew")
+        outlook_panel.render_forecast(
+            build_monthly_forecast(controller.state, controller.bundle),
+            compact=False,
+            show_resolve_button=False,
+        )
+
+        finance_panel = FinancePanel(host)
+        finance_panel.grid(row=0, column=2, sticky="nsew")
+        finance_panel.render_summary(
+            build_pressure_summary(controller.state, controller.bundle),
+            compact=False,
+        )
+
+        root.update_idletasks()
+
+        assert not life_panel._scrollbar.winfo_ismapped()
+        assert not outlook_panel._scrollbar.winfo_ismapped()
+        assert not finance_panel._scrollbar.winfo_ismapped()
     finally:
         root.destroy()

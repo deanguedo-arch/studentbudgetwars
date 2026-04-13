@@ -125,16 +125,6 @@ class OutlookPanel(tk.Frame):
             font=FONT_SMALL if not self._large else ("Segoe UI", 11, "bold"),
             anchor="w",
         ).pack(fill="x")
-        tk.Label(
-            focus_frame,
-            text=forecast.credit_status,
-            bg=BG_CARD,
-            fg=ACCENT_FOCUS,
-            font=FONT_SMALL if not self._large else ("Segoe UI", 11),
-            anchor="w",
-            wraplength=420,
-            justify="left",
-        ).pack(fill="x", pady=(1, 0))
         commitments = list(getattr(forecast, "persistent_commitments", []) or [])
         if commitments:
             chips = tk.Frame(focus_frame, bg=BG_CARD)
@@ -159,28 +149,6 @@ class OutlookPanel(tk.Frame):
                     highlightbackground=BORDER,
                     highlightthickness=1,
                 ).pack(side="left", padx=(4, 0))
-        if getattr(forecast, "recovery_route", None):
-            tk.Label(
-                focus_frame,
-                text=forecast.recovery_route,
-                bg=BG_CARD,
-                fg=COLOR_POSITIVE,
-                font=FONT_SMALL if not self._large else ("Segoe UI", 11),
-                anchor="w",
-                wraplength=420,
-                justify="left",
-            ).pack(fill="x", pady=(2, 0))
-        if getattr(forecast, "blocked_doors", None):
-            tk.Label(
-                focus_frame,
-                text="Blocked doors: " + " | ".join(forecast.blocked_doors[: (1 if compact else 2)]),
-                bg=BG_CARD,
-                fg=COLOR_WARNING,
-                font=FONT_SMALL if not self._large else ("Segoe UI", 11),
-                anchor="w",
-                wraplength=420,
-                justify="left",
-            ).pack(fill="x", pady=(2, 0))
 
         resolve_frame = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=ACCENT_FOCUS, highlightthickness=2)
         resolve_frame.pack(fill="x", pady=(PAD_S, 0))
@@ -252,7 +220,7 @@ class OutlookPanel(tk.Frame):
             notes_header = tk.Label(self._content, text="Why this month matters", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w")
             notes_header.pack(fill="x", pady=(PAD_S, 0))
             self._widgets.append(notes_header)
-            for note in forecast.driver_notes[: (2 if compact else 3)]:
+            for note in forecast.driver_notes[: (2 if compact else 2)]:
                 note_lbl = tk.Label(self._content, text=note, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=420)
                 note_lbl.pack(fill="x", anchor="w", pady=1)
                 self._widgets.append(note_lbl)
@@ -261,7 +229,7 @@ class OutlookPanel(tk.Frame):
             recap_header = tk.Label(self._content, text="Last month", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w")
             recap_header.pack(fill="x", pady=(PAD_S, 0))
             self._widgets.append(recap_header)
-            for line in forecast.recent_summary[:3]:
+            for line in forecast.recent_summary[:2]:
                 recap = tk.Label(self._content, text=line, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=420)
                 recap.pack(fill="x", anchor="w", pady=1)
                 self._widgets.append(recap)
@@ -271,9 +239,11 @@ class OutlookPanel(tk.Frame):
 
     def _on_frame_configure(self, _event=None) -> None:
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+        self._update_scrollbar_visibility()
 
     def _on_canvas_configure(self, event) -> None:
         self._canvas.itemconfigure(self._canvas_window, width=event.width)
+        self._update_scrollbar_visibility()
 
     def _on_mousewheel(self, event) -> None:
         delta = int(-1 * (event.delta / 120))
@@ -284,3 +254,17 @@ class OutlookPanel(tk.Frame):
 
     def _unbind_mousewheel(self, _event=None) -> None:
         self.unbind_all("<MouseWheel>")
+
+    def _update_scrollbar_visibility(self) -> None:
+        bbox = self._canvas.bbox("all")
+        if not bbox:
+            self._scrollbar.pack_forget()
+            return
+        content_height = bbox[3] - bbox[1]
+        viewport_height = max(1, self._canvas.winfo_height())
+        if content_height > viewport_height + 4:
+            if not self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack(side="right", fill="y")
+        else:
+            if self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack_forget()

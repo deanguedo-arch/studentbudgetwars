@@ -1164,9 +1164,7 @@ class MainWindow(tk.Frame):
         crisis = self.controller.build_crisis_warnings()
         next_best_move = _current_focus_name(self.controller)
         family = dominant_pressure_family(state)
-        credit_line = f"Credit: {state.player.credit_score} ({credit_tier_label(state.player.credit_score)})"
         recovery_route = _best_recovery_route(state, self.controller.bundle)
-        blocked_doors = _blocked_door_lines(state, self.controller.bundle)
         month_driver = (
             state.month_driver_notes[0]
             if state.month_driver_notes
@@ -1177,7 +1175,6 @@ class MainWindow(tk.Frame):
             f"Big Win: {state.recent_summary[0]}" if state.recent_summary else "Big Win: Holding steady.",
             f"Big Hit: {state.recent_summary[1]}" if len(state.recent_summary) > 1 else "Big Hit: No major hit this month.",
             f"Score Change: {self._latest_snapshot.projected_score:.1f}" if self._latest_snapshot else "Score Change: Pending.",
-            credit_line,
             f"Situation Family: {family}",
             f"Month Driver: {month_driver}",
             f"New Threat: {crisis[0]}" if crisis else "New Threat: None right now.",
@@ -1188,8 +1185,6 @@ class MainWindow(tk.Frame):
         lines.extend(pending_decisions)
         if recovery_route:
             lines.append(f"Recovery Route: {recovery_route.replace('Best recovery route: ', '')}")
-        if blocked_doors:
-            lines.extend(f"Blocked Door: {line}" for line in blocked_doors[:2])
         return lines + state.log_messages
 
     def _apply_text_scale(self) -> None:

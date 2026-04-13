@@ -280,12 +280,6 @@ class FinancePanel(tk.Frame):
                 anchor="w",
             ).pack(fill="x", padx=PAD_S, pady=(1, PAD_S))
 
-        progress_frame = tk.Frame(left, bg=BG_CARD)
-        progress_frame.pack(fill="x", pady=(PAD_S, 0))
-        tk.Label(progress_frame, text=summary.progress_label.upper(), bg=BG_CARD, fg=TEXT_HEADING, font=FONT_TINY, anchor="w").pack(fill="x")
-        tk.Label(progress_frame, text=summary.progress_detail, bg=BG_CARD, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x")
-        _progress_bar(progress_frame, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", pady=(PAD_S, 0))
-
         right = tk.Frame(top, bg=BG_CARD)
         right.pack(
             side="left" if not compact else "top",
@@ -303,12 +297,6 @@ class FinancePanel(tk.Frame):
             card.pack(side="left", fill="both", expand=True, padx=(0, PAD_S))
             tk.Label(card, text=metric.label.upper(), bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
             tk.Label(card, text=metric.primary, bg=BG_ELEVATED, fg=TEXT_PRIMARY, font=FONT_BODY, anchor="w").pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
-
-        progress_card = tk.Frame(right, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
-        progress_card.pack(fill="x", pady=(0, PAD_S))
-        tk.Label(progress_card, text=summary.progress_label.upper(), bg=BG_ELEVATED, fg=TEXT_HEADING, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
-        tk.Label(progress_card, text=summary.progress_detail, bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_SMALL, anchor="w").pack(fill="x", padx=PAD_S)
-        _progress_bar(progress_card, summary.progress_fraction, COLOR_WARNING).pack(anchor="w", padx=PAD_S, pady=(PAD_S, PAD_S))
 
         secondary = tk.Frame(right, bg=BG_CARD)
         secondary.pack(fill="x", pady=(PAD_S, 0))
@@ -365,7 +353,7 @@ class FinancePanel(tk.Frame):
 
         if summary.crisis_watch:
             tk.Label(right, text="Crisis Watch", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w").pack(fill="x", pady=(PAD_S, 0))
-            for warning in summary.crisis_watch[: (2 if compact else 3)]:
+            for warning in summary.crisis_watch[: (1 if compact else 2)]:
                 tk.Label(right, text=warning, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x", anchor="w")
 
     def set_large_text(self, enabled: bool) -> None:
@@ -373,9 +361,11 @@ class FinancePanel(tk.Frame):
 
     def _on_frame_configure(self, _event=None) -> None:
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+        self._update_scrollbar_visibility()
 
     def _on_canvas_configure(self, event) -> None:
         self._canvas.itemconfigure(self._canvas_window, width=event.width)
+        self._update_scrollbar_visibility()
 
     def _on_mousewheel(self, event) -> None:
         delta = int(-1 * (event.delta / 120))
@@ -386,3 +376,17 @@ class FinancePanel(tk.Frame):
 
     def _unbind_mousewheel(self, _event=None) -> None:
         self.unbind_all("<MouseWheel>")
+
+    def _update_scrollbar_visibility(self) -> None:
+        bbox = self._canvas.bbox("all")
+        if not bbox:
+            self._scrollbar.pack_forget()
+            return
+        content_height = bbox[3] - bbox[1]
+        viewport_height = max(1, self._canvas.winfo_height())
+        if content_height > viewport_height + 4:
+            if not self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack(side="right", fill="y")
+        else:
+            if self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack_forget()

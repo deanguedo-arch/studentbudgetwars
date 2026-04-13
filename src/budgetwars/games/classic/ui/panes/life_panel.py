@@ -251,9 +251,11 @@ class LifePanel(tk.Frame):
 
     def _on_frame_configure(self, _event=None) -> None:
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+        self._update_scrollbar_visibility()
 
     def _on_canvas_configure(self, event) -> None:
         self._canvas.itemconfigure(self._canvas_window, width=event.width)
+        self._update_scrollbar_visibility()
 
     def _on_mousewheel(self, event) -> None:
         delta = int(-1 * (event.delta / 120))
@@ -268,3 +270,17 @@ class LifePanel(tk.Frame):
     def _bind_click_action(self, widget: tk.Widget, action_key: str) -> None:
         widget.configure(cursor="hand2")
         widget.bind("<Button-1>", lambda _e, key=action_key: self._on_action(key))
+
+    def _update_scrollbar_visibility(self) -> None:
+        bbox = self._canvas.bbox("all")
+        if not bbox:
+            self._scrollbar.pack_forget()
+            return
+        content_height = bbox[3] - bbox[1]
+        viewport_height = max(1, self._canvas.winfo_height())
+        if content_height > viewport_height + 4:
+            if not self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack(side="right", fill="y")
+        else:
+            if self._scrollbar.winfo_ismapped():
+                self._scrollbar.pack_forget()
