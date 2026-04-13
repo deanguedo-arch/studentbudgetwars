@@ -223,6 +223,20 @@ class EventDefinition(BaseModel):
     chained_delay_months: int = Field(ge=0, default=1)
 
 
+class StatusArcDefinition(BaseModel):
+    id: str
+    name: str
+    family: str
+    summary: str
+    default_duration_months: int = Field(ge=1, le=12)
+    ui_priority: int = Field(ge=0, default=50)
+    tone: str = "warning"
+    linked_modifier_ids: list[str] = Field(default_factory=list)
+    followup_event_ids: list[str] = Field(default_factory=list)
+    blocked_door_hints: list[str] = Field(default_factory=list)
+    resolution_hint: str | None = None
+
+
 class WinStateDefinition(BaseModel):
     id: str
     name: str
@@ -299,6 +313,7 @@ class ContentBundle(BaseModel):
     focus_actions: list[FocusActionDefinition]
     wealth_strategies: list[WealthStrategyDefinition]
     events: list[EventDefinition]
+    status_arcs: list[StatusArcDefinition] = Field(default_factory=list)
     win_states: list[WinStateDefinition]
     learn_topics: list[LearnTopicDefinition]
     consequence_matrix: ConsequenceMatrixDefinition

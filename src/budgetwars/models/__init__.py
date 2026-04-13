@@ -14,6 +14,7 @@ from .content import (
     LearnTopicDefinition,
     ModifierTemplate,
     PresetDefinition,
+    StatusArcDefinition,
     WinStateDefinition,
     TransportOptionDefinition,
     WealthStrategyDefinition,
@@ -31,6 +32,7 @@ from .core import (
 )
 from .state import (
     ActiveMonthlyModifier,
+    ActiveStatusArc,
     AnnualMilestoneSummary,
     CareerState,
     EducationState,
@@ -48,6 +50,7 @@ from .state import (
 __all__ = [
     "AcademicLevelDefinition",
     "ActiveMonthlyModifier",
+    "ActiveStatusArc",
     "AnnualMilestoneSummary",
     "AppConfig",
     "BudgetStanceDefinition",
@@ -82,6 +85,7 @@ __all__ = [
     "SavingsBandDefinition",
     "SaveGamePayload",
     "ScoringWeights",
+    "StatusArcDefinition",
     "WinStateDefinition",
     "TransportOptionDefinition",
     "TransportState",

@@ -20,6 +20,7 @@ CONTENT_FILE_LAYOUT: tuple[str, ...] = (
     "focus_actions.json",
     "wealth_strategies.json",
     "events.json",
+    "status_arcs.json",
     "learn_topics.json",
     "consequence_matrix.json",
     "win_states.json",

@@ -21,6 +21,7 @@ def test_content_bundle_loads_expected_v2_sets(bundle):
     assert len(bundle.presets) == 7
     assert len(bundle.config.opening_paths) == 6
     assert len(bundle.config.budget_stances) == 4
+    assert len(bundle.status_arcs) >= 3
 
 
 def test_learn_topics_load_with_required_sections(bundle):
@@ -98,3 +99,27 @@ def test_invalid_consequence_matrix_reference_fails_validation(bundle):
     )
     with pytest.raises(ValueError, match="unknown transport option"):
         validate_content_bundle(broken)
+
+
+def test_status_arc_content_loads_expected_proof_arcs(bundle):
+    arc_ids = {arc.id for arc in bundle.status_arcs}
+    assert {"transport_unstable", "credit_squeeze", "education_slipping"} <= arc_ids
+
+
+def test_invalid_status_arc_modifier_reference_fails_validation(bundle):
+    broken = bundle.model_copy(deep=True)
+    broken.status_arcs[0].linked_modifier_ids.append("missing_modifier")
+    with pytest.raises(ValueError, match="status arc.*modifier ids"):
+        validate_content_bundle(broken)
+
+
+def test_invalid_status_arc_followup_reference_fails_validation(bundle):
+    broken = bundle.model_copy(deep=True)
+    broken.status_arcs[0].followup_event_ids.append("missing_event")
+    with pytest.raises(ValueError, match="status arc.*follow-up event ids"):
+        validate_content_bundle(broken)
+
+
+def test_new_game_initializes_empty_active_status_arcs(controller_factory):
+    controller = controller_factory()
+    assert controller.state.active_status_arcs == []

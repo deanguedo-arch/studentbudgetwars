@@ -1,0 +1,65 @@
+[
+  {
+    "id": "transport_unstable",
+    "name": "Transport Unstable",
+    "family": "transport",
+    "summary": "Your commute is no longer dependable enough to ignore. Future months get tighter until you stabilize the lane.",
+    "default_duration_months": 3,
+    "ui_priority": 90,
+    "tone": "negative",
+    "linked_modifier_ids": [
+      "temporary_transport_stability"
+    ],
+    "followup_event_ids": [
+      "missed_shift_after_breakdown",
+      "used_car_window"
+    ],
+    "blocked_door_hints": [
+      "Reliable work performance is harder to hold while the commute stays fragile."
+    ],
+    "resolution_hint": "Best resolution: repair properly, downgrade, or buy breathing room before another missed shift lands."
+  },
+  {
+    "id": "credit_squeeze",
+    "name": "Credit Squeeze",
+    "family": "credit",
+    "summary": "Your file is under pressure and future financing or relief windows will depend on how clean the next few months stay.",
+    "default_duration_months": 4,
+    "ui_priority": 95,
+    "tone": "negative",
+    "linked_modifier_ids": [
+      "credit_rebuild_plan",
+      "refinance_relief"
+    ],
+    "followup_event_ids": [
+      "credit_limit_review",
+      "credit_rebuild_window",
+      "refinance_window"
+    ],
+    "blocked_door_hints": [
+      "Housing and transport financing stay narrower while this squeeze is active."
+    ],
+    "resolution_hint": "Best resolution: clean up utilization, rebuild consistently, or use a real refinance window when it opens."
+  },
+  {
+    "id": "education_slipping",
+    "name": "Education Slipping",
+    "family": "education",
+    "summary": "Academic pressure is no longer a one-month wobble. The lane needs active protection or it will keep dragging the run.",
+    "default_duration_months": 3,
+    "ui_priority": 88,
+    "tone": "warning",
+    "linked_modifier_ids": [
+      "probation_review_flag",
+      "course_load_rebalance"
+    ],
+    "followup_event_ids": [
+      "exam_probation_hearing",
+      "academic_funding_review"
+    ],
+    "blocked_door_hints": [
+      "Promotion and survival plays get less flexible when school pressure keeps slipping."
+    ],
+    "resolution_hint": "Best resolution: reduce intensity, protect standing, or pause deliberately instead of letting the lane collapse."
+  }
+]

@@ -81,6 +81,16 @@ class ActiveMonthlyModifier(BaseModel):
     transport_switch_discount: int = 0
 
 
+class ActiveStatusArc(BaseModel):
+    arc_id: str
+    source_event_id: str
+    remaining_months: int = Field(ge=0)
+    severity: int = Field(ge=1, le=3, default=1)
+    started_month: int = Field(ge=1)
+    followup_pending: bool = False
+    note: str | None = None
+
+
 class AnnualMilestoneSummary(BaseModel):
     year: int = Field(gt=0)
     age: int = Field(gt=0)
@@ -187,6 +197,7 @@ class GameState(BaseModel):
     current_market_regime_id: str
     player: PlayerState
     active_modifiers: list[ActiveMonthlyModifier] = Field(default_factory=list)
+    active_status_arcs: list[ActiveStatusArc] = Field(default_factory=list)
     pending_events: list[PendingEvent] = Field(default_factory=list)
     pending_user_choice_event_id: str | None = None
     pending_user_choice_event: EventDefinition | None = None

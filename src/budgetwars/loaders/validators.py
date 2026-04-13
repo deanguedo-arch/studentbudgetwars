@@ -90,6 +90,7 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     _ensure_unique_ids(bundle.focus_actions, "focus action")
     _ensure_unique_ids(bundle.wealth_strategies, "wealth strategy")
     _ensure_unique_ids(bundle.events, "event")
+    _ensure_unique_ids(bundle.status_arcs, "status arc")
     _ensure_unique_ids(bundle.learn_topics, "learn topic")
     _ensure_unique_ids(bundle.win_states, "win state")
     _ensure_unique_ids(bundle.presets, "preset")
@@ -116,6 +117,13 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
     wealth_strategy_ids = {strategy.id for strategy in bundle.wealth_strategies}
     credential_ids = {program.credential_id for program in bundle.education_programs if program.credential_id}
     win_state_track_ids = {track.id for track in bundle.careers}
+    modifier_ids = {entry.modifier.id for entry in bundle.events if entry.modifier is not None}
+    modifier_ids.update(
+        choice.modifier.id
+        for entry in bundle.events
+        for choice in entry.choices
+        if choice.modifier is not None
+    )
 
     if not isclose(sum(bundle.scoring_weights.model_dump().values()), 1.0, abs_tol=1e-9):
         raise ValueError("Scoring weights must sum to 1.0")
@@ -251,13 +259,6 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
             if event.minimum_credit_score > event.maximum_credit_score:
                 raise ValueError(f"Event '{event.id}' has an impossible credit score range")
         if event.eligible_modifier_ids:
-            modifier_ids = {entry.modifier.id for entry in bundle.events if entry.modifier is not None}
-            modifier_ids.update(
-                choice.modifier.id
-                for entry in bundle.events
-                for choice in entry.choices
-                if choice.modifier is not None
-            )
             if sorted(set(event.eligible_modifier_ids) - modifier_ids):
                 raise ValueError(f"Event '{event.id}' references unknown modifier ids")
         if event.eligible_persistent_tags:
@@ -289,6 +290,12 @@ def validate_content_bundle(bundle: ContentBundle) -> None:
                 raise ValueError(f"Win state '{win_state.id}' references unknown career branches")
         if win_state.score_multiplier <= 0:
             raise ValueError(f"Win state '{win_state.id}' must have a positive score multiplier")
+
+    for arc in bundle.status_arcs:
+        if sorted(set(arc.linked_modifier_ids) - modifier_ids):
+            raise ValueError(f"status arc '{arc.id}' references unknown modifier ids")
+        if sorted(set(arc.followup_event_ids) - event_ids):
+            raise ValueError(f"status arc '{arc.id}' references unknown follow-up event ids")
 
     for topic in bundle.learn_topics:
         if not topic.how_to_raise:
