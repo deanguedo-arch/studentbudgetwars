@@ -34,6 +34,13 @@ _CATEGORY_LABELS = {
     "stress_burnout": "Wellness",
 }
 
+_PRIMARY_STATUS_KEYS = (
+    "net_worth",
+    "monthly_surplus",
+    "career_tier",
+    "stress_burnout",
+)
+
 
 class StatusBar(tk.Frame):
     def __init__(self, master: tk.Misc):
@@ -117,9 +124,10 @@ class StatusBar(tk.Frame):
         category_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         category_frame.pack(side="right", fill="y", padx=(PAD_S, PAD_S), pady=2)
         self._category_canvases: dict[str, tk.Canvas] = {}
-        for i, (key, label) in enumerate(_CATEGORY_LABELS.items()):
-            row = i // 4
-            col = i % 4
+        for i, key in enumerate(_PRIMARY_STATUS_KEYS):
+            label = _CATEGORY_LABELS[key]
+            row = 0
+            col = i
             item = tk.Frame(category_frame, bg=BG_DARK)
             item.grid(row=row, column=col, padx=(5, 4), pady=1, sticky="w")
             tk.Label(item, text=label, bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL).pack(side="left", padx=(0, 2))

@@ -743,7 +743,7 @@ def test_life_panel_rerender_does_not_duplicate_build_subtitle(controller_factor
         root.destroy()
 
 
-def test_finance_panel_compact_limits_commitment_chips_with_overflow_note(controller_factory):
+def test_finance_panel_compact_trims_commitment_chips_from_diagnosis_column(controller_factory):
     import tkinter as tk
 
     try:
@@ -774,16 +774,15 @@ def test_finance_panel_compact_limits_commitment_chips_with_overflow_note(contro
             return texts
 
         texts = _all_label_texts(panel)
-        assert "Committed Lanes" in texts
-        assert "Scope Push Lane" in texts
-        assert "Consistency Lane" in texts
+        assert "Committed Lanes" not in texts
+        assert "Scope Push Lane" not in texts
+        assert "Consistency Lane" not in texts
         assert "Dispatch Command Lane" not in texts
-        assert "+4 more" in texts
     finally:
         root.destroy()
 
 
-def test_finance_panel_desktop_shows_more_commitment_chips_with_overflow_note(controller_factory):
+def test_finance_panel_desktop_trims_commitment_chips_from_diagnosis_column(controller_factory):
     import tkinter as tk
 
     try:
@@ -814,13 +813,12 @@ def test_finance_panel_desktop_shows_more_commitment_chips_with_overflow_note(co
             return texts
 
         texts = _all_label_texts(panel)
-        assert "Committed Lanes" in texts
-        assert "Scope Push Lane" in texts
-        assert "Consistency Lane" in texts
-        assert "Dispatch Command Lane" in texts
-        assert "Office Scope Lane" in texts
+        assert "Committed Lanes" not in texts
+        assert "Scope Push Lane" not in texts
+        assert "Consistency Lane" not in texts
+        assert "Dispatch Command Lane" not in texts
+        assert "Office Scope Lane" not in texts
         assert "Healthcare Continuity Lane" not in texts
-        assert "+2 more" in texts
     finally:
         root.destroy()
 
@@ -982,6 +980,91 @@ def test_phase_status_arc_pressure_summary_prefers_arc_diagnosis_and_trims_gener
         assert summary.biggest_risk == "Lease Pressure"
         assert "Risk: Lease Pressure" in texts
         assert not any(text.startswith("Pressure family:") for text in texts)
+    finally:
+        root.destroy()
+
+
+def test_phase_ui_finance_panel_is_diagnosis_first_without_pressure_cards(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+        controller.state.player.housing.option_id = "solo_rental"
+        controller.state.player.housing.housing_stability = 32
+        controller.state.player.credit_score = 552
+        controller.state.player.debt = 12800
+        controller.state.player.monthly_surplus = -240
+        start_status_arc(
+            controller.bundle,
+            controller.state,
+            "lease_pressure",
+            source_event_id="lease_default_warning",
+            duration_months=4,
+            severity=2,
+        )
+        summary = build_pressure_summary(controller.state, controller.bundle)
+        panel = FinancePanel(root)
+        panel.render_summary(summary, compact=False)
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert "Pressure Cards" not in texts
+        assert "Consequence Signals" not in texts
+        assert "NEXT RANK" in texts
+        assert "Blocked Doors" in texts
+    finally:
+        root.destroy()
+
+
+def test_phase_ui_outlook_panel_trims_duplicate_sections_and_centers_play(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+        start_status_arc(
+            controller.bundle,
+            controller.state,
+            "promotion_window_open",
+            source_event_id="promotion_window",
+            duration_months=3,
+            severity=2,
+        )
+        panel = OutlookPanel(root, resolve_callback=lambda: None)
+        panel.render_forecast(
+            build_monthly_forecast(controller.state, controller.bundle),
+            compact=False,
+            show_resolve_button=False,
+        )
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert "THIS MONTH'S PLAY" in texts
+        assert "SITUATION FAMILY" not in texts
+        assert "Last month" not in texts
     finally:
         root.destroy()
 
