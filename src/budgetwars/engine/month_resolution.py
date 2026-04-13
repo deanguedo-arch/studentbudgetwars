@@ -28,6 +28,7 @@ from .lookups import (
     get_housing_option,
     get_transport_option,
 )
+from .status_arcs import tick_status_arcs
 from .transport import apply_transport_access_penalty, apply_transport_effects, can_switch_transport, monthly_transport_cost
 from .wealth import apply_wealth_allocations, apply_wealth_returns
 from .scoring import credit_tier_label, dominant_pressure_family
@@ -1067,6 +1068,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     elif state.current_month % 12 == 0:
         _record_annual_milestone(bundle, state)
 
+    tick_status_arcs(bundle, state)
     trim_logs(bundle, state)
     if not state.game_over_reason:
         state.current_month += 1

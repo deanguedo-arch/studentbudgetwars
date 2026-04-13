@@ -5,6 +5,7 @@ from random import Random
 from budgetwars.engine.careers import current_income, promotion_blockers
 from budgetwars.engine.events import eligible_events, event_severity_multiplier, event_weight, resolve_event
 from budgetwars.engine.month_resolution import resolve_month
+from budgetwars.engine.status_arcs import start_status_arc
 from budgetwars.engine.housing import can_switch_housing
 from budgetwars.engine.transport import can_switch_transport
 from budgetwars.engine.wealth import apply_wealth_allocations, apply_wealth_returns, emergency_liquidation
@@ -61,6 +62,26 @@ def test_transport_reliability_impacts_access(bundle, controller_factory):
     before_energy = state.player.energy
     resolve_month(bundle, state, controller.rng)
     assert state.player.energy < before_energy
+
+
+def test_phase_status_arc_transport_changes_followup_event_pressure(bundle, controller_factory):
+    clean = controller_factory(opening_path_id="full_time_work")
+    unstable = controller_factory(opening_path_id="full_time_work")
+    for controller in (clean, unstable):
+        controller.state.player.transport.option_id = "beater_car"
+        controller.state.player.transport.reliability_score = 42
+
+    missed_shift = next(event for event in bundle.events if event.id == "missed_shift_after_breakdown")
+    start_status_arc(
+        bundle,
+        unstable.state,
+        "transport_unstable",
+        source_event_id="car_repair",
+        duration_months=3,
+        severity=2,
+    )
+
+    assert event_weight(bundle, unstable.state, missed_shift) > event_weight(bundle, clean.state, missed_shift)
 
 
 def test_education_reentry_has_friction(controller_factory):

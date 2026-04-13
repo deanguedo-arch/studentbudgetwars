@@ -6,6 +6,7 @@ from budgetwars.models import ContentBundle, EventChoice, EventDefinition, GameS
 
 from .effects import append_log, apply_stat_effects, create_modifier
 from .lookups import get_city, get_housing_option, get_transport_option
+from .status_arcs import apply_choice_status_arc_resolution, apply_event_status_arc, status_arc_event_weight_multiplier
 
 FAMILY_TO_MATRIX_KEY = {
     "Credit pressure": "credit_squeeze",
@@ -714,6 +715,7 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         if state.player.stress >= 74:
             weight *= 1.2
 
+    weight *= status_arc_event_weight_multiplier(state, event.id)
     weight *= _branch_weight_multiplier(state, event)
     weight *= _matrix_weight_multiplier(bundle, state, event)
     return max(0.05, weight * difficulty.event_weight_multiplier)
@@ -730,6 +732,7 @@ def pick_event(bundle: ContentBundle, state: GameState, rng: Random, excluded_id
 def resolve_event(bundle: ContentBundle, state: GameState, event: EventDefinition) -> None:
     append_log(state, f"Situation family: {event_family(event)}")
     multiplier = event_severity_multiplier(bundle, state, event)
+    apply_event_status_arc(bundle, state, event.id)
     if event.choices:
         state.pending_user_choice_event_id = event.id
         state.pending_user_choice_event = event.model_copy(deep=True)
@@ -783,6 +786,7 @@ def resolve_event_choice(
     if choice.persistent_tag and choice.persistent_tag not in state.player.persistent_tags:
         state.player.persistent_tags.append(choice.persistent_tag)
         append_log(state, f"Career commitment set: {choice.persistent_tag.replace('_', ' ')}")
+    apply_choice_status_arc_resolution(state, event.id, choice.id)
     if event.chained_event_id:
         state.pending_events.append(
             PendingEvent(

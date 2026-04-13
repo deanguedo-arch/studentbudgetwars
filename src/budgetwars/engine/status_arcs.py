@@ -3,6 +3,38 @@ from __future__ import annotations
 from budgetwars.models import ActiveStatusArc, ContentBundle, GameState
 
 
+_EVENT_START_RULES = {
+    "car_repair": {
+        "arc_id": "transport_unstable",
+        "duration_months": 2,
+        "severity": 1,
+        "note": "Repair bills are turning transport into a live problem.",
+    },
+    "beater_breakdown": {
+        "arc_id": "transport_unstable",
+        "duration_months": 3,
+        "severity": 2,
+        "note": "A breakdown turned transport into an ongoing risk.",
+    },
+    "beater_cascade_choice": {
+        "arc_id": "transport_unstable",
+        "duration_months": 3,
+        "severity": 2,
+        "note": "The beater is now a month-shaping fragility problem.",
+    },
+    "missed_shift_after_breakdown": {
+        "arc_id": "transport_unstable",
+        "duration_months": 2,
+        "severity": 2,
+        "note": "Transport instability has already started costing real work.",
+    },
+}
+
+_CHOICE_RESOLVE_RULES = {
+    ("beater_cascade_choice", "eat_the_upgrade_hit"): "transport_unstable",
+}
+
+
 def _arc_definition(bundle: ContentBundle, arc_id: str):
     for arc in bundle.status_arcs:
         if arc.id == arc_id:
@@ -12,6 +44,10 @@ def _arc_definition(bundle: ContentBundle, arc_id: str):
 
 def _active_arc(state: GameState, arc_id: str) -> ActiveStatusArc | None:
     return next((arc for arc in state.active_status_arcs if arc.arc_id == arc_id), None)
+
+
+def get_active_status_arc(state: GameState, arc_id: str) -> ActiveStatusArc | None:
+    return _active_arc(state, arc_id)
 
 
 def start_status_arc(
@@ -83,3 +119,42 @@ def tick_status_arcs(bundle: ContentBundle, state: GameState) -> None:
         if arc.remaining_months > 0:
             remaining.append(arc)
     state.active_status_arcs = remaining
+
+
+def apply_event_status_arc(bundle: ContentBundle, state: GameState, event_id: str) -> ActiveStatusArc | None:
+    rule = _EVENT_START_RULES.get(event_id)
+    if rule is None:
+        return None
+    return start_status_arc(
+        bundle,
+        state,
+        rule["arc_id"],
+        source_event_id=event_id,
+        duration_months=rule["duration_months"],
+        severity=rule["severity"],
+        note=rule["note"],
+    )
+
+
+def apply_choice_status_arc_resolution(state: GameState, event_id: str, choice_id: str) -> bool:
+    arc_id = _CHOICE_RESOLVE_RULES.get((event_id, choice_id))
+    if arc_id is None:
+        return False
+    resolve_status_arc(state, arc_id)
+    return True
+
+
+def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float:
+    multiplier = 1.0
+    transport_arc = get_active_status_arc(state, "transport_unstable")
+    if transport_arc is not None:
+        severity_bonus = 0.1 * transport_arc.severity
+        if event_id == "missed_shift_after_breakdown":
+            multiplier *= 1.15 + severity_bonus
+        elif event_id == "beater_cascade_choice":
+            multiplier *= 1.1 + severity_bonus
+        elif event_id == "beater_total_failure":
+            multiplier *= 1.08 + severity_bonus
+        elif event_id == "used_car_window":
+            multiplier *= 1.02 + (0.06 * transport_arc.severity)
+    return multiplier

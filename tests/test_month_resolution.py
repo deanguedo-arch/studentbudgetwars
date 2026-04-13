@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from budgetwars.engine.careers import can_enter_career, current_income, maybe_promote
+from budgetwars.engine.events import resolve_event
 from budgetwars.engine.month_resolution import resolve_month
 from budgetwars.engine.scoring import calculate_final_score
 from budgetwars.engine.housing import monthly_housing_cost
@@ -42,6 +43,31 @@ def test_transport_change_affects_access_and_cost(bundle, controller_factory):
     car_cost = monthly_transport_cost(bundle, controller.state)
     assert controller.state.player.transport_id == "beater_car"
     assert car_cost > transit_cost
+
+
+def test_phase_status_arc_transport_trigger_events_start_and_refresh_arc(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="full_time_work")
+    state = controller.state
+    state.player.transport.option_id = "beater_car"
+    state.player.transport.reliability_score = 42
+
+    car_repair = next(item for item in bundle.events if item.id == "car_repair")
+    beater_breakdown = next(item for item in bundle.events if item.id == "beater_breakdown")
+
+    resolve_event(bundle, state, car_repair)
+
+    assert len(state.active_status_arcs) == 1
+    first_arc = state.active_status_arcs[0]
+    assert first_arc.arc_id == "transport_unstable"
+    assert first_arc.source_event_id == "car_repair"
+    first_months = first_arc.remaining_months
+
+    resolve_event(bundle, state, beater_breakdown)
+
+    assert len(state.active_status_arcs) == 1
+    assert state.active_status_arcs[0].source_event_id == "beater_breakdown"
+    assert state.active_status_arcs[0].remaining_months > first_months
+    assert state.active_status_arcs[0].severity >= 2
 
 
 def test_career_tracks_produce_distinct_monthly_income(bundle, controller_factory):
