@@ -61,5 +61,68 @@
       "Promotion and survival plays get less flexible when school pressure keeps slipping."
     ],
     "resolution_hint": "Best resolution: reduce intensity, protect standing, or pause deliberately instead of letting the lane collapse."
+  },
+  {
+    "id": "lease_pressure",
+    "name": "Lease Pressure",
+    "family": "housing",
+    "summary": "Housing risk is now a live scar. Future months will keep testing the lease until you stabilize or downgrade the lane.",
+    "default_duration_months": 4,
+    "ui_priority": 94,
+    "tone": "negative",
+    "linked_modifier_ids": [
+      "rent_pressure",
+      "rent_shortfall_flag"
+    ],
+    "followup_event_ids": [
+      "lease_default_warning",
+      "lease_enforcement_notice"
+    ],
+    "blocked_door_hints": [
+      "Housing recovery gets narrower while this lease pressure stays active."
+    ],
+    "resolution_hint": "Best resolution: protect the lease with clean payments or downgrade housing before enforcement pressure compounds."
+  },
+  {
+    "id": "burnout_risk",
+    "name": "Burnout Risk",
+    "family": "wellbeing",
+    "summary": "Your recovery lane is compromised and forcing more upside will keep turning stress into a real collapse threat.",
+    "default_duration_months": 3,
+    "ui_priority": 93,
+    "tone": "warning",
+    "linked_modifier_ids": [
+      "burnout_aftershock"
+    ],
+    "followup_event_ids": [
+      "overtime_attrition_warning",
+      "burnout_month"
+    ],
+    "blocked_door_hints": [
+      "Aggressive work and school pushes are much less safe while burnout risk is active."
+    ],
+    "resolution_hint": "Best resolution: rebalance workload, protect energy, and stop forcing promotion or overtime until recovery returns."
+  },
+  {
+    "id": "promotion_window_open",
+    "name": "Promotion Window Open",
+    "family": "career",
+    "summary": "A real opportunity lane is open. The next few months can convert it into advancement if you protect momentum and choose a direction.",
+    "default_duration_months": 3,
+    "ui_priority": 87,
+    "tone": "positive",
+    "linked_modifier_ids": [
+      "promotion_push",
+      "promotion_stability"
+    ],
+    "followup_event_ids": [
+      "promotion_window",
+      "dispatch_lead_offer",
+      "sales_territory_offer"
+    ],
+    "blocked_door_hints": [
+      "Stress, poor reliability, or unresolved branch decisions can waste this opening."
+    ],
+    "resolution_hint": "Best resolution: convert the window into branch progress now instead of letting stress or indecision waste it."
   }
 ]

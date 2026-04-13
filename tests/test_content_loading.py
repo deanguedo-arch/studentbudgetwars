@@ -106,6 +106,19 @@ def test_status_arc_content_loads_expected_proof_arcs(bundle):
     assert {"transport_unstable", "credit_squeeze", "education_slipping"} <= arc_ids
 
 
+def test_status_arc_content_loads_expected_wave_2_arcs(bundle):
+    arc_ids = {arc.id for arc in bundle.status_arcs}
+    assert {"lease_pressure", "burnout_risk", "promotion_window_open"} <= arc_ids
+
+    arcs = {arc.id: arc for arc in bundle.status_arcs}
+    assert arcs["lease_pressure"].followup_event_ids
+    assert arcs["lease_pressure"].resolution_hint
+    assert arcs["burnout_risk"].followup_event_ids
+    assert arcs["burnout_risk"].resolution_hint
+    assert arcs["promotion_window_open"].followup_event_ids
+    assert arcs["promotion_window_open"].resolution_hint
+
+
 def test_invalid_status_arc_modifier_reference_fails_validation(bundle):
     broken = bundle.model_copy(deep=True)
     broken.status_arcs[0].linked_modifier_ids.append("missing_modifier")
