@@ -819,6 +819,29 @@ def test_phase_status_arc_credit_tightens_financing_door_and_score(bundle, contr
     assert squeezed_score < clean_score
 
 
+def test_phase_status_arc_education_raises_probation_followup_pressure(bundle, controller_factory):
+    clean = controller_factory(opening_path_id="college_university")
+    slipping = controller_factory(opening_path_id="college_university")
+    for controller in (clean, slipping):
+        controller.state.player.education.program_id = "full_time_university"
+        controller.state.player.education.is_active = True
+        controller.state.player.education.intensity_level = "intensive"
+        controller.state.player.stress = 68
+        controller.state.player.energy = 38
+
+    probation = next(event for event in bundle.events if event.id == "exam_probation_hearing")
+    start_status_arc(
+        bundle,
+        slipping.state,
+        "education_slipping",
+        source_event_id="overtime_exam_collision",
+        duration_months=3,
+        severity=2,
+    )
+
+    assert event_weight(bundle, slipping.state, probation) > event_weight(bundle, clean.state, probation)
+
+
 def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):
     strong_bundle = bundle.model_copy(deep=True)
     strong_bundle.config = strong_bundle.config.model_copy(

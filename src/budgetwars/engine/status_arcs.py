@@ -40,6 +40,24 @@ _EVENT_START_RULES = {
         "severity": 2,
         "note": "Your file is under review and weak cleanup will keep shrinking options.",
     },
+    "overtime_exam_collision": {
+        "arc_id": "education_slipping",
+        "duration_months": 3,
+        "severity": 2,
+        "note": "Work-school conflict is now dragging the academic lane.",
+    },
+    "exam_probation_hearing": {
+        "arc_id": "education_slipping",
+        "duration_months": 3,
+        "severity": 2,
+        "note": "Academic pressure has escalated into a real probation risk.",
+    },
+    "academic_funding_review": {
+        "arc_id": "education_slipping",
+        "duration_months": 2,
+        "severity": 3,
+        "note": "Funding pressure is compounding the school slide.",
+    },
 }
 
 _CHOICE_RULES = {
@@ -71,6 +89,38 @@ _CHOICE_RULES = {
     ("refinance_window", "refinance_now"): {
         "action": "resolve",
         "arc_id": "credit_squeeze",
+    },
+    ("overtime_exam_collision", "protect_grades"): {
+        "action": "refresh",
+        "arc_id": "education_slipping",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "You protected the lane, but the school slide still needs attention.",
+    },
+    ("overtime_exam_collision", "protect_paycheck"): {
+        "action": "refresh",
+        "arc_id": "education_slipping",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "Cash won the month, and the school slide got worse.",
+    },
+    ("exam_probation_hearing", "cut_hours_and_recover_standing"): {
+        "action": "refresh",
+        "arc_id": "education_slipping",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "Recovery work is slowing the slide, but the lane is still fragile.",
+    },
+    ("exam_probation_hearing", "push_through_probation"): {
+        "action": "refresh",
+        "arc_id": "education_slipping",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "Pushing through is deepening the academic slide.",
+    },
+    ("academic_funding_review", "accept_study_contract"): {
+        "action": "resolve",
+        "arc_id": "education_slipping",
     },
 }
 
@@ -219,4 +269,13 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.02 + (0.05 * credit_arc.severity)
         elif event_id == "refinance_window":
             multiplier *= 1.03 + (0.04 * credit_arc.severity)
+    education_arc = get_active_status_arc(state, "education_slipping")
+    if education_arc is not None:
+        severity_bonus = 0.08 * education_arc.severity
+        if event_id == "exam_probation_hearing":
+            multiplier *= 1.16 + severity_bonus
+        elif event_id == "academic_funding_review":
+            multiplier *= 1.14 + severity_bonus
+        elif event_id == "overtime_exam_collision":
+            multiplier *= 1.08 + (0.06 * education_arc.severity)
     return multiplier

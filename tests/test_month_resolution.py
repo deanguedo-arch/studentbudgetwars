@@ -4,6 +4,7 @@ from budgetwars.engine.careers import can_enter_career, current_income, maybe_pr
 from budgetwars.engine.events import resolve_event, resolve_event_choice
 from budgetwars.engine.month_resolution import resolve_month
 from budgetwars.engine.scoring import calculate_final_score
+from budgetwars.engine.status_arcs import start_status_arc
 from budgetwars.engine.housing import monthly_housing_cost
 from budgetwars.engine.transport import monthly_transport_cost
 from budgetwars.models import ActiveMonthlyModifier, PendingEvent
@@ -90,6 +91,56 @@ def test_phase_status_arc_credit_starts_from_warning_and_refinance_can_clear_it(
     resolve_event_choice(bundle, state, "refinance_window", "refinance_now")
 
     assert not any(arc.arc_id == "credit_squeeze" for arc in state.active_status_arcs)
+
+
+def test_phase_status_arc_education_starts_from_school_collision_and_protect_grades_softens_it(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="college_university")
+    state = controller.state
+    state.player.education.program_id = "full_time_university"
+    state.player.education.is_active = True
+    state.player.education.intensity_level = "intensive"
+    state.player.stress = 70
+    state.player.energy = 38
+
+    collision = next(item for item in bundle.events if item.id == "overtime_exam_collision")
+
+    resolve_event(bundle, state, collision)
+
+    assert any(arc.arc_id == "education_slipping" for arc in state.active_status_arcs)
+    assert next(arc for arc in state.active_status_arcs if arc.arc_id == "education_slipping").severity >= 2
+
+    resolve_event_choice(bundle, state, "overtime_exam_collision", "protect_grades")
+
+    arc = next(arc for arc in state.active_status_arcs if arc.arc_id == "education_slipping")
+    assert arc.severity == 1
+
+
+def test_phase_status_arc_education_drag_hurts_standing_in_quiet_month(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    clean = controller_factory(opening_path_id="college_university")
+    slipping = controller_factory(opening_path_id="college_university")
+    for controller in (clean, slipping):
+        controller.state.player.education.program_id = "full_time_university"
+        controller.state.player.education.is_active = True
+        controller.state.player.education.intensity_level = "standard"
+        controller.state.player.stress = 58
+        controller.state.player.energy = 46
+
+    start_status_arc(
+        bundle,
+        slipping.state,
+        "education_slipping",
+        source_event_id="overtime_exam_collision",
+        duration_months=3,
+        severity=2,
+    )
+
+    resolve_month(quiet_bundle, clean.state, clean.rng)
+    resolve_month(quiet_bundle, slipping.state, slipping.rng)
+
+    assert slipping.state.player.education.standing < clean.state.player.education.standing
 
 
 def test_career_tracks_produce_distinct_monthly_income(bundle, controller_factory):

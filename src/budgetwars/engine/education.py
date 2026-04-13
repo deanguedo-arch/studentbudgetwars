@@ -4,6 +4,7 @@ from budgetwars.models import ContentBundle, EducationProgramDefinition, GameSta
 
 from .effects import append_log
 from .lookups import get_education_program, get_housing_option
+from .status_arcs import get_active_status_arc
 
 
 INTENSITY_COST_MULT = {"light": 0.7, "standard": 1.0, "intensive": 1.3}
@@ -59,6 +60,7 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
         return
     housing = get_housing_option(bundle, state.player.housing_id)
     intensity = state.player.education.intensity_level
+    education_arc = get_active_status_arc(state, "education_slipping")
 
     standing_delta = 0
     if state.player.academic_strength >= 70:
@@ -91,6 +93,8 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
         standing_delta -= 2
     if state.player.transport.reliability_score < 45:
         standing_delta -= 1
+    if education_arc is not None:
+        standing_delta -= education_arc.severity
     if intensity == "light":
         standing_delta -= 2
     elif intensity == "intensive":
@@ -132,6 +136,8 @@ def update_education_progress(bundle: ContentBundle, state: GameState, progress_
             gpa_delta -= 0.04
         if state.player.transport.reliability_score < 45:
             gpa_delta -= 0.03
+        if education_arc is not None:
+            gpa_delta -= 0.02 * education_arc.severity
         if intensity == "light":
             gpa_delta -= 0.04
         elif intensity == "intensive":
