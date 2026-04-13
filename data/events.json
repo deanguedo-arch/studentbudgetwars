@@ -3689,6 +3689,42 @@
     "log_entry": "Defensive wealth posture forced an upside-versus-resilience call."
   },
   {
+    "id": "steady_compound_window",
+    "name": "Steady Compound Window",
+    "description": "Balanced execution opened a clean compounding decision: lock in systematic gains or keep more short-term flexibility.",
+    "weight": 4,
+    "min_month": 11,
+    "eligible_wealth_strategy_ids": [
+      "steady_builder"
+    ],
+    "minimum_credit_score": 650,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "automate_compound",
+        "label": "Automate compounding",
+        "description": "Commit part of this month to steady compounding and accept less immediate flexibility.",
+        "stat_effects": {
+          "cash": -120,
+          "index_fund": 180,
+          "stress": -1,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "keep_flexibility",
+        "label": "Keep flexibility",
+        "description": "Hold more cash liquidity and skip some compounding this cycle.",
+        "stat_effects": {
+          "cash": 80,
+          "social_stability": 1,
+          "stress": -1
+        }
+      }
+    ],
+    "log_entry": "Steady-builder posture created a compounding-versus-flexibility fork."
+  },
+  {
     "id": "family_stability_surge",
     "name": "Family Stability Surge",
     "description": "Strong support and a clean month opened a chance to turn stability into durable momentum.",

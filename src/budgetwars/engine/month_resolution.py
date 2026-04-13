@@ -225,6 +225,14 @@ def _build_month_driver_notes(
         notes.append("Education cost is buying long-term upside, but it is squeezing the present.")
     if wealth_allocations["growth"] > 0 or wealth_allocations["index"] > 0:
         notes.append(f"{regime_name} market conditions are now affecting your life through invested money.")
+    if player.wealth_strategy_id == "market_chaser" and state.current_market_regime_id in {"weak", "correction"}:
+        notes.append("Market-chasing posture is amplifying drawdown risk while this regime stays weak.")
+    if player.wealth_strategy_id == "cushion_first" and player.high_interest_savings >= 800:
+        notes.append("Cushion-first still gives you a liquidity shield when the month turns against you.")
+    if player.wealth_strategy_id == "debt_crusher" and player.debt >= 7000 and player.monthly_surplus <= 120:
+        notes.append("Debt-crusher is buying long-term relief, but this month has little breathing room.")
+    if player.wealth_strategy_id == "steady_builder" and player.monthly_surplus >= 120 and player.debt <= 7000:
+        notes.append("Steady-builder is compounding progress without fully giving up monthly flexibility.")
     if player.housing_id == "parents" and player.family_support <= state.minimum_parent_fallback_support + 10:
         notes.append("Staying home is still saving money, but the family buffer is starting to wear thin.")
     if player.housing_id == "roommates" and player.social_stability <= 45:

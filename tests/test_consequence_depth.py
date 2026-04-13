@@ -7,7 +7,7 @@ from budgetwars.engine.events import eligible_events, event_severity_multiplier,
 from budgetwars.engine.month_resolution import resolve_month
 from budgetwars.engine.housing import can_switch_housing
 from budgetwars.engine.transport import can_switch_transport
-from budgetwars.engine.wealth import apply_wealth_allocations, apply_wealth_returns
+from budgetwars.engine.wealth import apply_wealth_allocations, apply_wealth_returns, emergency_liquidation
 from budgetwars.models import ActiveMonthlyModifier
 
 
@@ -764,6 +764,157 @@ def test_phase4_weak_vs_strong_credit_contrast_scenario(bundle, controller_facto
     assert "refinance_window" not in weak_ids
     assert "refinance_window" in strong_ids
     assert weak_severity > strong_severity
+
+
+def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):
+    strong_bundle = bundle.model_copy(deep=True)
+    strong_bundle.config = strong_bundle.config.model_copy(
+        update={
+            "default_market_regime_id": "strong",
+            "market_regimes": [regime for regime in bundle.config.market_regimes if regime.id == "strong"],
+        }
+    )
+    correction_bundle = bundle.model_copy(deep=True)
+    correction_bundle.config = correction_bundle.config.model_copy(
+        update={
+            "default_market_regime_id": "correction",
+            "market_regimes": [regime for regime in bundle.config.market_regimes if regime.id == "correction"],
+        }
+    )
+
+    def _build(strategy_id: str):
+        controller = controller_factory(opening_path_id="stay_home_stack_cash")
+        controller.state.player.wealth_strategy_id = strategy_id
+        controller.state.player.high_interest_savings = 1500
+        controller.state.player.index_fund = 6000
+        controller.state.player.aggressive_growth_fund = 3000
+        controller.state.player.debt = 7000
+        return controller
+
+    strong_chaser = _build("market_chaser")
+    strong_steady = _build("steady_builder")
+    strong_chaser_before = (
+        strong_chaser.state.player.high_interest_savings
+        + strong_chaser.state.player.index_fund
+        + strong_chaser.state.player.aggressive_growth_fund
+    )
+    strong_steady_before = (
+        strong_steady.state.player.high_interest_savings
+        + strong_steady.state.player.index_fund
+        + strong_steady.state.player.aggressive_growth_fund
+    )
+
+    apply_wealth_returns(strong_bundle, strong_chaser.state, Random(7))
+    apply_wealth_returns(strong_bundle, strong_steady.state, Random(7))
+
+    strong_chaser_gain = (
+        strong_chaser.state.player.high_interest_savings
+        + strong_chaser.state.player.index_fund
+        + strong_chaser.state.player.aggressive_growth_fund
+        - strong_chaser_before
+    )
+    strong_steady_gain = (
+        strong_steady.state.player.high_interest_savings
+        + strong_steady.state.player.index_fund
+        + strong_steady.state.player.aggressive_growth_fund
+        - strong_steady_before
+    )
+
+    correction_chaser = _build("market_chaser")
+    correction_steady = _build("steady_builder")
+    correction_chaser_before = (
+        correction_chaser.state.player.high_interest_savings
+        + correction_chaser.state.player.index_fund
+        + correction_chaser.state.player.aggressive_growth_fund
+    )
+    correction_steady_before = (
+        correction_steady.state.player.high_interest_savings
+        + correction_steady.state.player.index_fund
+        + correction_steady.state.player.aggressive_growth_fund
+    )
+
+    apply_wealth_returns(correction_bundle, correction_chaser.state, Random(7))
+    apply_wealth_returns(correction_bundle, correction_steady.state, Random(7))
+
+    correction_chaser_swing = (
+        correction_chaser.state.player.high_interest_savings
+        + correction_chaser.state.player.index_fund
+        + correction_chaser.state.player.aggressive_growth_fund
+        - correction_chaser_before
+    )
+    correction_steady_swing = (
+        correction_steady.state.player.high_interest_savings
+        + correction_steady.state.player.index_fund
+        + correction_steady.state.player.aggressive_growth_fund
+        - correction_steady_before
+    )
+
+    assert strong_chaser_gain - strong_steady_gain >= 60
+    assert correction_chaser_swing <= (correction_steady_swing - 110)
+
+
+def test_phase5_market_chaser_forced_liquidation_has_extra_asset_loss(bundle, controller_factory):
+    cushion = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    cushion.state.player.wealth_strategy_id = "cushion_first"
+    cushion.state.player.cash = 0
+    cushion.state.player.savings = 0
+    cushion.state.player.high_interest_savings = 300
+    cushion.state.player.index_fund = 1500
+    cushion.state.player.aggressive_growth_fund = 900
+
+    chaser = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    chaser.state.player.wealth_strategy_id = "market_chaser"
+    chaser.state.player.cash = 0
+    chaser.state.player.savings = 0
+    chaser.state.player.high_interest_savings = 300
+    chaser.state.player.index_fund = 1500
+    chaser.state.player.aggressive_growth_fund = 900
+
+    cushion_raised = emergency_liquidation(cushion.state, 1000)
+    chaser_raised = emergency_liquidation(chaser.state, 1000)
+
+    cushion_remaining = (
+        cushion.state.player.high_interest_savings
+        + cushion.state.player.index_fund
+        + cushion.state.player.aggressive_growth_fund
+    )
+    chaser_remaining = (
+        chaser.state.player.high_interest_savings
+        + chaser.state.player.index_fund
+        + chaser.state.player.aggressive_growth_fund
+    )
+
+    assert cushion_raised == 1000
+    assert chaser_raised == 1000
+    assert chaser_remaining < cushion_remaining
+
+
+def test_phase5_steady_builder_has_unique_compound_window(bundle, controller_factory):
+    steady = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    steady.state.current_month = 16
+    steady.state.player.wealth_strategy_id = "steady_builder"
+    steady.state.current_market_regime_id = "strong"
+    steady.state.player.cash = 2200
+    steady.state.player.savings = 1600
+    steady.state.player.debt = 3200
+    steady.state.player.monthly_surplus = 260
+    steady.state.player.credit_score = 700
+
+    cushion = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    cushion.state.current_month = 16
+    cushion.state.player.wealth_strategy_id = "cushion_first"
+    cushion.state.current_market_regime_id = "strong"
+    cushion.state.player.cash = 2200
+    cushion.state.player.savings = 1600
+    cushion.state.player.debt = 3200
+    cushion.state.player.monthly_surplus = 260
+    cushion.state.player.credit_score = 700
+
+    steady_ids = {event.id for event in eligible_events(bundle, steady.state)}
+    cushion_ids = {event.id for event in eligible_events(bundle, cushion.state)}
+
+    assert "steady_compound_window" in steady_ids
+    assert "steady_compound_window" not in cushion_ids
 
 
 def test_used_car_window_requires_actual_vehicle(bundle, controller_factory):

@@ -66,24 +66,26 @@ def apply_wealth_returns(bundle: ContentBundle, state: GameState, rng: Random) -
 
     if strategy.id == "market_chaser":
         if regime.id == "strong":
-            index_gain += int(round(max(0, index_gain) * 0.18))
-            growth_gain += int(round(max(0, growth_gain) * 0.3))
+            index_gain += int(round(max(0, index_gain) * 0.3))
+            growth_gain += int(round(max(0, growth_gain) * 0.45))
             append_log(state, "Market-chasing posture amplified the upside in a strong month.")
         elif regime.id in {"weak", "correction"}:
-            index_gain -= int(round(abs(min(0, index_gain)) * 0.18))
-            growth_gain -= int(round(abs(min(0, growth_gain)) * 0.3))
+            index_gain -= int(round(abs(min(0, index_gain)) * 0.3))
+            growth_gain -= int(round(abs(min(0, growth_gain)) * 0.45))
             append_log(state, "Market-chasing posture amplified the drawdown in a weak month.")
     elif strategy.id == "cushion_first":
         if regime.id in {"weak", "correction"}:
-            index_gain += int(round(abs(min(0, index_gain)) * 0.25))
-            growth_gain += int(round(abs(min(0, growth_gain)) * 0.4))
+            index_gain += int(round(abs(min(0, index_gain)) * 0.34))
+            growth_gain += int(round(abs(min(0, growth_gain)) * 0.52))
             append_log(state, "Defensive cash posture softened the market drawdown.")
     elif strategy.id == "steady_builder":
         if regime.id == "strong":
-            index_gain += int(round(max(0, index_gain) * 0.08))
-            append_log(state, "Steady-builder posture captured a little extra upside without overreaching.")
+            index_gain += int(round(max(0, index_gain) * 0.05))
+            growth_gain += int(round(max(0, growth_gain) * 0.08))
+            append_log(state, "Steady-builder posture captured controlled upside without overreaching.")
         elif regime.id in {"weak", "correction"}:
-            index_gain += int(round(abs(min(0, index_gain)) * 0.12))
+            index_gain += int(round(abs(min(0, index_gain)) * 0.2))
+            growth_gain += int(round(abs(min(0, growth_gain)) * 0.18))
             append_log(state, "Steady-builder posture reduced part of the downside hit.")
 
     state.player.high_interest_savings += safe_gain
@@ -93,9 +95,12 @@ def apply_wealth_returns(bundle: ContentBundle, state: GameState, rng: Random) -
     if strategy.id == "debt_crusher":
         total_gain = safe_gain + max(0, index_gain) + max(0, growth_gain)
         if total_gain > 0 and state.player.debt > 0:
-            windfall_paydown = min(state.player.debt, max(25, int(round(total_gain * 0.3))))
+            windfall_paydown = min(state.player.debt, max(35, int(round(total_gain * 0.42))))
             state.player.debt -= windfall_paydown
             append_log(state, f"Debt-crusher posture turned part of the good month into debt paydown (-${windfall_paydown}).")
+        if regime.id == "strong" and state.player.debt <= 3500 and state.player.index_fund + state.player.aggressive_growth_fund >= 3500:
+            state.player.life_satisfaction -= 1
+            append_log(state, "Debt-first posture protected discipline but left part of the strong-month upside on the table.")
 
     if safe_gain or index_gain or growth_gain:
         total_gain = safe_gain + index_gain + growth_gain
@@ -120,38 +125,70 @@ def apply_wealth_returns(bundle: ContentBundle, state: GameState, rng: Random) -
 
 def emergency_liquidation(state: GameState, shortfall: int) -> int:
     raised = 0
-    
-    take_growth = min(shortfall, state.player.aggressive_growth_fund)
-    state.player.aggressive_growth_fund -= take_growth
-    raised += take_growth
-    shortfall -= take_growth
-    
-    take_index = min(shortfall, state.player.index_fund)
-    state.player.index_fund -= take_index
-    raised += take_index
-    shortfall -= take_index
-    
-    take_safe = min(shortfall, state.player.high_interest_savings)
-    state.player.high_interest_savings -= take_safe
-    raised += take_safe
-    shortfall -= take_safe
-    
+    strategy_id = state.player.wealth_strategy_id
+
+    def _take_from(bucket: str, amount: int) -> int:
+        if amount <= 0:
+            return 0
+        if bucket == "growth":
+            take = min(amount, state.player.aggressive_growth_fund)
+            state.player.aggressive_growth_fund -= take
+            return take
+        if bucket == "index":
+            take = min(amount, state.player.index_fund)
+            state.player.index_fund -= take
+            return take
+        take = min(amount, state.player.high_interest_savings)
+        state.player.high_interest_savings -= take
+        return take
+
+    order = ["growth", "index", "safe"]
+    if strategy_id in {"cushion_first", "steady_builder"}:
+        order = ["safe", "index", "growth"]
+
+    sold_growth = 0
+    sold_index = 0
+    for bucket in order:
+        if shortfall <= 0:
+            break
+        taken = _take_from(bucket, shortfall)
+        if bucket == "growth":
+            sold_growth += taken
+        elif bucket == "index":
+            sold_index += taken
+        raised += taken
+        shortfall -= taken
+
     if raised > 0:
         state.player.emergency_liquidation_count += 1
         append_log(state, f"EMERGENCY LIQUIDATION: Sold ${raised} of investments to cover severe cash shortfall.")
         state.player.stress += 5
         state.player.life_satisfaction -= 3
-        if state.player.wealth_strategy_id == "market_chaser":
-            state.player.stress += 2
+        if strategy_id == "market_chaser":
+            growth_slippage = int(round(sold_growth * 0.12))
+            index_slippage = int(round(sold_index * 0.08))
+            if growth_slippage > 0:
+                state.player.aggressive_growth_fund = max(0, state.player.aggressive_growth_fund - growth_slippage)
+            if index_slippage > 0:
+                state.player.index_fund = max(0, state.player.index_fund - index_slippage)
+            if growth_slippage or index_slippage:
+                append_log(
+                    state,
+                    f"Market-chasing liquidation slippage burned an extra ${growth_slippage + index_slippage} while exiting risk.",
+                )
+            state.player.stress += 3
             state.player.life_satisfaction -= 2
             append_log(state, "Market-chasing made the forced liquidation feel worse than a defensive plan would have.")
-        elif state.player.wealth_strategy_id == "debt_crusher" and state.player.debt >= 7000:
-            state.player.stress += 1
+        elif strategy_id == "debt_crusher" and state.player.debt >= 7000:
+            state.player.stress += 2
             append_log(state, "The debt-first plan cracked under the shortfall and still forced a sale.")
-        elif state.player.wealth_strategy_id == "cushion_first":
+        elif strategy_id == "steady_builder":
             state.player.stress = max(0, state.player.stress - 1)
+            append_log(state, "Steady-builder rebalancing softened part of the liquidation shock.")
+        elif strategy_id == "cushion_first":
+            state.player.stress = max(0, state.player.stress - 2)
             append_log(state, "Your defensive posture softened part of the liquidation shock.")
-        
+
     return raised
 
 

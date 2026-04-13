@@ -65,7 +65,9 @@
         "credit_limit_review": 0.9,
         "cash_drag_regret": 1.25,
         "market_correction_shock": 0.85,
-        "emergency_fund_redeployment": 1.35
+        "emergency_fund_redeployment": 1.35,
+        "dry_powder_window": 1.35,
+        "steady_compound_window": 0.25
       }
     },
     "steady_builder": {
@@ -75,7 +77,9 @@
       "event_weights": {
         "cash_drag_regret": 0.4,
         "market_correction_shock": 0.95,
-        "emergency_fund_redeployment": 1.15
+        "emergency_fund_redeployment": 1.15,
+        "dry_powder_window": 1.2,
+        "steady_compound_window": 1.7
       }
     },
     "debt_crusher": {
@@ -85,7 +89,8 @@
       "event_weights": {
         "credit_limit_review": 0.75,
         "debt_paydown_tightrope": 1.35,
-        "refinance_window": 1.2
+        "refinance_window": 1.2,
+        "steady_compound_window": 0.3
       }
     },
     "market_chaser": {
@@ -94,9 +99,11 @@
         "debt_trap": 0.1
       },
       "event_weights": {
+        "market_panic_window": 1.4,
         "market_margin_call": 1.5,
         "market_correction_shock": 1.35,
-        "refinance_window": 0.9
+        "refinance_window": 0.9,
+        "steady_compound_window": 0.2
       }
     }
   },

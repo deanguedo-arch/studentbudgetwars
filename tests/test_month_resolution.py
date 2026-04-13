@@ -768,6 +768,35 @@ def test_scoring_rewards_stable_recovery_over_fragile_liquidation(bundle, contro
     assert stable_summary.final_score > fragile_summary.final_score
 
 
+def test_phase5_score_reflects_wealth_signature_alignment(bundle, controller_factory):
+    debt_crusher = controller_factory(opening_path_id="stay_home_stack_cash")
+    market_chaser = controller_factory(opening_path_id="stay_home_stack_cash")
+
+    for controller in (debt_crusher, market_chaser):
+        player = controller.state.player
+        player.cash = 8000
+        player.savings = 5000
+        player.high_interest_savings = 1500
+        player.index_fund = 4500
+        player.aggressive_growth_fund = 1000
+        player.debt = 2200
+        player.monthly_surplus = 260
+        player.credit_score = 710
+        player.housing.housing_stability = 74
+        player.social_stability = 60
+        player.stress = 36
+        player.energy = 72
+        player.career.tier_index = 2
+
+    debt_crusher.state.player.wealth_strategy_id = "debt_crusher"
+    market_chaser.state.player.wealth_strategy_id = "market_chaser"
+
+    crusher_score = calculate_final_score(bundle, debt_crusher.state).final_score
+    chaser_score = calculate_final_score(bundle, market_chaser.state).final_score
+
+    assert crusher_score > chaser_score
+
+
 def test_scoring_rewards_committed_branch_identity(bundle, controller_factory):
     unbranched = controller_factory(opening_path_id="full_time_work")
     branched = controller_factory(opening_path_id="full_time_work")

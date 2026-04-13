@@ -454,6 +454,18 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
             return False
         if (player.cash + player.savings) < 1800:
             return False
+    if event.id == "steady_compound_window":
+        if player.monthly_surplus < 120:
+            return False
+        if player.debt > 7800:
+            return False
+        if (player.cash + player.savings) < 1200:
+            return False
+        if player.credit_score < 650:
+            return False
+    if event.id == "dry_powder_window":
+        if (player.cash + player.savings + player.high_interest_savings) < 900:
+            return False
     if event.eligible_market_regime_ids and state.current_market_regime_id not in event.eligible_market_regime_ids:
         return False
     if event.id in {"car_repair", "beater_breakdown", "missed_shift_after_breakdown", "used_car_window"} and not _uses_vehicle(player.transport_id):
@@ -631,6 +643,8 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.25
         if state.player.debt >= 10000:
             weight *= 1.2
+        if state.player.index_fund + state.player.aggressive_growth_fund >= 4500:
+            weight *= 1.2
     if event.id == "debt_paydown_tightrope":
         if state.player.debt >= 8500:
             weight *= 1.25
@@ -638,11 +652,30 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.2
         if state.player.stress >= 60:
             weight *= 1.15
+        if state.player.monthly_surplus >= 140:
+            weight *= 1.1
     if event.id == "cash_drag_regret":
         if state.player.cash + state.player.savings >= 2400:
             weight *= 1.25
         if state.player.monthly_surplus >= 280:
             weight *= 1.2
+    if event.id == "market_panic_window":
+        if state.player.index_fund + state.player.aggressive_growth_fund >= 5000:
+            weight *= 1.3
+        if state.player.cash + state.player.savings < 600:
+            weight *= 1.2
+    if event.id == "dry_powder_window":
+        if state.player.cash + state.player.savings + state.player.high_interest_savings >= 1800:
+            weight *= 1.25
+        if state.player.monthly_surplus >= 120:
+            weight *= 1.15
+    if event.id == "steady_compound_window":
+        if state.player.monthly_surplus >= 220:
+            weight *= 1.3
+        if state.player.debt <= 4500:
+            weight *= 1.2
+        if state.player.credit_score >= 700:
+            weight *= 1.15
     if event.id == "family_stability_surge":
         if state.player.housing.option_id == "parents":
             weight *= 1.25

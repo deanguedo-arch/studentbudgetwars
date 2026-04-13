@@ -155,6 +155,41 @@ def _consequence_pressure_penalty(state: GameState) -> float:
     return penalty
 
 
+def _wealth_signature_score_adjustment(bundle: ContentBundle, state: GameState) -> float:
+    player = state.player
+    liquid = player.cash + player.savings + player.high_interest_savings
+    invested = player.index_fund + player.aggressive_growth_fund
+    strategy_id = player.wealth_strategy_id
+    adjustment = 0.0
+
+    if strategy_id == "cushion_first":
+        if liquid >= max(bundle.config.emergency_fund_floor, 900) and player.emergency_liquidation_count == 0:
+            adjustment += 1.6
+        if liquid >= 3200 and player.debt >= 8500:
+            adjustment -= 1.8
+    elif strategy_id == "debt_crusher":
+        if player.debt <= 3000 and player.monthly_surplus >= 0:
+            adjustment += 2.2
+        if player.debt >= 10000 and liquid < 600:
+            adjustment -= 1.4
+    elif strategy_id == "steady_builder":
+        if liquid >= 900 and invested >= 3000 and player.debt <= 7000 and player.monthly_surplus >= 0:
+            adjustment += 1.8
+        if player.monthly_surplus < -100:
+            adjustment -= 0.9
+    elif strategy_id == "market_chaser":
+        if invested >= 5000 and player.monthly_surplus >= 0 and player.credit_score >= 680:
+            adjustment += 2.0
+        if liquid > (invested * 2):
+            adjustment -= 1.4
+        if player.emergency_liquidation_count > 0:
+            adjustment -= 2.2
+        if player.monthly_surplus < 0 and player.debt >= 9000:
+            adjustment -= 1.2
+
+    return max(-4.0, min(4.0, adjustment))
+
+
 def _biggest_risk_label(breakdown: dict[str, float], warnings: list[str]) -> str:
     if warnings:
         return warnings[0]
@@ -235,7 +270,8 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
         + (breakdown["life_satisfaction"] * weights.life_satisfaction)
         + (breakdown["stress_burnout"] * weights.stress_burnout)
     )
-    final_score = round(_clamp_score(weighted_score - _consequence_pressure_penalty(state)), 2)
+    wealth_adjustment = _wealth_signature_score_adjustment(bundle, state)
+    final_score = round(_clamp_score(weighted_score + wealth_adjustment - _consequence_pressure_penalty(state)), 2)
     branch = _current_branch(bundle, state)
     run_identity = None
     if branch is not None:

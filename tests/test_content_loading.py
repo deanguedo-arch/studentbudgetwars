@@ -14,7 +14,7 @@ def test_content_bundle_loads_expected_v2_sets(bundle):
     assert len(bundle.transport_options) == 8
     assert len(bundle.focus_actions) == 7
     assert len(bundle.wealth_strategies) == 4
-    assert 24 <= len(bundle.events) <= 90
+    assert 24 <= len(bundle.events) <= 100
     assert len(bundle.learn_topics) >= 6
     assert bundle.consequence_matrix.transport_options
     assert bundle.consequence_matrix.credit_bands
