@@ -571,59 +571,6 @@
     "log_entry": "A short side-hustle window put quick money on the table."
   },
   {
-    "id": "parent_tension_spike",
-    "name": "Parent Tension Spike",
-    "description": "Staying home stopped feeling like support and started feeling like conflict.",
-    "weight": 5,
-    "min_month": 5,
-    "eligible_city_ids": [
-      "hometown_low_cost"
-    ],
-    "eligible_housing_ids": [
-      "parents"
-    ],
-    "eligible_transport_ids": [],
-    "eligible_career_ids": [],
-    "eligible_education_ids": [],
-    "eligible_opening_path_ids": [],
-    "minimum_stress": null,
-    "minimum_debt": null,
-    "minimum_family_support": null,
-    "maximum_family_support": 55,
-    "minimum_social_stability": null,
-    "maximum_social_stability": null,
-    "maximum_transport_reliability": null,
-    "maximum_housing_stability": 60,
-    "maximum_life_satisfaction": 70,
-    "eligible_market_regime_ids": [],
-    "immediate_effects": {
-      "stress": 5,
-      "family_support": -7,
-      "life_satisfaction": -4,
-      "social_stability": -2
-    },
-    "modifier": {
-      "id": "parent_tension_drag",
-      "label": "Parent Tension",
-      "duration_months": 3,
-      "stat_effects": {
-        "stress": 1,
-        "life_satisfaction": -1
-      },
-      "income_multiplier": 1.0,
-      "housing_cost_delta": 0,
-      "living_cost_delta": 0,
-      "transport_cost_delta": 0,
-      "education_cost_delta": 0,
-      "promotion_progress_delta": -1,
-      "education_progress_delta": 0,
-      "transport_switch_discount": 0
-    },
-    "log_entry": "Home stopped feeling like free stability and started feeling like pressure.",
-    "chained_event_id": "parent_boundary",
-    "chained_delay_months": 3
-  },
-  {
     "id": "social_isolation_slide",
     "name": "Social Isolation Slide",
     "description": "You kept grinding and the rest of your life started thinning out.",
@@ -3254,7 +3201,8 @@
           "promotion_progress": 2,
           "stress": 4,
           "energy": -3
-        }
+        },
+        "persistent_tag": "retail_management_crisis_lead_lane"
       },
       {
         "id": "reset_workload",
@@ -3264,7 +3212,8 @@
           "promotion_progress": -1,
           "stress": -2,
           "life_satisfaction": 1
-        }
+        },
+        "persistent_tag": "retail_management_sustainable_ops_lane"
       }
     ],
     "log_entry": "Leadership scope created a second-order pressure decision."
@@ -3296,7 +3245,8 @@
           "stress": -2,
           "social_stability": 2,
           "promotion_progress": 1
-        }
+        },
+        "persistent_tag": "retail_management_people_systems_lane"
       },
       {
         "id": "push_for_more_output",
@@ -3306,10 +3256,93 @@
           "cash": 210,
           "stress": 2,
           "promotion_progress": 2
-        }
+        },
+        "persistent_tag": "retail_management_output_surge_lane"
       }
     ],
     "log_entry": "Steady leadership created a compounding retention edge."
+  },
+  {
+    "id": "retail_crisis_lead_backfill_offer",
+    "name": "Crisis Backfill Scope Offer",
+    "description": "Your crisis-lead reputation triggered another scope ask. Take the surge for faster advancement or protect recoverability.",
+    "weight": 4,
+    "min_month": 30,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_management_track"
+    ],
+    "eligible_persistent_tags": [
+      "retail_management_crisis_lead_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_backfill_scope",
+        "label": "Take backfill scope",
+        "description": "Push your advancement pace and absorb another pressure spike.",
+        "stat_effects": {
+          "cash": 230,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_recoverability",
+        "label": "Protect recoverability",
+        "description": "Trade peak upside for a steadier leadership lane.",
+        "stat_effects": {
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Crisis-command leadership created another recurring promotion fork."
+  },
+  {
+    "id": "retail_sustainable_ops_dividend",
+    "name": "Sustainable Ops Dividend",
+    "description": "Operational stability produced a trust dividend and a cleaner step-up opportunity.",
+    "weight": 4,
+    "min_month": 30,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_management_track"
+    ],
+    "eligible_persistent_tags": [
+      "retail_management_sustainable_ops_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_retention_dividend",
+        "label": "Bank retention dividend",
+        "description": "Preserve the cleaner lane and keep promotions reliable.",
+        "stat_effects": {
+          "cash": 160,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "convert_trust_to_scope",
+        "label": "Convert trust to scope",
+        "description": "Spend goodwill now to accelerate advancement at moderate strain.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Sustainable leadership created another recurring promotion fork."
   },
   {
     "id": "dispatch_fire_drill",
@@ -3338,7 +3371,8 @@
           "promotion_progress": 2,
           "stress": 4,
           "energy": -2
-        }
+        },
+        "persistent_tag": "dispatch_escalation_lane"
       },
       {
         "id": "protect_shift_reliability",
@@ -3348,7 +3382,8 @@
           "stress": -1,
           "social_stability": 1,
           "promotion_progress": 1
-        }
+        },
+        "persistent_tag": "dispatch_resilience_lane"
       }
     ],
     "log_entry": "Dispatch authority opened a second-order crisis fork."
@@ -3380,7 +3415,8 @@
           "stress": -1,
           "social_stability": 2,
           "promotion_progress": 1
-        }
+        },
+        "persistent_tag": "dispatch_standardization_lane"
       },
       {
         "id": "pilot_new_stack",
@@ -3390,10 +3426,93 @@
           "cash": 180,
           "stress": 2,
           "promotion_progress": 2
-        }
+        },
+        "persistent_tag": "dispatch_experiment_lane"
       }
     ],
     "log_entry": "Coordination-first play unlocked a cleaner growth lane."
+  },
+  {
+    "id": "dispatch_escalation_penalty_cycle",
+    "name": "Dispatch Escalation Cycle",
+    "description": "Repeated brute-force recoveries kept the network running but pushed your lane into high-pressure escalation.",
+    "weight": 4,
+    "min_month": 30,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_dispatch_track"
+    ],
+    "eligible_persistent_tags": [
+      "dispatch_escalation_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "ride_escalation",
+        "label": "Ride escalation",
+        "description": "Take the upside and accept the sustained strain profile.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "recenter_dispatch",
+        "label": "Recenter dispatch",
+        "description": "Stabilize cadence and protect long-run reliability.",
+        "stat_effects": {
+          "stress": -1,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Escalation-first dispatch became a recurring promotion fork."
+  },
+  {
+    "id": "dispatch_resilience_compound",
+    "name": "Dispatch Resilience Compound",
+    "description": "Reliability-first coordination paid off with cleaner handoffs and a steadier promotion lane.",
+    "weight": 4,
+    "min_month": 30,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_dispatch_track"
+    ],
+    "eligible_persistent_tags": [
+      "dispatch_resilience_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_reliability",
+        "label": "Bank reliability",
+        "description": "Keep pressure lower and progress steady.",
+        "stat_effects": {
+          "cash": 150,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "trade_buffer_for_push",
+        "label": "Trade buffer for push",
+        "description": "Spend your reliability cushion to accelerate this cycle.",
+        "stat_effects": {
+          "cash": 200,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Reliability-first dispatch created another recurring promotion fork."
   },
   {
     "id": "prime_refi_bridge",

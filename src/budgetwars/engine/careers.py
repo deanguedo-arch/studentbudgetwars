@@ -171,10 +171,18 @@ def _branch_specific_promotion_blockers(state: GameState, track_id: str, branch_
     if not branch_id:
         return []
     player = state.player
+    tags = set(player.persistent_tags)
     blockers: list[str] = []
     if track_id == "retail_service":
         if branch_id == "retail_management_track" and player.stress >= 74:
             blockers.append("Management branch promotion is blocked by high stress.")
+        if branch_id == "retail_management_track":
+            if "retail_management_crisis_lead_lane" in tags and player.stress >= 72:
+                blockers.append("Crisis-lead lane requires stress to settle before another promotion push.")
+            if "retail_management_output_surge_lane" in tags and player.energy < 42:
+                blockers.append("Output-surge lane needs more energy buffer for the next promotion step.")
+            if "retail_management_sustainable_ops_lane" in tags and player.social_stability < 58:
+                blockers.append("Sustainable-ops lane promotion depends on stronger team consistency.")
         if branch_id == "retail_sales_track" and player.social_stability < 58:
             blockers.append("Sales branch promotion needs stronger social consistency.")
         if branch_id == "retail_clienteling_track":
@@ -190,6 +198,12 @@ def _branch_specific_promotion_blockers(state: GameState, track_id: str, branch_
                 blockers.append("Warehouse dispatch promotion needs stronger coordination consistency.")
             if player.transport.reliability_score < 60:
                 blockers.append("Warehouse dispatch promotion needs steadier transport reliability.")
+            if "dispatch_escalation_lane" in tags and player.transport.reliability_score < 66:
+                blockers.append("Escalation dispatch lane needs higher transport reliability to keep advancing.")
+            if "dispatch_experiment_lane" in tags and player.social_stability < 55:
+                blockers.append("Experiment dispatch lane promotion needs stronger social consistency.")
+            if "dispatch_resilience_lane" in tags and player.energy < 34:
+                blockers.append("Resilience dispatch lane promotion needs enough energy reserve.")
         if branch_id == "warehouse_equipment_track" and player.transport.reliability_score < 68:
             blockers.append("Warehouse equipment promotion needs higher transport reliability.")
     return blockers

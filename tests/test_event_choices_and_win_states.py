@@ -234,6 +234,117 @@ def test_dispatch_promotion_choice_alters_future_event_pool(bundle, controller_f
     assert "dispatch_fire_drill" not in coordination_ids
 
 
+def test_second_fork_choices_set_persistent_tags_for_management_and_dispatch(bundle, controller_factory) -> None:
+    manager = controller_factory(opening_path_id="full_time_work")
+    manager.change_career("retail_service")
+    manager.state.current_month = 24
+    manager.state.player.career.tier_index = 3
+    manager.state.player.career.branch_id = "retail_management_track"
+    manager.state.player.social_stability = 64
+    manager.state.player.transport.reliability_score = 70
+
+    retail_offer = next(item for item in bundle.events if item.id == "retail_leadership_offer")
+    resolve_event(bundle, manager.state, retail_offer)
+    manager.resolve_event_choice("take_closing_command")
+
+    second_retail = next(item for item in bundle.events if item.id == "management_overload_wave")
+    resolve_event(bundle, manager.state, second_retail)
+    manager.resolve_event_choice("absorb_the_wave")
+    assert "retail_management_crisis_lead_lane" in manager.state.player.persistent_tags
+
+    dispatch = controller_factory(opening_path_id="full_time_work")
+    dispatch.state.current_month = 24
+    dispatch.state.player.career.tier_index = 3
+    dispatch.state.player.career.branch_id = "warehouse_dispatch_track"
+    dispatch.state.player.transport.reliability_score = 74
+    dispatch.state.player.social_stability = 60
+
+    dispatch_offer = next(item for item in bundle.events if item.id == "dispatch_lead_offer")
+    resolve_event(bundle, dispatch.state, dispatch_offer)
+    dispatch.resolve_event_choice("own_the_board")
+
+    second_dispatch = next(item for item in bundle.events if item.id == "dispatch_fire_drill")
+    resolve_event(bundle, dispatch.state, second_dispatch)
+    dispatch.resolve_event_choice("brute_force_recovery")
+    assert "dispatch_escalation_lane" in dispatch.state.player.persistent_tags
+
+
+def test_management_second_fork_choice_alters_late_event_pool(bundle, controller_factory) -> None:
+    overload = controller_factory(opening_path_id="full_time_work")
+    overload.change_career("retail_service")
+    overload.state.current_month = 32
+    overload.state.player.career.tier_index = 3
+    overload.state.player.career.branch_id = "retail_management_track"
+    overload.state.player.social_stability = 66
+    overload.state.player.transport.reliability_score = 72
+
+    leadership_offer = next(item for item in bundle.events if item.id == "retail_leadership_offer")
+    resolve_event(bundle, overload.state, leadership_offer)
+    overload.resolve_event_choice("take_closing_command")
+    overload_wave = next(item for item in bundle.events if item.id == "management_overload_wave")
+    resolve_event(bundle, overload.state, overload_wave)
+    overload.resolve_event_choice("absorb_the_wave")
+    overload.state.active_modifiers = []
+    overload_ids = {event.id for event in eligible_events(bundle, overload.state)}
+
+    sustainable = controller_factory(opening_path_id="full_time_work")
+    sustainable.change_career("retail_service")
+    sustainable.state.current_month = 32
+    sustainable.state.player.career.tier_index = 3
+    sustainable.state.player.career.branch_id = "retail_management_track"
+    sustainable.state.player.social_stability = 66
+    sustainable.state.player.transport.reliability_score = 72
+
+    resolve_event(bundle, sustainable.state, leadership_offer)
+    sustainable.resolve_event_choice("take_closing_command")
+    resolve_event(bundle, sustainable.state, overload_wave)
+    sustainable.resolve_event_choice("reset_workload")
+    sustainable.state.active_modifiers = []
+    sustainable_ids = {event.id for event in eligible_events(bundle, sustainable.state)}
+
+    assert "retail_crisis_lead_backfill_offer" in overload_ids
+    assert "retail_sustainable_ops_dividend" not in overload_ids
+    assert "retail_sustainable_ops_dividend" in sustainable_ids
+    assert "retail_crisis_lead_backfill_offer" not in sustainable_ids
+
+
+def test_dispatch_second_fork_choice_alters_late_event_pool(bundle, controller_factory) -> None:
+    escalation = controller_factory(opening_path_id="full_time_work")
+    escalation.state.current_month = 32
+    escalation.state.player.career.tier_index = 3
+    escalation.state.player.career.branch_id = "warehouse_dispatch_track"
+    escalation.state.player.transport.reliability_score = 76
+    escalation.state.player.social_stability = 62
+
+    dispatch_offer = next(item for item in bundle.events if item.id == "dispatch_lead_offer")
+    resolve_event(bundle, escalation.state, dispatch_offer)
+    escalation.resolve_event_choice("own_the_board")
+    dispatch_fire = next(item for item in bundle.events if item.id == "dispatch_fire_drill")
+    resolve_event(bundle, escalation.state, dispatch_fire)
+    escalation.resolve_event_choice("brute_force_recovery")
+    escalation.state.active_modifiers = []
+    escalation_ids = {event.id for event in eligible_events(bundle, escalation.state)}
+
+    resilient = controller_factory(opening_path_id="full_time_work")
+    resilient.state.current_month = 32
+    resilient.state.player.career.tier_index = 3
+    resilient.state.player.career.branch_id = "warehouse_dispatch_track"
+    resilient.state.player.transport.reliability_score = 76
+    resilient.state.player.social_stability = 62
+
+    resolve_event(bundle, resilient.state, dispatch_offer)
+    resilient.resolve_event_choice("own_the_board")
+    resolve_event(bundle, resilient.state, dispatch_fire)
+    resilient.resolve_event_choice("protect_shift_reliability")
+    resilient.state.active_modifiers = []
+    resilient_ids = {event.id for event in eligible_events(bundle, resilient.state)}
+
+    assert "dispatch_escalation_penalty_cycle" in escalation_ids
+    assert "dispatch_resilience_compound" not in escalation_ids
+    assert "dispatch_resilience_compound" in resilient_ids
+    assert "dispatch_escalation_penalty_cycle" not in resilient_ids
+
+
 def test_office_lane_commitment_choice_alters_future_event_pool(bundle, controller_factory) -> None:
     execution = controller_factory(opening_path_id="full_time_work")
     execution.state.current_month = 24

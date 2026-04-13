@@ -1168,6 +1168,38 @@ def test_phase2_branch_prerequisites_gate_fragile_profiles(controller_factory):
     assert "social" in dispatch_reason.lower() or "energy" in dispatch_reason.lower()
 
 
+def test_phase3_promotion_commitment_tags_change_access_requirements(bundle, controller_factory):
+    crisis = controller_factory(opening_path_id="full_time_work")
+    crisis.change_career("retail_service")
+    crisis.state.player.career.tier_index = 2
+    crisis.state.player.career.branch_id = "retail_management_track"
+    crisis.state.player.career.promotion_progress = 99
+    crisis.state.player.stress = 73
+    crisis.state.player.energy = 52
+    crisis.state.player.social_stability = 62
+    crisis.state.player.transport.reliability_score = 72
+    crisis.state.player.housing.housing_stability = 56
+    crisis.state.player.persistent_tags.append("retail_management_crisis_lead_lane")
+
+    sustainable = controller_factory(opening_path_id="full_time_work")
+    sustainable.change_career("retail_service")
+    sustainable.state.player.career.tier_index = 2
+    sustainable.state.player.career.branch_id = "retail_management_track"
+    sustainable.state.player.career.promotion_progress = 99
+    sustainable.state.player.stress = 73
+    sustainable.state.player.energy = 52
+    sustainable.state.player.social_stability = 62
+    sustainable.state.player.transport.reliability_score = 72
+    sustainable.state.player.housing.housing_stability = 56
+    sustainable.state.player.persistent_tags.append("retail_management_sustainable_ops_lane")
+
+    crisis_blockers = " ".join(promotion_blockers(bundle, crisis.state)).lower()
+    sustainable_blockers = " ".join(promotion_blockers(bundle, sustainable.state)).lower()
+
+    assert "crisis-lead lane requires stress to settle" in crisis_blockers
+    assert "crisis-lead lane requires stress to settle" not in sustainable_blockers
+
+
 def test_phase1_contrast_builds_have_distinct_top_event_profiles(bundle, controller_factory):
     stable = controller_factory(
         opening_path_id="stay_home_stack_cash",

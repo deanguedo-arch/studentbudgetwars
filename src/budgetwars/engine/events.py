@@ -195,7 +195,13 @@ def _branch_weight_multiplier(state: GameState, event: EventDefinition) -> float
 
     if player.career.track_id == "retail_service":
         if branch_id == "retail_management_track":
-            if event.id in {"retail_inventory_crunch", "management_overload_wave", "retail_leadership_offer"}:
+            if event.id in {
+                "retail_inventory_crunch",
+                "management_overload_wave",
+                "retail_leadership_offer",
+                "retail_crisis_lead_backfill_offer",
+                "retail_sustainable_ops_dividend",
+            }:
                 multiplier *= 1.35
             if event.id in {"burnout_month", "overtime_attrition_warning"} and player.stress >= 64:
                 multiplier *= 1.2
@@ -223,7 +229,14 @@ def _branch_weight_multiplier(state: GameState, event: EventDefinition) -> float
             if event.id == "warehouse_safety_crunch" and (player.energy < 42 or player.transport.reliability_score < 66):
                 multiplier *= 1.4
         elif branch_id == "warehouse_dispatch_track":
-            if event.id in {"dispatch_route_rewrite", "dispatch_fire_drill", "dispatch_process_upgrade", "dispatch_lead_offer"}:
+            if event.id in {
+                "dispatch_route_rewrite",
+                "dispatch_fire_drill",
+                "dispatch_process_upgrade",
+                "dispatch_lead_offer",
+                "dispatch_escalation_penalty_cycle",
+                "dispatch_resilience_compound",
+            }:
                 multiplier *= 1.35
             if event.id == "dispatch_process_upgrade" and player.social_stability >= 56 and player.transport.reliability_score >= 68:
                 multiplier *= 1.15
