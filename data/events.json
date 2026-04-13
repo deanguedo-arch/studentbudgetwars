@@ -3782,6 +3782,60 @@
     "log_entry": "Steady-builder posture created a compounding-versus-flexibility fork."
   },
   {
+    "id": "reserve_deployment_window",
+    "name": "Reserve Deployment Window",
+    "description": "Housing pressure is live, but your liquidity plan still gives you a choice: spend real buffer now to buy runway, or protect reserves and keep the squeeze active.",
+    "weight": 4,
+    "min_month": 12,
+    "eligible_wealth_strategy_ids": [
+      "cushion_first",
+      "steady_builder"
+    ],
+    "eligible_housing_ids": [
+      "roommates",
+      "solo_rental"
+    ],
+    "maximum_housing_stability": 42,
+    "maximum_credit_score": 700,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "spend_buffer_now",
+        "label": "Spend buffer now",
+        "description": "Use real reserves to keep the housing lane from tightening further.",
+        "stat_effects": {
+          "high_interest_savings": -260,
+          "stress": -2,
+          "credit_score": 1
+        },
+        "modifier": {
+          "id": "lease_runway",
+          "label": "Lease Runway",
+          "duration_months": 3,
+          "stat_effects": {},
+          "income_multiplier": 1.0,
+          "housing_cost_delta": -80,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "keep_buffer_locked",
+        "label": "Keep buffer locked",
+        "description": "Protect reserves and accept that the lease squeeze stays live.",
+        "stat_effects": {
+          "stress": 1,
+          "life_satisfaction": -1
+        }
+      }
+    ],
+    "log_entry": "Your wealth plan stopped being abstract and turned into a housing-survival decision."
+  },
+  {
     "id": "family_stability_surge",
     "name": "Family Stability Surge",
     "description": "Strong support and a clean month opened a chance to turn stability into durable momentum.",

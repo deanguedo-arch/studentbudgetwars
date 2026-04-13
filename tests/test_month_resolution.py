@@ -794,6 +794,83 @@ def test_market_chaser_liquidation_hurts_more_than_cushion_first(bundle, control
     assert chaser.state.player.life_satisfaction <= cushion.state.player.life_satisfaction
 
 
+def test_phase4_cushion_first_softens_lease_pressure_faster_than_market_chaser(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    cushion = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    chaser = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller, strategy_id in ((cushion, "cushion_first"), (chaser, "market_chaser")):
+        state = controller.state
+        state.player.wealth_strategy_id = strategy_id
+        state.player.cash = 90
+        state.player.savings = 500
+        state.player.high_interest_savings = 1200
+        state.player.index_fund = 900
+        state.player.aggressive_growth_fund = 350
+        state.player.debt = 8800
+        state.player.credit_score = 624
+        state.player.stress = 70
+        state.player.housing.option_id = "roommates"
+        state.player.housing.housing_stability = 28
+        state.player.housing.missed_payment_streak = 1
+        start_status_arc(
+            bundle,
+            state,
+            "lease_pressure",
+            source_event_id="lease_default_warning",
+            duration_months=3,
+            severity=2,
+        )
+
+    resolve_month(quiet_bundle, cushion.state, cushion.rng)
+    resolve_month(quiet_bundle, chaser.state, chaser.rng)
+
+    cushion_arc = next(arc for arc in cushion.state.active_status_arcs if arc.arc_id == "lease_pressure")
+    chaser_arc = next(arc for arc in chaser.state.active_status_arcs if arc.arc_id == "lease_pressure")
+
+    assert cushion_arc.severity < chaser_arc.severity
+    assert cushion.state.player.housing.housing_stability > chaser.state.player.housing.housing_stability
+
+
+def test_phase4_debt_crusher_softens_credit_squeeze_faster_than_steady_builder(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    crusher = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    steady = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller, strategy_id in ((crusher, "debt_crusher"), (steady, "steady_builder")):
+        state = controller.state
+        state.player.wealth_strategy_id = strategy_id
+        state.player.cash = 520
+        state.player.savings = 350
+        state.player.high_interest_savings = 480
+        state.player.index_fund = 900
+        state.player.aggressive_growth_fund = 250
+        state.player.debt = 14600
+        state.player.credit_score = 592
+        state.player.credit_utilization_pressure = 84
+        state.player.credit_missed_obligation_streak = 0
+        state.player.stress = 66
+        start_status_arc(
+            bundle,
+            state,
+            "credit_squeeze",
+            source_event_id="credit_limit_review",
+            duration_months=3,
+            severity=2,
+        )
+
+    resolve_month(quiet_bundle, crusher.state, crusher.rng)
+    resolve_month(quiet_bundle, steady.state, steady.rng)
+
+    crusher_arc = next(arc for arc in crusher.state.active_status_arcs if arc.arc_id == "credit_squeeze")
+    steady_arc = next(arc for arc in steady.state.active_status_arcs if arc.arc_id == "credit_squeeze")
+
+    assert crusher_arc.severity < steady_arc.severity
+    assert crusher.state.player.credit_score > steady.state.player.credit_score
+
+
 def test_liquid_buffer_recovery_route_can_stabilize_housing(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})

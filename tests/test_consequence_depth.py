@@ -1091,6 +1091,68 @@ def test_phase5_market_chaser_forced_liquidation_has_extra_asset_loss(bundle, co
     assert chaser_remaining < cushion_remaining
 
 
+def test_phase4_cushion_first_has_reserve_deployment_window_under_lease_pressure(bundle, controller_factory):
+    cushion = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    chaser = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller, strategy_id in ((cushion, "cushion_first"), (chaser, "market_chaser")):
+        state = controller.state
+        state.current_month = 14
+        state.player.wealth_strategy_id = strategy_id
+        state.player.credit_score = 642
+        state.player.cash = 180
+        state.player.savings = 520
+        state.player.high_interest_savings = 1250
+        state.player.housing.option_id = "roommates"
+        state.player.housing.housing_stability = 34
+        state.player.housing.missed_payment_streak = 1
+        start_status_arc(
+            bundle,
+            state,
+            "lease_pressure",
+            source_event_id="lease_default_warning",
+            duration_months=3,
+            severity=2,
+        )
+
+    cushion_ids = {event.id for event in eligible_events(bundle, cushion.state)}
+    chaser_ids = {event.id for event in eligible_events(bundle, chaser.state)}
+
+    assert "reserve_deployment_window" in cushion_ids
+    assert "reserve_deployment_window" not in chaser_ids
+
+
+def test_phase4_market_margin_call_weight_spikes_under_credit_squeeze(bundle, controller_factory):
+    flat = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    squeezed = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller in (flat, squeezed):
+        state = controller.state
+        state.current_month = 14
+        state.current_market_regime_id = "correction"
+        state.player.wealth_strategy_id = "market_chaser"
+        state.player.cash = 120
+        state.player.savings = 160
+        state.player.high_interest_savings = 80
+        state.player.index_fund = 3200
+        state.player.aggressive_growth_fund = 1800
+        state.player.debt = 9800
+        state.player.credit_score = 646
+
+    start_status_arc(
+        bundle,
+        squeezed.state,
+        "credit_squeeze",
+        source_event_id="credit_limit_review",
+        duration_months=3,
+        severity=2,
+    )
+
+    margin_call = next(event for event in bundle.events if event.id == "market_margin_call")
+
+    assert event_weight(bundle, squeezed.state, margin_call) > event_weight(bundle, flat.state, margin_call)
+
+
 def test_phase5_steady_builder_has_unique_compound_window(bundle, controller_factory):
     steady = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
     steady.state.current_month = 16

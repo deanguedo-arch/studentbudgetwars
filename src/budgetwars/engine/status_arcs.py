@@ -46,6 +46,12 @@ _EVENT_START_RULES = {
         "severity": 2,
         "note": "Your file is under review and weak cleanup will keep shrinking options.",
     },
+    "market_margin_call": {
+        "arc_id": "credit_squeeze",
+        "duration_months": 2,
+        "severity": 1,
+        "note": "Thin liquidity turned market risk into live credit pressure.",
+    },
     "debt_fee_stack": {
         "arc_id": "credit_squeeze",
         "duration_months": 3,
@@ -148,9 +154,37 @@ _CHOICE_RULES = {
         "severity_delta": -1,
         "note": "The rebuild lane is starting to soften the squeeze.",
     },
+    ("market_margin_call", "cut_risk_now"): {
+        "action": "refresh",
+        "arc_id": "credit_squeeze",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "Cutting risk bought short-term credit breathing room.",
+    },
+    ("market_margin_call", "hold_the_line"): {
+        "action": "refresh",
+        "arc_id": "credit_squeeze",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "Defending upside deepened the squeeze on a fragile month.",
+    },
     ("refinance_window", "refinance_now"): {
         "action": "resolve",
         "arc_id": "credit_squeeze",
+    },
+    ("debt_paydown_tightrope", "keep_crushing"): {
+        "action": "refresh",
+        "arc_id": "credit_squeeze",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "Debt-first discipline is starting to compress the credit squeeze.",
+    },
+    ("debt_paydown_tightrope", "pause_for_breathing_room"): {
+        "action": "refresh",
+        "arc_id": "credit_squeeze",
+        "duration_months": 1,
+        "severity_delta": 0,
+        "note": "You bought room, but the credit squeeze is still live.",
     },
     ("overtime_exam_collision", "protect_grades"): {
         "action": "refresh",
@@ -194,6 +228,20 @@ _CHOICE_RULES = {
     ("lease_enforcement_notice", "plan_fast_downgrade"): {
         "action": "resolve",
         "arc_id": "lease_pressure",
+    },
+    ("reserve_deployment_window", "spend_buffer_now"): {
+        "action": "refresh",
+        "arc_id": "lease_pressure",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "Buffer deployment bought runway and softened the lease squeeze.",
+    },
+    ("reserve_deployment_window", "keep_buffer_locked"): {
+        "action": "refresh",
+        "arc_id": "lease_pressure",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "Holding the buffer kept cash safer but left the lease pressure live.",
     },
     ("overtime_attrition_warning", "rebalance_workload"): {
         "action": "refresh",
@@ -349,6 +397,9 @@ def apply_choice_status_arc_resolution(state: GameState, event_id: str, choice_i
         resolve_status_arc(state, rule["arc_id"])
         return True
     if rule["action"] == "refresh":
+        active = _active_arc(state, rule["arc_id"])
+        if active is None:
+            return False
         refresh_status_arc(
             state,
             rule["arc_id"],
@@ -386,6 +437,10 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.14 + (0.06 * credit_arc.severity)
         elif event_id == "debt_fee_stack":
             multiplier *= 1.22 + (0.09 * credit_arc.severity)
+        elif event_id == "market_margin_call" and state.player.wealth_strategy_id == "market_chaser":
+            multiplier *= 1.24 + (0.11 * credit_arc.severity)
+        elif event_id == "debt_paydown_tightrope" and state.player.wealth_strategy_id == "debt_crusher":
+            multiplier *= 1.2 + (0.08 * credit_arc.severity)
     education_arc = get_active_status_arc(state, "education_slipping")
     if education_arc is not None:
         severity_bonus = 0.11 * education_arc.severity
@@ -404,6 +459,8 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.32 + severity_bonus
         elif event_id == "rent_increase":
             multiplier *= 1.14 + (0.08 * lease_arc.severity)
+        elif event_id == "reserve_deployment_window" and state.player.wealth_strategy_id in {"cushion_first", "steady_builder"}:
+            multiplier *= 1.26 + (0.1 * lease_arc.severity)
     burnout_arc = get_active_status_arc(state, "burnout_risk")
     if burnout_arc is not None:
         severity_bonus = 0.11 * burnout_arc.severity

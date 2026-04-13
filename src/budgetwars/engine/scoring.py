@@ -172,6 +172,9 @@ def _wealth_signature_score_adjustment(bundle: ContentBundle, state: GameState) 
     liquid = player.cash + player.savings + player.high_interest_savings
     invested = player.index_fund + player.aggressive_growth_fund
     strategy_id = player.wealth_strategy_id
+    credit_arc = next((arc for arc in state.active_status_arcs if arc.arc_id == "credit_squeeze"), None)
+    lease_arc = next((arc for arc in state.active_status_arcs if arc.arc_id == "lease_pressure"), None)
+    transport_arc = next((arc for arc in state.active_status_arcs if arc.arc_id == "transport_unstable"), None)
     adjustment = 0.0
 
     if strategy_id == "cushion_first":
@@ -179,16 +182,24 @@ def _wealth_signature_score_adjustment(bundle: ContentBundle, state: GameState) 
             adjustment += 1.6
         if liquid >= 3200 and player.debt >= 8500:
             adjustment -= 1.8
+        if lease_arc is not None and lease_arc.severity <= 1 and liquid >= 700:
+            adjustment += 0.9
+        if transport_arc is not None and player.transport.reliability_score >= 68:
+            adjustment += 0.6
     elif strategy_id == "debt_crusher":
         if player.debt <= 3000 and player.monthly_surplus >= 0:
             adjustment += 2.2
         if player.debt >= 10000 and liquid < 600:
             adjustment -= 1.4
+        if credit_arc is not None and credit_arc.severity <= 1 and player.credit_score >= 620:
+            adjustment += 1.1
     elif strategy_id == "steady_builder":
         if liquid >= 900 and invested >= 3000 and player.debt <= 7000 and player.monthly_surplus >= 0:
             adjustment += 1.8
         if player.monthly_surplus < -100:
             adjustment -= 0.9
+        if credit_arc is not None and lease_arc is None and player.monthly_surplus >= 0:
+            adjustment += 0.5
     elif strategy_id == "market_chaser":
         if invested >= 5000 and player.monthly_surplus >= 0 and player.credit_score >= 680:
             adjustment += 2.0
@@ -198,6 +209,10 @@ def _wealth_signature_score_adjustment(bundle: ContentBundle, state: GameState) 
             adjustment -= 2.2
         if player.monthly_surplus < 0 and player.debt >= 9000:
             adjustment -= 1.2
+        if credit_arc is not None and liquid < max(bundle.config.emergency_fund_floor + 180, int(round(invested * 0.18))):
+            adjustment -= 1.2
+        if lease_arc is not None and liquid < 700:
+            adjustment -= 0.8
 
     return max(-4.0, min(4.0, adjustment))
 

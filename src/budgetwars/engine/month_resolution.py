@@ -29,9 +29,9 @@ from .lookups import (
     get_housing_option,
     get_transport_option,
 )
-from .status_arcs import tick_status_arcs
+from .status_arcs import get_active_status_arc, tick_status_arcs
 from .transport import apply_transport_access_penalty, apply_transport_effects, can_switch_transport, monthly_transport_cost
-from .wealth import apply_wealth_allocations, apply_wealth_returns
+from .wealth import apply_wealth_allocations, apply_wealth_pressure_identity, apply_wealth_returns
 from .scoring import credit_tier_label, dominant_pressure_family
 
 
@@ -745,6 +745,8 @@ def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
 def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | None:
     player = state.player
     current_year = ((state.current_month - 1) // 12) + 1
+    credit_arc = get_active_status_arc(state, "credit_squeeze")
+    lease_arc = get_active_status_arc(state, "lease_pressure")
     if (
         player.social_stability >= 74
         and player.family_support >= 62
@@ -768,8 +770,21 @@ def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | 
         and player.credit_missed_obligation_streak == 0
     ):
         return "Recovery route: clean months are rebuilding a fragile credit file."
+    if (
+        credit_arc is not None
+        and player.wealth_strategy_id == "debt_crusher"
+        and player.monthly_surplus >= 0
+        and player.credit_missed_obligation_streak == 0
+    ):
+        return "Recovery route: debt-crusher cleanup can compress the credit squeeze."
     if player.housing.option_id == "parents" and player.current_city_id == "hometown_low_cost":
         return "Recovery route: family fallback is holding the housing line."
+    if (
+        lease_arc is not None
+        and player.wealth_strategy_id in {"cushion_first", "steady_builder"}
+        and (player.savings + player.high_interest_savings) >= 900
+    ):
+        return "Recovery route: reserve deployment can buy lease runway."
     if player.transport.option_id == "transit" and player.monthly_surplus <= 0 and player.debt >= 9000:
         return "Recovery route: transport downgrade reduced the financed-car trap."
     if (
@@ -1197,6 +1212,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     state.player.monthly_expenses = monthly_expenses
     end_net = net_worth(state)
     state.player.monthly_surplus = end_net - start_net
+    apply_wealth_pressure_identity(bundle, state)
     _update_momentum_and_drag(state)
     _apply_system_signatures(bundle, state)
     pressure_top, pressure_trend, recovery_balance = _apply_pressure_dynamics(

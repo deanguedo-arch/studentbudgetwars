@@ -6,6 +6,7 @@ from budgetwars.models import ContentBundle, GameState
 
 from .effects import append_log
 from .lookups import get_wealth_strategy
+from .status_arcs import get_active_status_arc, refresh_status_arc
 
 
 def apply_wealth_allocations(bundle: ContentBundle, state: GameState) -> dict[str, int]:
@@ -190,6 +191,169 @@ def emergency_liquidation(state: GameState, shortfall: int) -> int:
             append_log(state, "Your defensive posture softened part of the liquidation shock.")
 
     return raised
+
+
+def apply_wealth_pressure_identity(bundle: ContentBundle, state: GameState) -> None:
+    player = state.player
+    strategy_id = player.wealth_strategy_id
+    liquid = player.cash + player.savings + player.high_interest_savings
+    invested = player.index_fund + player.aggressive_growth_fund
+    lease_arc = get_active_status_arc(state, "lease_pressure")
+    credit_arc = get_active_status_arc(state, "credit_squeeze")
+    transport_arc = get_active_status_arc(state, "transport_unstable")
+
+    if strategy_id == "cushion_first":
+        if (
+            lease_arc is not None
+            and player.housing.option_id in {"roommates", "solo_rental"}
+            and player.housing.housing_stability <= 42
+            and liquid >= max(bundle.config.emergency_fund_floor + 520, 900)
+        ):
+            reserve_spend = _draw_liquid_runway(state, 220, prefer_safe=True)
+            if reserve_spend > 0:
+                player.housing.missed_payment_streak = 0
+                player.housing.housing_stability = max(player.housing.housing_stability, 44)
+                player.stress = max(0, player.stress - 2)
+                refresh_status_arc(
+                    state,
+                    "lease_pressure",
+                    duration_months=1,
+                    severity_delta=-1,
+                    note="Your cash-first plan bought lease runway and softened the housing squeeze.",
+                )
+                append_log(state, f"Wealth signature: Cushion First deployed ${reserve_spend} of reserve runway to soften lease pressure.")
+        if (
+            transport_arc is not None
+            and player.transport.option_id in {"beater_car", "reliable_used_car"}
+            and player.transport.reliability_score <= 55
+            and liquid >= 850
+        ):
+            reserve_spend = _draw_liquid_runway(state, 140, prefer_safe=True)
+            if reserve_spend > 0:
+                player.transport.reliability_score = min(100, player.transport.reliability_score + 8)
+                player.stress = max(0, player.stress - 1)
+                refresh_status_arc(
+                    state,
+                    "transport_unstable",
+                    duration_months=1,
+                    severity_delta=-1,
+                    note="Cash reserves kept transport instability from worsening.",
+                )
+                append_log(state, f"Wealth signature: Cushion First spent ${reserve_spend} to keep transport from cascading.")
+    elif strategy_id == "steady_builder":
+        if (
+            lease_arc is not None
+            and player.housing.option_id in {"roommates", "solo_rental"}
+            and player.housing.housing_stability <= 40
+            and liquid >= 820
+        ):
+            reserve_spend = _draw_liquid_runway(state, 160, prefer_safe=True)
+            if reserve_spend > 0:
+                player.housing.missed_payment_streak = 0
+                player.housing.housing_stability = max(player.housing.housing_stability, 40)
+                player.stress = max(0, player.stress - 1)
+                refresh_status_arc(
+                    state,
+                    "lease_pressure",
+                    duration_months=1,
+                    severity_delta=-1 if lease_arc.severity >= 3 else 0,
+                    note="Balanced reserves bought a little lease breathing room.",
+                )
+                append_log(state, f"Wealth signature: Steady Builder used ${reserve_spend} of liquidity to steady the housing lane.")
+        if (
+            credit_arc is not None
+            and player.monthly_surplus >= 0
+            and player.credit_missed_obligation_streak == 0
+            and liquid >= 780
+        ):
+            player.credit_utilization_pressure = max(0, player.credit_utilization_pressure - 3)
+            player.credit_score = min(850, player.credit_score + 1)
+            if credit_arc.severity >= 3:
+                refresh_status_arc(
+                    state,
+                    "credit_squeeze",
+                    duration_months=1,
+                    severity_delta=-1,
+                    note="Balanced cleanup is slowly taking the edge off the credit squeeze.",
+                )
+            append_log(state, "Wealth signature: Steady Builder converted a clean month into controlled credit repair.")
+    elif strategy_id == "debt_crusher":
+        if (
+            credit_arc is not None
+            and player.debt >= 2500
+            and player.monthly_surplus >= 0
+            and player.credit_missed_obligation_streak == 0
+        ):
+            squeeze_paydown = min(player.debt, _draw_liquid_runway(state, 140))
+            if squeeze_paydown > 0:
+                player.debt = max(0, player.debt - squeeze_paydown)
+                player.credit_utilization_pressure = max(0, player.credit_utilization_pressure - 7)
+                player.credit_score = min(850, player.credit_score + 2)
+                refresh_status_arc(
+                    state,
+                    "credit_squeeze",
+                    duration_months=1,
+                    severity_delta=-1,
+                    note="Debt-first cleanup is reopening room inside the squeeze.",
+                )
+                append_log(
+                    state,
+                    f"Wealth signature: Debt Crusher forced an extra ${squeeze_paydown} principal attack and improved the credit lane.",
+                )
+    elif strategy_id == "market_chaser":
+        thin_liquidity = liquid < max(bundle.config.emergency_fund_floor + 180, int(round(invested * 0.18)))
+        if thin_liquidity and invested >= 2500 and (credit_arc is not None or lease_arc is not None):
+            player.stress += 2 if state.current_market_regime_id in {"weak", "correction"} else 1
+            player.life_satisfaction -= 1
+            if credit_arc is not None:
+                refresh_status_arc(
+                    state,
+                    "credit_squeeze",
+                    duration_months=1,
+                    severity_delta=1,
+                    note="Thin liquidity turned the aggressive wealth plan into direct credit pressure.",
+                )
+            elif lease_arc is not None and player.monthly_surplus < 0:
+                refresh_status_arc(
+                    state,
+                    "lease_pressure",
+                    duration_months=1,
+                    severity_delta=1,
+                    note="Thin liquidity left the lease under pressure while you kept chasing upside.",
+                )
+            append_log(state, "Wealth signature: Market Chaser left too little liquid runway once pressure hit.")
+        elif (
+            state.current_market_regime_id == "strong"
+            and invested >= 6000
+            and liquid >= 600
+            and player.debt <= 7000
+            and credit_arc is None
+            and lease_arc is None
+        ):
+            player.life_satisfaction += 1
+            player.career.promotion_momentum = min(100, player.career.promotion_momentum + 1)
+            append_log(state, "Wealth signature: Market Chaser turned a strong month into extra confidence and momentum.")
+
+
+def _draw_liquid_runway(state: GameState, amount: int, *, prefer_safe: bool = False) -> int:
+    player = state.player
+    remaining = max(0, amount)
+    drawn = 0
+    order = ("cash", "savings", "high_interest_savings")
+    if prefer_safe:
+        order = ("high_interest_savings", "savings", "cash")
+
+    for bucket in order:
+        if remaining <= 0:
+            break
+        available = getattr(player, bucket)
+        take = min(available, remaining)
+        if take <= 0:
+            continue
+        setattr(player, bucket, available - take)
+        drawn += take
+        remaining -= take
+    return drawn
 
 
 def _check_wealth_milestones(bundle: ContentBundle, state: GameState) -> None:
