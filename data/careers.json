@@ -83,7 +83,7 @@
         "stress_delta": 8,
         "life_satisfaction_delta": -1,
         "social_stability_delta": -1,
-        "promotion_target": 4,
+        "promotion_target": 8,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -96,7 +96,7 @@
         "stress_delta": 9,
         "life_satisfaction_delta": 0,
         "social_stability_delta": 0,
-        "promotion_target": 6,
+        "promotion_target": 13,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -109,7 +109,7 @@
         "stress_delta": 11,
         "life_satisfaction_delta": 1,
         "social_stability_delta": 0,
-        "promotion_target": 8,
+        "promotion_target": 19,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -122,7 +122,7 @@
         "stress_delta": 13,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 0,
-        "promotion_target": 11,
+        "promotion_target": 26,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -135,7 +135,7 @@
         "stress_delta": 16,
         "life_satisfaction_delta": 4,
         "social_stability_delta": 1,
-        "promotion_target": 15,
+        "promotion_target": 34,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -231,7 +231,7 @@
         "stress_delta": 7,
         "life_satisfaction_delta": 0,
         "social_stability_delta": -1,
-        "promotion_target": 4,
+        "promotion_target": 8,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -244,7 +244,7 @@
         "stress_delta": 8,
         "life_satisfaction_delta": 1,
         "social_stability_delta": 0,
-        "promotion_target": 6,
+        "promotion_target": 13,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -257,7 +257,7 @@
         "stress_delta": 10,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 0,
-        "promotion_target": 8,
+        "promotion_target": 19,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -270,7 +270,7 @@
         "stress_delta": 12,
         "life_satisfaction_delta": 3,
         "social_stability_delta": 0,
-        "promotion_target": 11,
+        "promotion_target": 26,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -283,7 +283,7 @@
         "stress_delta": 15,
         "life_satisfaction_delta": 5,
         "social_stability_delta": 1,
-        "promotion_target": 15,
+        "promotion_target": 34,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -329,7 +329,7 @@
         "stress_delta": 7,
         "life_satisfaction_delta": 0,
         "social_stability_delta": -1,
-        "promotion_target": 5,
+        "promotion_target": 8,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -342,7 +342,7 @@
         "stress_delta": 7,
         "life_satisfaction_delta": 1,
         "social_stability_delta": 0,
-        "promotion_target": 7,
+        "promotion_target": 13,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -355,7 +355,7 @@
         "stress_delta": 8,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 1,
-        "promotion_target": 9,
+        "promotion_target": 19,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -368,7 +368,7 @@
         "stress_delta": 10,
         "life_satisfaction_delta": 3,
         "social_stability_delta": 1,
-        "promotion_target": 12,
+        "promotion_target": 26,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -381,7 +381,7 @@
         "stress_delta": 13,
         "life_satisfaction_delta": 5,
         "social_stability_delta": 2,
-        "promotion_target": 16,
+        "promotion_target": 34,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -391,7 +391,57 @@
     "skill_transfer_map": {
       "warehouse_logistics": 0.3,
       "sales": 0.2
-    }
+    },
+    "branches": [
+      {
+        "id": "delivery_route_grind_track",
+        "name": "Route Grinder",
+        "description": "Volume route lane with steadier app output but faster physical wear.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 58,
+        "min_social_stability": 40,
+        "min_energy": 38,
+        "max_stress": 82,
+        "income_multiplier": 1.06,
+        "stress_delta": 2,
+        "energy_delta": -2,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 1
+      },
+      {
+        "id": "delivery_platform_optimizer_track",
+        "name": "Platform Optimizer",
+        "description": "Tighter multi-app management with more control and less raw grind when you stay organized.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 52,
+        "min_social_stability": 55,
+        "min_energy": 34,
+        "max_stress": 78,
+        "income_multiplier": 1.08,
+        "stress_delta": 0,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      },
+      {
+        "id": "delivery_independent_operator_track",
+        "name": "Independent Operator",
+        "description": "Higher-upside owner-operator path that rewards reliability and self-direction.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 60,
+        "min_social_stability": 58,
+        "min_energy": 36,
+        "max_stress": 76,
+        "income_multiplier": 1.14,
+        "stress_delta": 1,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      }
+    ]
   },
   {
     "id": "office_admin",
@@ -477,7 +527,7 @@
         "stress_delta": 6,
         "life_satisfaction_delta": 1,
         "social_stability_delta": 1,
-        "promotion_target": 5,
+        "promotion_target": 8,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.3,
         "required_pass_state": false,
@@ -490,7 +540,7 @@
         "stress_delta": 7,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 1,
-        "promotion_target": 7,
+        "promotion_target": 13,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.5,
         "required_pass_state": false,
@@ -503,7 +553,7 @@
         "stress_delta": 8,
         "life_satisfaction_delta": 3,
         "social_stability_delta": 2,
-        "promotion_target": 9,
+        "promotion_target": 19,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.7,
         "required_pass_state": false,
@@ -516,7 +566,7 @@
         "stress_delta": 10,
         "life_satisfaction_delta": 4,
         "social_stability_delta": 2,
-        "promotion_target": 12,
+        "promotion_target": 26,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.7,
         "required_pass_state": false,
@@ -529,7 +579,7 @@
         "stress_delta": 13,
         "life_satisfaction_delta": 6,
         "social_stability_delta": 3,
-        "promotion_target": 16,
+        "promotion_target": 34,
         "required_credential_ids": [],
         "required_minimum_gpa": 2.7,
         "required_pass_state": false,
@@ -575,7 +625,7 @@
         "stress_delta": 7,
         "life_satisfaction_delta": 1,
         "social_stability_delta": 0,
-        "promotion_target": 8,
+        "promotion_target": 10,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -588,7 +638,7 @@
         "stress_delta": 7,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 1,
-        "promotion_target": 10,
+        "promotion_target": 15,
         "required_credential_ids": [
           "apprenticeship_certificate"
         ],
@@ -603,7 +653,7 @@
         "stress_delta": 8,
         "life_satisfaction_delta": 4,
         "social_stability_delta": 1,
-        "promotion_target": 12,
+        "promotion_target": 21,
         "required_credential_ids": [
           "apprenticeship_certificate"
         ],
@@ -618,7 +668,7 @@
         "stress_delta": 10,
         "life_satisfaction_delta": 5,
         "social_stability_delta": 1,
-        "promotion_target": 15,
+        "promotion_target": 28,
         "required_credential_ids": [
           "apprenticeship_certificate"
         ],
@@ -633,7 +683,7 @@
         "stress_delta": 13,
         "life_satisfaction_delta": 7,
         "social_stability_delta": 2,
-        "promotion_target": 19,
+        "promotion_target": 36,
         "required_credential_ids": [
           "apprenticeship_certificate"
         ],
@@ -644,7 +694,57 @@
     ],
     "skill_transfer_map": {
       "warehouse_logistics": 0.3
-    }
+    },
+    "branches": [
+      {
+        "id": "trades_field_crew_track",
+        "name": "Field Crew",
+        "description": "Crew-first fieldwork path with solid advancement if you can keep your body and schedule together.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 64,
+        "min_social_stability": 40,
+        "min_energy": 44,
+        "max_stress": 82,
+        "income_multiplier": 1.05,
+        "stress_delta": 2,
+        "energy_delta": -2,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      },
+      {
+        "id": "trades_precision_specialist_track",
+        "name": "Precision Specialist",
+        "description": "Certification-heavy specialist lane with better margins and less brute-force wear.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 68,
+        "min_social_stability": 46,
+        "min_energy": 38,
+        "max_stress": 76,
+        "income_multiplier": 1.12,
+        "stress_delta": 0,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      },
+      {
+        "id": "trades_estimator_supervisor_track",
+        "name": "Estimator / Supervisor",
+        "description": "Coordination-heavy lane that trades some field grind for planning and crew pressure.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 58,
+        "min_social_stability": 56,
+        "min_energy": 34,
+        "max_stress": 78,
+        "income_multiplier": 1.09,
+        "stress_delta": 1,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      }
+    ]
   },
   {
     "id": "healthcare_support",
@@ -681,7 +781,7 @@
         "stress_delta": 10,
         "life_satisfaction_delta": 1,
         "social_stability_delta": 0,
-        "promotion_target": 5,
+        "promotion_target": 8,
         "required_credential_ids": [
           "support_certificate"
         ],
@@ -696,7 +796,7 @@
         "stress_delta": 10,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 1,
-        "promotion_target": 7,
+        "promotion_target": 13,
         "required_credential_ids": [
           "support_certificate"
         ],
@@ -711,7 +811,7 @@
         "stress_delta": 12,
         "life_satisfaction_delta": 3,
         "social_stability_delta": 1,
-        "promotion_target": 9,
+        "promotion_target": 19,
         "required_credential_ids": [
           "support_certificate"
         ],
@@ -726,7 +826,7 @@
         "stress_delta": 14,
         "life_satisfaction_delta": 4,
         "social_stability_delta": 1,
-        "promotion_target": 12,
+        "promotion_target": 26,
         "required_credential_ids": [
           "support_certificate"
         ],
@@ -741,7 +841,7 @@
         "stress_delta": 17,
         "life_satisfaction_delta": 6,
         "social_stability_delta": 2,
-        "promotion_target": 16,
+        "promotion_target": 34,
         "required_credential_ids": [
           "support_certificate"
         ],
@@ -752,7 +852,57 @@
     ],
     "skill_transfer_map": {
       "office_admin": 0.2
-    }
+    },
+    "branches": [
+      {
+        "id": "healthcare_floor_care_track",
+        "name": "Floor Care",
+        "description": "Frontline support lane with steadier advancement but high human fatigue.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 58,
+        "min_social_stability": 48,
+        "min_energy": 40,
+        "max_stress": 82,
+        "income_multiplier": 1.04,
+        "stress_delta": 2,
+        "energy_delta": -2,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      },
+      {
+        "id": "healthcare_technical_support_track",
+        "name": "Technical Support",
+        "description": "Procedure and equipment support lane with better upside for steady operators.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 54,
+        "min_social_stability": 46,
+        "min_energy": 36,
+        "max_stress": 76,
+        "income_multiplier": 1.1,
+        "stress_delta": 0,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      },
+      {
+        "id": "healthcare_scheduling_coordination_track",
+        "name": "Scheduling / Coordination",
+        "description": "Operations and coverage lane that rewards calm coordination more than physical output.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 50,
+        "min_social_stability": 58,
+        "min_energy": 34,
+        "max_stress": 78,
+        "income_multiplier": 1.07,
+        "stress_delta": 1,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": -1
+      }
+    ]
   },
   {
     "id": "sales",
@@ -787,7 +937,7 @@
         "stress_delta": 8,
         "life_satisfaction_delta": 1,
         "social_stability_delta": 1,
-        "promotion_target": 5,
+        "promotion_target": 9,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -800,7 +950,7 @@
         "stress_delta": 9,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 1,
-        "promotion_target": 7,
+        "promotion_target": 14,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -813,7 +963,7 @@
         "stress_delta": 11,
         "life_satisfaction_delta": 3,
         "social_stability_delta": 2,
-        "promotion_target": 9,
+        "promotion_target": 20,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -826,7 +976,7 @@
         "stress_delta": 13,
         "life_satisfaction_delta": 4,
         "social_stability_delta": 2,
-        "promotion_target": 12,
+        "promotion_target": 27,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -839,7 +989,7 @@
         "stress_delta": 16,
         "life_satisfaction_delta": 6,
         "social_stability_delta": 3,
-        "promotion_target": 16,
+        "promotion_target": 35,
         "required_credential_ids": [],
         "required_minimum_gpa": null,
         "required_pass_state": false,
@@ -849,7 +999,57 @@
     "skill_transfer_map": {
       "retail_service": 0.3,
       "office_admin": 0.3
-    }
+    },
+    "branches": [
+      {
+        "id": "sales_volume_closer_track",
+        "name": "Volume Closer",
+        "description": "High-activity closing lane with sharper upside and sharper burnout risk.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 48,
+        "min_social_stability": 62,
+        "min_energy": 36,
+        "max_stress": 84,
+        "income_multiplier": 1.14,
+        "stress_delta": 2,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 1
+      },
+      {
+        "id": "sales_account_manager_track",
+        "name": "Account Manager",
+        "description": "Retention and relationship lane with more stability and less month-to-month swing.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 46,
+        "min_social_stability": 66,
+        "min_energy": 34,
+        "max_stress": 78,
+        "income_multiplier": 1.1,
+        "stress_delta": 0,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      },
+      {
+        "id": "sales_enterprise_strategy_track",
+        "name": "Enterprise / Strategic Seller",
+        "description": "Long-cycle strategic lane with stronger upside if you can hold credibility and patience.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 50,
+        "min_social_stability": 70,
+        "min_energy": 36,
+        "max_stress": 76,
+        "income_multiplier": 1.16,
+        "stress_delta": 1,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      }
+    ]
   },
   {
     "id": "degree_gated_professional",
@@ -886,7 +1086,7 @@
         "stress_delta": 7,
         "life_satisfaction_delta": 2,
         "social_stability_delta": 1,
-        "promotion_target": 6,
+        "promotion_target": 10,
         "required_credential_ids": [
           "university_degree"
         ],
@@ -901,7 +1101,7 @@
         "stress_delta": 8,
         "life_satisfaction_delta": 4,
         "social_stability_delta": 2,
-        "promotion_target": 8,
+        "promotion_target": 15,
         "required_credential_ids": [
           "university_degree"
         ],
@@ -916,7 +1116,7 @@
         "stress_delta": 9,
         "life_satisfaction_delta": 5,
         "social_stability_delta": 2,
-        "promotion_target": 10,
+        "promotion_target": 22,
         "required_credential_ids": [
           "university_degree"
         ],
@@ -931,7 +1131,7 @@
         "stress_delta": 11,
         "life_satisfaction_delta": 6,
         "social_stability_delta": 2,
-        "promotion_target": 13,
+        "promotion_target": 30,
         "required_credential_ids": [
           "university_degree"
         ],
@@ -946,7 +1146,7 @@
         "stress_delta": 14,
         "life_satisfaction_delta": 8,
         "social_stability_delta": 3,
-        "promotion_target": 17,
+        "promotion_target": 39,
         "required_credential_ids": [
           "university_degree"
         ],
@@ -958,6 +1158,56 @@
     "skill_transfer_map": {
       "office_admin": 0.5,
       "sales": 0.4
-    }
+    },
+    "branches": [
+      {
+        "id": "professional_technical_specialist_track",
+        "name": "Technical Specialist",
+        "description": "Deep-skill lane with strong ceiling if you keep expertise and focus aligned.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 40,
+        "min_social_stability": 48,
+        "min_energy": 36,
+        "max_stress": 76,
+        "income_multiplier": 1.08,
+        "stress_delta": 0,
+        "energy_delta": 0,
+        "promotion_progress_bonus": 1,
+        "layoff_pressure_delta": -1
+      },
+      {
+        "id": "professional_client_lead_track",
+        "name": "Client / Stakeholder Lead",
+        "description": "Relationship-heavy lane that converts trust into upside but punishes inconsistency.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 44,
+        "min_social_stability": 62,
+        "min_energy": 34,
+        "max_stress": 78,
+        "income_multiplier": 1.1,
+        "stress_delta": 1,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      },
+      {
+        "id": "professional_people_ops_track",
+        "name": "People / Operations Manager",
+        "description": "Leadership lane with steadier pay and heavier coordination load.",
+        "min_tier_index": 1,
+        "required_credential_ids": [],
+        "min_transport_reliability": 40,
+        "min_social_stability": 60,
+        "min_energy": 36,
+        "max_stress": 80,
+        "income_multiplier": 1.07,
+        "stress_delta": 2,
+        "energy_delta": -1,
+        "promotion_progress_bonus": 2,
+        "layoff_pressure_delta": 0
+      }
+    ]
   }
 ]

@@ -136,3 +136,18 @@ def test_invalid_status_arc_followup_reference_fails_validation(bundle):
 def test_new_game_initializes_empty_active_status_arcs(controller_factory):
     controller = controller_factory()
     assert controller.state.active_status_arcs == []
+
+
+def test_all_careers_exist_and_keep_five_tiers(bundle):
+    track_ids = {track.id for track in bundle.careers}
+    assert track_ids == {
+        "retail_service",
+        "warehouse_logistics",
+        "delivery_gig",
+        "office_admin",
+        "trades_apprenticeship",
+        "healthcare_support",
+        "sales",
+        "degree_gated_professional",
+    }
+    assert all(len(track.tiers) == 5 for track in bundle.careers)
