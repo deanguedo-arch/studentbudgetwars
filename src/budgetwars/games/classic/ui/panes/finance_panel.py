@@ -354,9 +354,10 @@ class FinancePanel(tk.Frame):
                 tk.Label(right, text=line, bg=BG_CARD, fg=COLOR_WARNING, font=FONT_SMALL, anchor="w", justify="left", wraplength=320).pack(fill="x")
 
         consequence_signals: list[str] = []
-        if getattr(summary, "pressure_family", ""):
+        has_active_arcs = bool(getattr(summary, "active_status_arcs", None))
+        if getattr(summary, "pressure_family", "") and not has_active_arcs:
             consequence_signals.append(f"Pressure family: {summary.pressure_family}")
-        if getattr(summary, "month_driver", ""):
+        if getattr(summary, "month_driver", "") and not has_active_arcs:
             consequence_signals.append(f"Month driver: {summary.month_driver}")
         if getattr(summary, "pending_fallout_count", 0):
             consequence_signals.append(f"Pending fallout: {summary.pending_fallout_count} unresolved consequence(s)")

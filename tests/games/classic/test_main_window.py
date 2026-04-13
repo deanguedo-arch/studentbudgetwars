@@ -846,8 +846,48 @@ def test_outlook_panel_renders_active_status_arcs(controller_factory):
             return texts
 
         texts = _all_label_texts(panel)
-        assert "Active Arcs" in texts
+        assert any(text in {"Active Arcs", "ACTIVE ARC"} for text in texts)
         assert any("Transport Unstable" in text for text in texts)
+    finally:
+        root.destroy()
+
+
+def test_phase_status_arc_outlook_panel_promotes_top_arc_as_hero_context(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory(opening_path_id="full_time_work")
+        start_status_arc(
+            controller.bundle,
+            controller.state,
+            "burnout_risk",
+            source_event_id="overtime_attrition_warning",
+            duration_months=3,
+            severity=2,
+        )
+        panel = OutlookPanel(root, resolve_callback=lambda: None)
+        panel.render_forecast(
+            build_monthly_forecast(controller.state, controller.bundle),
+            compact=False,
+            show_resolve_button=False,
+        )
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert "ACTIVE ARC" in texts
+        assert any("Burnout Risk" in text for text in texts)
     finally:
         root.destroy()
 
@@ -885,6 +925,49 @@ def test_finance_panel_renders_active_status_arc_section(controller_factory):
         texts = _all_label_texts(panel)
         assert "Active Arcs" in texts
         assert any("Credit Squeeze" in text for text in texts)
+    finally:
+        root.destroy()
+
+
+def test_phase_status_arc_pressure_summary_prefers_arc_diagnosis_and_trims_generic_signals(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+        controller.state.player.housing.option_id = "solo_rental"
+        controller.state.player.housing.housing_stability = 34
+        controller.state.player.credit_score = 556
+        controller.state.player.debt = 12200
+        controller.state.player.monthly_surplus = -220
+        start_status_arc(
+            controller.bundle,
+            controller.state,
+            "lease_pressure",
+            source_event_id="lease_default_warning",
+            duration_months=4,
+            severity=2,
+        )
+        summary = build_pressure_summary(controller.state, controller.bundle)
+        panel = FinancePanel(root)
+        panel.render_summary(summary, compact=False)
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert summary.biggest_risk == "Lease Pressure"
+        assert "Risk: Lease Pressure" in texts
+        assert not any(text.startswith("Pressure family:") for text in texts)
     finally:
         root.destroy()
 

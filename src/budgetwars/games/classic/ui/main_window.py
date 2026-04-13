@@ -284,10 +284,11 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
     commitments = _format_persistent_commitments(player.persistent_tags)
     pending_decisions = _pending_decision_lines(state, controller.bundle)
     active_status_arcs = _active_status_arc_vms(state, controller.bundle)
+    biggest_risk = active_status_arcs[0].name if active_status_arcs else snapshot.biggest_risk
     return PressureSummaryVM(
         projected_score=snapshot.projected_score,
         score_tier=snapshot.score_tier,
-        biggest_risk=snapshot.biggest_risk,
+        biggest_risk=biggest_risk,
         credit_score=player.credit_score,
         credit_tier=credit_tier,
         credit_progress_label=credit_progress_label,

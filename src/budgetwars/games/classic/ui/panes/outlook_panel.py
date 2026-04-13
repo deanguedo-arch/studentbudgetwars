@@ -95,6 +95,51 @@ class OutlookPanel(tk.Frame):
             w.destroy()
         self._widgets.clear()
 
+        hero_arc = forecast.active_status_arcs[0] if getattr(forecast, "active_status_arcs", None) else None
+        if hero_arc is not None:
+            hero = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=COLOR_WARNING if hero_arc.tone == "negative" else ACCENT_FOCUS, highlightthickness=2)
+            hero.pack(fill="x", pady=(0, PAD_S))
+            self._widgets.append(hero)
+            tk.Label(
+                hero,
+                text="ACTIVE ARC",
+                bg=BG_ELEVATED,
+                fg=TEXT_MUTED,
+                font=FONT_TINY,
+                anchor="w",
+            ).pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+            tk.Label(
+                hero,
+                text=f"{hero_arc.name} | S{hero_arc.severity} | {hero_arc.months_remaining} mo",
+                bg=BG_ELEVATED,
+                fg=COLOR_WARNING if hero_arc.tone == "negative" else TEXT_HEADING,
+                font=FONT_SMALL if not self._large else ("Trebuchet MS", 11, "bold"),
+                anchor="w",
+                justify="left",
+                wraplength=420,
+            ).pack(fill="x", padx=PAD_S, pady=(2, 0))
+            tk.Label(
+                hero,
+                text=hero_arc.summary,
+                bg=BG_ELEVATED,
+                fg=TEXT_PRIMARY,
+                font=FONT_SMALL if not self._large else ("Trebuchet MS", 11),
+                anchor="w",
+                justify="left",
+                wraplength=420,
+            ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S // 2))
+            if hero_arc.resolution_hint:
+                tk.Label(
+                    hero,
+                    text=hero_arc.resolution_hint,
+                    bg=BG_ELEVATED,
+                    fg=TEXT_SECONDARY,
+                    font=FONT_TINY,
+                    anchor="w",
+                    justify="left",
+                    wraplength=420,
+                ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
+
         grid = tk.Frame(self._content, bg=BG_CARD)
         grid.pack(fill="x")
         self._widgets.append(grid)
@@ -150,7 +195,7 @@ class OutlookPanel(tk.Frame):
                     highlightthickness=1,
                 ).pack(side="left", padx=(4, 0))
 
-        if getattr(forecast, "active_status_arcs", None):
+        if getattr(forecast, "active_status_arcs", None) and len(forecast.active_status_arcs) > 1:
             arcs_wrap = tk.Frame(self._content, bg=BG_CARD)
             arcs_wrap.pack(fill="x", pady=(PAD_S, 0))
             self._widgets.append(arcs_wrap)
@@ -162,7 +207,7 @@ class OutlookPanel(tk.Frame):
                 font=FONT_SMALL,
                 anchor="w",
             ).pack(fill="x")
-            for arc in forecast.active_status_arcs[:2]:
+            for arc in forecast.active_status_arcs[1:3]:
                 tk.Label(
                     arcs_wrap,
                     text=f"{arc.name} | S{arc.severity} | {arc.months_remaining} mo",
