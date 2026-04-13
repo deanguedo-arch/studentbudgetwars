@@ -76,6 +76,18 @@ _EVENT_START_RULES = {
         "severity": 3,
         "note": "Lease pressure has escalated into enforcement risk.",
     },
+    "overtime_attrition_warning": {
+        "arc_id": "burnout_risk",
+        "duration_months": 3,
+        "severity": 2,
+        "note": "The recovery lane is cracking under sustained work pressure.",
+    },
+    "burnout_month": {
+        "arc_id": "burnout_risk",
+        "duration_months": 3,
+        "severity": 3,
+        "note": "Burnout is now a live collapse risk, not just a bad month.",
+    },
 }
 
 _CHOICE_RULES = {
@@ -139,6 +151,20 @@ _CHOICE_RULES = {
     ("academic_funding_review", "accept_study_contract"): {
         "action": "resolve",
         "arc_id": "education_slipping",
+    },
+    ("overtime_attrition_warning", "rebalance_workload"): {
+        "action": "refresh",
+        "arc_id": "burnout_risk",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "You eased the load, but the recovery lane still needs protection.",
+    },
+    ("overtime_attrition_warning", "keep_forcing_hours"): {
+        "action": "refresh",
+        "arc_id": "burnout_risk",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "Forcing hours is turning burnout risk into the shape of the run.",
     },
 }
 
@@ -305,4 +331,11 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.16 + severity_bonus
         elif event_id == "rent_increase":
             multiplier *= 1.06 + (0.05 * lease_arc.severity)
+    burnout_arc = get_active_status_arc(state, "burnout_risk")
+    if burnout_arc is not None:
+        severity_bonus = 0.08 * burnout_arc.severity
+        if event_id == "burnout_month":
+            multiplier *= 1.14 + severity_bonus
+        elif event_id == "overtime_attrition_warning":
+            multiplier *= 1.1 + (0.06 * burnout_arc.severity)
     return multiplier

@@ -879,6 +879,37 @@ def test_phase_status_arc_lease_raises_followup_pressure_and_score_penalty(bundl
     assert pressured_score < stable_score
 
 
+def test_phase_status_arc_burnout_raises_followup_pressure_and_score_penalty(bundle, controller_factory):
+    stable = controller_factory(opening_path_id="full_time_work")
+    strained = controller_factory(opening_path_id="full_time_work")
+
+    stable.state.current_month = 10
+    stable.state.player.selected_focus_action_id = "social_maintenance"
+    stable.state.player.stress = 48
+    stable.state.player.energy = 60
+
+    strained.state.current_month = 10
+    strained.state.player.selected_focus_action_id = "overtime"
+    strained.state.player.stress = 76
+    strained.state.player.energy = 30
+    start_status_arc(
+        bundle,
+        strained.state,
+        "burnout_risk",
+        source_event_id="overtime_attrition_warning",
+        duration_months=3,
+        severity=2,
+    )
+
+    burnout = next(event for event in bundle.events if event.id == "burnout_month")
+
+    stable_score = calculate_final_score(bundle, stable.state).final_score
+    strained_score = calculate_final_score(bundle, strained.state).final_score
+
+    assert event_weight(bundle, strained.state, burnout) > event_weight(bundle, stable.state, burnout)
+    assert strained_score < stable_score
+
+
 def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):
     strong_bundle = bundle.model_copy(deep=True)
     strong_bundle.config = strong_bundle.config.model_copy(

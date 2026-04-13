@@ -177,6 +177,39 @@ def test_phase_status_arc_lease_warning_starts_and_enforcement_escalates_arc(bun
     assert lease_arc.severity == 3
 
 
+def test_phase_status_arc_burnout_warning_starts_and_burnout_month_escalates_arc(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="full_time_work")
+    state = controller.state
+    state.current_month = 10
+    state.player.selected_focus_action_id = "overtime"
+    state.player.stress = 74
+    state.player.energy = 32
+
+    attrition = next(item for item in bundle.events if item.id == "overtime_attrition_warning")
+    burnout = next(item for item in bundle.events if item.id == "burnout_month")
+
+    resolve_event(bundle, state, attrition)
+
+    assert len(state.active_status_arcs) == 1
+    first_arc = state.active_status_arcs[0]
+    assert first_arc.arc_id == "burnout_risk"
+    assert first_arc.source_event_id == "overtime_attrition_warning"
+    assert first_arc.severity == 2
+
+    resolve_event_choice(bundle, state, "overtime_attrition_warning", "rebalance_workload")
+    softened = state.active_status_arcs[0]
+    assert softened.arc_id == "burnout_risk"
+    assert softened.severity == 1
+
+    resolve_event(bundle, state, burnout)
+
+    assert len(state.active_status_arcs) == 1
+    burnout_arc = state.active_status_arcs[0]
+    assert burnout_arc.arc_id == "burnout_risk"
+    assert burnout_arc.source_event_id == "burnout_month"
+    assert burnout_arc.severity == 3
+
+
 def test_career_tracks_produce_distinct_monthly_income(bundle, controller_factory):
     warehouse = controller_factory(opening_path_id="full_time_work")
     sales = controller_factory(opening_path_id="gap_year_mixed_hustle", city_id="high_opportunity_metro")
