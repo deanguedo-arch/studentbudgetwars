@@ -20,6 +20,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "monthly_energy_delta": -1,
             "momentum_delta": 1,
         },
+        "specialist_compound_band": {
+            "label": "Client Book Specialist",
+            "income_multiplier": 1.07,
+            "base_income_bonus": 88,
+            "income_step_bonus": 42,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 1,
+        },
         "stability_anchor_band": {
             "label": "Retention Anchor",
             "income_multiplier": 1.04,
@@ -38,6 +47,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "income_step_bonus": 60,
             "monthly_stress_delta": 2,
             "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "specialist_compound_band": {
+            "label": "Equipment Reliability Specialist",
+            "income_multiplier": 1.07,
+            "base_income_bonus": 94,
+            "income_step_bonus": 44,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
             "momentum_delta": 1,
         },
         "stability_anchor_band": {
@@ -60,6 +78,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "monthly_energy_delta": -1,
             "momentum_delta": 1,
         },
+        "specialist_compound_band": {
+            "label": "Margin Systems Runner",
+            "income_multiplier": 1.06,
+            "base_income_bonus": 72,
+            "income_step_bonus": 34,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 1,
+        },
         "stability_anchor_band": {
             "label": "Route Anchor",
             "income_multiplier": 1.03,
@@ -78,6 +105,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "income_step_bonus": 52,
             "monthly_stress_delta": 2,
             "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "specialist_compound_band": {
+            "label": "Controls Specialist",
+            "income_multiplier": 1.07,
+            "base_income_bonus": 96,
+            "income_step_bonus": 42,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
             "momentum_delta": 1,
         },
         "stability_anchor_band": {
@@ -100,6 +136,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "monthly_energy_delta": -2,
             "momentum_delta": 1,
         },
+        "specialist_compound_band": {
+            "label": "Precision Contract Specialist",
+            "income_multiplier": 1.07,
+            "base_income_bonus": 96,
+            "income_step_bonus": 46,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 1,
+        },
         "stability_anchor_band": {
             "label": "Precision Lead",
             "income_multiplier": 1.04,
@@ -118,6 +163,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "income_step_bonus": 56,
             "monthly_stress_delta": 2,
             "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "specialist_compound_band": {
+            "label": "Technical Support Specialist",
+            "income_multiplier": 1.06,
+            "base_income_bonus": 84,
+            "income_step_bonus": 40,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
             "momentum_delta": 1,
         },
         "stability_anchor_band": {
@@ -140,6 +194,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "monthly_energy_delta": -1,
             "momentum_delta": 1,
         },
+        "specialist_compound_band": {
+            "label": "Book Compound Specialist",
+            "income_multiplier": 1.09,
+            "base_income_bonus": 118,
+            "income_step_bonus": 54,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 1,
+        },
         "stability_anchor_band": {
             "label": "Book Builder",
             "income_multiplier": 1.05,
@@ -158,6 +221,15 @@ _TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
             "income_step_bonus": 74,
             "monthly_stress_delta": 2,
             "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "specialist_compound_band": {
+            "label": "Reputation Specialist",
+            "income_multiplier": 1.07,
+            "base_income_bonus": 104,
+            "income_step_bonus": 52,
+            "monthly_stress_delta": 0,
+            "monthly_energy_delta": 0,
             "momentum_delta": 1,
         },
         "stability_anchor_band": {
@@ -187,6 +259,14 @@ _STRETCH_SCOPE_TAGS = {
     "professional_scope_lane",
 }
 
+_SPECIALIST_COMPOUND_TAGS = {
+    "equipment_specialist_lane",
+    "delivery_margin_control_lane",
+    "trades_precision_schedule_lane",
+    "sales_book_builder_lane",
+    "professional_specialist_lane",
+}
+
 _STABILITY_ANCHOR_TAGS = {
     "consistency_lane",
     "delivery_margin_control_lane",
@@ -196,17 +276,13 @@ _STABILITY_ANCHOR_TAGS = {
     "dispatch_resilience_lane",
     "office_consistency_lane",
     "healthcare_continuity_lane",
-    "sales_book_builder_lane",
     "trades_precision_schedule_lane",
-    "professional_specialist_lane",
     "professional_ops_anchor_lane",
 }
 
 _DEFAULT_STRETCH_BRANCHES = {
     "retail_sales_track",
-    "retail_clienteling_track",
     "warehouse_ops_track",
-    "warehouse_equipment_track",
     "delivery_independent_operator_track",
     "trades_field_crew_track",
     "healthcare_floor_care_track",
@@ -215,20 +291,25 @@ _DEFAULT_STRETCH_BRANCHES = {
     "professional_client_lead_track",
 }
 
+_DEFAULT_SPECIALIST_BRANCHES = {
+    "retail_clienteling_track",
+    "warehouse_equipment_track",
+    "delivery_platform_optimizer_track",
+    "office_compliance_track",
+    "trades_precision_specialist_track",
+    "healthcare_technical_support_track",
+    "sales_account_manager_track",
+    "professional_technical_specialist_track",
+}
+
 _DEFAULT_STABILITY_BRANCHES = {
     "retail_management_track",
     "warehouse_dispatch_track",
-    "delivery_platform_optimizer_track",
     "delivery_route_grind_track",
     "office_operations_track",
     "office_people_track",
-    "office_compliance_track",
-    "trades_precision_specialist_track",
     "trades_estimator_supervisor_track",
-    "healthcare_technical_support_track",
     "healthcare_scheduling_coordination_track",
-    "sales_account_manager_track",
-    "professional_technical_specialist_track",
     "professional_people_ops_track",
 }
 
@@ -249,10 +330,14 @@ def _role_band_label(track_id: str, band_id: str | None) -> str | None:
 def _resolve_role_band_id(state: GameState) -> str:
     tags = set(state.player.persistent_tags)
     branch_id = state.player.career.branch_id
-    if tags & _STABILITY_ANCHOR_TAGS:
-        return "stability_anchor_band"
     if tags & _STRETCH_SCOPE_TAGS:
         return "stretch_scope_band"
+    if tags & _SPECIALIST_COMPOUND_TAGS:
+        return "specialist_compound_band"
+    if tags & _STABILITY_ANCHOR_TAGS:
+        return "stability_anchor_band"
+    if branch_id in _DEFAULT_SPECIALIST_BRANCHES:
+        return "specialist_compound_band"
     if branch_id in _DEFAULT_STABILITY_BRANCHES:
         return "stability_anchor_band"
     if branch_id in _DEFAULT_STRETCH_BRANCHES:

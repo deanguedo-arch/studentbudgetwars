@@ -109,6 +109,8 @@ def _career_tier_score(bundle: ContentBundle, state: GameState) -> float:
         role_band_bonus += min(6, state.player.career.post_cap_advancement_level * 2)
         if state.player.career.role_band_id == "stretch_scope_band" and state.player.career.promotion_momentum >= 60:
             role_band_bonus += 1
+        if state.player.career.role_band_id == "specialist_compound_band" and state.player.credit_score >= 680:
+            role_band_bonus += 1
         if state.player.career.role_band_id == "stability_anchor_band" and state.player.stress <= 68:
             role_band_bonus += 1
     return _clamp_score(tier_share + promotion_buffer + seniority_buffer + streak_bonus + branch_bonus + role_band_bonus)
@@ -218,6 +220,8 @@ def _branch_quality_adjustment(state: GameState) -> float:
         adjustment += 0.9 + (0.35 * player.career.post_cap_advancement_level)
         if player.career.role_band_id == "stretch_scope_band" and player.stress >= 80:
             adjustment -= 0.7
+        if player.career.role_band_id == "specialist_compound_band" and player.credit_score >= 680 and player.debt <= 8000:
+            adjustment += 0.35
         if player.career.role_band_id == "stability_anchor_band" and player.monthly_surplus >= 0:
             adjustment += 0.3
 

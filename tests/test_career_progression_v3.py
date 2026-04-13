@@ -19,6 +19,17 @@ ALL_CAREER_IDS = [
     "degree_gated_professional",
 ]
 
+SPECIALIST_BRANCH_BY_TRACK = {
+    "retail_service": "retail_clienteling_track",
+    "warehouse_logistics": "warehouse_equipment_track",
+    "delivery_gig": "delivery_platform_optimizer_track",
+    "office_admin": "office_compliance_track",
+    "trades_apprenticeship": "trades_precision_specialist_track",
+    "healthcare_support": "healthcare_technical_support_track",
+    "sales": "sales_account_manager_track",
+    "degree_gated_professional": "professional_technical_specialist_track",
+}
+
 
 def _seed_track_state(bundle, controller, track_id: str, *, max_tier: bool = False) -> None:
     state = controller.state
@@ -142,6 +153,51 @@ def test_post_cap_role_bands_create_distinct_income_profiles(bundle, controller_
     assert stretch.state.player.career.role_band_id == "stretch_scope_band"
     assert stable.state.player.career.role_band_id == "stability_anchor_band"
     assert stretch_income > stable_income
+
+
+@pytest.mark.parametrize("track_id", ALL_CAREER_IDS)
+def test_specialist_branches_convert_into_specialist_role_band(bundle, controller_factory, track_id):
+    controller = controller_factory(opening_path_id="full_time_work")
+    _seed_track_state(bundle, controller, track_id, max_tier=True)
+    track = get_career_track(bundle, track_id)
+    controller.state.player.career.branch_id = SPECIALIST_BRANCH_BY_TRACK[track_id]
+    controller.state.player.persistent_tags = []
+    controller.state.player.career.promotion_progress = track.tiers[-1].promotion_target
+
+    maybe_promote(bundle, controller.state)
+
+    assert controller.state.player.career.role_band_id == "specialist_compound_band"
+
+
+@pytest.mark.parametrize("track_id", ALL_CAREER_IDS)
+def test_post_cap_role_bands_create_three_distinct_income_profiles(bundle, controller_factory, track_id):
+    stretch = controller_factory(opening_path_id="full_time_work")
+    specialist = controller_factory(opening_path_id="full_time_work")
+    stable = controller_factory(opening_path_id="full_time_work")
+    track = get_career_track(bundle, track_id)
+
+    for controller in (stretch, specialist, stable):
+        _seed_track_state(bundle, controller, track_id, max_tier=True)
+        controller.state.player.career.promotion_progress = track.tiers[-1].promotion_target
+
+    stretch.state.player.persistent_tags = ["scope_push_lane"]
+    specialist.state.player.persistent_tags = []
+    specialist.state.player.career.branch_id = SPECIALIST_BRANCH_BY_TRACK[track_id]
+    stable.state.player.persistent_tags = ["consistency_lane"]
+
+    maybe_promote(bundle, stretch.state)
+    maybe_promote(bundle, specialist.state)
+    maybe_promote(bundle, stable.state)
+
+    stretch_income = current_income(bundle, stretch.state, 1.0)
+    specialist_income = current_income(bundle, specialist.state, 1.0)
+    stable_income = current_income(bundle, stable.state, 1.0)
+
+    assert stretch.state.player.career.role_band_id == "stretch_scope_band"
+    assert specialist.state.player.career.role_band_id == "specialist_compound_band"
+    assert stable.state.player.career.role_band_id == "stability_anchor_band"
+    assert specialist_income > stable_income
+    assert abs(stretch_income - specialist_income) >= 150
 
 
 def test_all_career_branches_have_branch_specific_events(bundle):
