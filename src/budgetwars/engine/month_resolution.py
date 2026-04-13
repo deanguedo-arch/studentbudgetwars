@@ -489,7 +489,51 @@ def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
         player.stress -= 2
         player.life_satisfaction -= 1
         append_log(state, "Recovery route: transport downgrade cut the financed trap and restored monthly oxygen.")
+    if (
+        player.career.branch_id is not None
+        and state.current_month >= 18
+        and player.stress >= 84
+        and player.energy <= 30
+        and player.monthly_surplus <= -120
+        and player.debt >= 9000
+        and (player.career.promotion_momentum <= 45 or player.career.layoff_pressure >= 10)
+    ):
+        prior_branch = player.career.branch_id
+        player.career.branch_id = None
+        state.pending_promotion_branch_track_id = player.career.track_id
+        player.career.tier_index = max(0, player.career.tier_index - 1)
+        player.career.promotion_progress = min(player.career.promotion_progress, 2)
+        player.career.transition_penalty_months = max(player.career.transition_penalty_months, 2)
+        player.stress -= 3
+        player.energy += 2
+        player.life_satisfaction -= 2
+        player.social_stability += 1
+        append_log(
+            state,
+            "Recovery route: branch reset traded title momentum for survival runway "
+            f"({prior_branch.replace('_', ' ')} reset).",
+        )
     program = get_education_program(bundle, player.education.program_id)
+    if (
+        player.education.is_active
+        and program.can_pause
+        and player.education.intensity_level in {"intensive", "standard"}
+        and player.stress >= 72
+        and player.energy <= 42
+        and player.monthly_surplus <= 40
+        and (player.cash + player.savings) >= 280
+        and (player.cash + player.savings) <= 1300
+    ):
+        next_intensity = "standard" if player.education.intensity_level == "intensive" else "light"
+        if next_intensity != player.education.intensity_level:
+            player.education.intensity_level = next_intensity
+            player.education.education_momentum = min(100, player.education.education_momentum + 3)
+            player.stress -= 2
+            player.energy += 2
+            append_log(
+                state,
+                f"Recovery route: de-intensified education to {next_intensity} so the school lane stays alive.",
+            )
     if (
         player.education.is_active
         and program.can_pause
@@ -536,6 +580,15 @@ def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | 
         return "Recovery route: family fallback is holding the housing line."
     if player.transport.option_id == "transit" and player.monthly_surplus <= 0 and player.debt >= 9000:
         return "Recovery route: transport downgrade reduced the financed-car trap."
+    if (
+        player.career.branch_id is None
+        and state.pending_promotion_branch_track_id == player.career.track_id
+        and player.career.transition_penalty_months > 0
+        and player.career.tier_index >= 1
+    ):
+        return "Recovery route: branch reset bought survival room at the cost of momentum."
+    if player.education.is_active and player.education.intensity_level in {"standard", "light"} and player.stress >= 68:
+        return "Recovery route: education de-intensify is preserving the school lane."
     if player.education.is_paused and player.education.reentry_drag_months > 0:
         return "Recovery route: paused education to stop a burnout spiral."
     if player.wealth_strategy_id in {"cushion_first", "steady_builder"} and player.housing.housing_stability >= 42:

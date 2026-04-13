@@ -578,6 +578,117 @@ def test_education_pause_recovery_route_triggers_under_burnout_and_cash_pressure
     assert any("paused education" in line.lower() for line in controller.state.log_messages)
 
 
+def test_phase6_family_fallback_route_exists_for_hometown_support_and_not_for_metro(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    fallback = controller_factory(opening_path_id="move_out_immediately", city_id="hometown_low_cost")
+    fallback.state.player.housing.option_id = "roommates"
+    fallback.state.player.housing.housing_stability = 30
+    fallback.state.player.family_support = 82
+    fallback.state.player.cash = 60
+    fallback.state.player.savings = 80
+    fallback.state.active_modifiers.append(
+        ActiveMonthlyModifier(
+            id="forced_shortfall",
+            label="Forced Shortfall",
+            remaining_months=1,
+            income_multiplier=0.2,
+            housing_cost_delta=1300,
+        )
+    )
+
+    no_fallback = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    no_fallback.state.player.housing.option_id = "roommates"
+    no_fallback.state.player.housing.housing_stability = 30
+    no_fallback.state.player.family_support = 82
+    no_fallback.state.player.cash = 60
+    no_fallback.state.player.savings = 80
+    no_fallback.state.active_modifiers.append(
+        ActiveMonthlyModifier(
+            id="forced_shortfall",
+            label="Forced Shortfall",
+            remaining_months=1,
+            income_multiplier=0.2,
+            housing_cost_delta=1300,
+        )
+    )
+
+    resolve_month(quiet_bundle, fallback.state, fallback.rng)
+    resolve_month(quiet_bundle, no_fallback.state, no_fallback.rng)
+
+    assert fallback.state.player.housing.option_id == "parents"
+    assert no_fallback.state.player.housing.option_id != "parents"
+
+
+def test_phase6_education_deintensify_route_keeps_school_lane_alive(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(opening_path_id="college_university", city_id="mid_size_city")
+    controller.state.player.education.program_id = "full_time_university"
+    controller.state.player.education.is_active = True
+    controller.state.player.education.is_paused = False
+    controller.state.player.education.intensity_level = "intensive"
+    controller.state.player.stress = 78
+    controller.state.player.energy = 34
+    controller.state.player.cash = 520
+    controller.state.player.savings = 380
+    controller.state.player.monthly_surplus = -20
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert controller.state.player.education.is_active is True
+    assert controller.state.player.education.intensity_level in {"standard", "light"}
+    assert any("de-intensif" in line.lower() for line in controller.state.log_messages)
+
+
+def test_phase6_branch_reset_recovery_route_is_build_dependent(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    reset = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+    reset.change_career("retail_service")
+    reset.state.current_month = 24
+    reset.state.player.career.branch_id = "retail_management_track"
+    reset.state.player.career.tier_index = 2
+    reset.state.player.career.promotion_momentum = 28
+    reset.state.player.stress = 88
+    reset.state.player.energy = 22
+    reset.state.player.monthly_surplus = -180
+    reset.state.player.debt = 12600
+    reset.state.player.cash = 60
+    reset.state.player.savings = 40
+    reset.state.active_modifiers.append(
+        ActiveMonthlyModifier(
+            id="forced_shortfall",
+            label="Forced Shortfall",
+            remaining_months=1,
+            income_multiplier=0.2,
+            housing_cost_delta=1400,
+        )
+    )
+
+    stable = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+    stable.change_career("retail_service")
+    stable.state.current_month = 24
+    stable.state.player.career.branch_id = "retail_management_track"
+    stable.state.player.career.tier_index = 2
+    stable.state.player.career.promotion_momentum = 62
+    stable.state.player.stress = 54
+    stable.state.player.energy = 56
+    stable.state.player.monthly_surplus = 180
+    stable.state.player.debt = 5200
+    stable.state.player.cash = 1200
+    stable.state.player.savings = 900
+
+    resolve_month(quiet_bundle, reset.state, reset.rng)
+    resolve_month(quiet_bundle, stable.state, stable.rng)
+
+    assert reset.state.player.career.branch_id is None
+    assert stable.state.player.career.branch_id == "retail_management_track"
+    assert any("branch reset" in line.lower() for line in reset.state.log_messages)
+
+
 def test_clean_credit_rebuild_route_applies_in_fragile_band(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
