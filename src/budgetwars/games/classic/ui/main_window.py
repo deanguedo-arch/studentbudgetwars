@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-
 import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
 
@@ -12,8 +10,6 @@ from budgetwars.engine.scoring import (
     credit_tier_label,
     dominant_pressure_family,
 )
-from budgetwars.engine.housing import can_switch_housing
-from budgetwars.engine.transport import can_switch_transport
 from budgetwars.models import LiveScoreSnapshot
 
 from .theme import (
@@ -31,345 +27,53 @@ from .panes import (
     configure_dark_combobox_style, configure_dark_menu_style,
     show_event_choice_popup, show_milestone_popup, show_endgame_popup,
 )
-
-
-@dataclass
-class _SetupGroup:
-    key: str
-    title: str
-    prompt: str
-    options: list[tuple[str, str, str]]
-    initial_id: str | None
-
-
-@dataclass(frozen=True)
-class BuildSystemVM:
-    system: str
-    primary: str
-    detail: str | None = None
-    progress: str | None = None
-    tone: str = "neutral"
-
-    @property
-    def label(self) -> str:
-        return self.system
-
-    @property
-    def value(self) -> str:
-        return self.primary
-
-
-@dataclass(frozen=True)
-class BuildSnapshotVM:
-    player_name: str
-    city_name: str
-    identity_line: str | None = None
-    persistent_commitments: list[str] = field(default_factory=list)
-    items: list[BuildSystemVM] = field(default_factory=list)
-
-    @property
-    def headline(self) -> str:
-        return f"{self.player_name} in {self.city_name}"
-
-    @property
-    def systems(self) -> list[BuildSystemVM]:
-        return self.items
-
-
-@dataclass(frozen=True)
-class MonthlyForecastVM:
-    monthly_focus: str
-    main_threat: str
-    best_opportunity: str
-    chosen_focus: str
-    expected_swing: str
-    situation_family: str
-    credit_status: str
-    progress_label: str
-    progress_detail: str
-    progress_fraction: float
-    persistent_commitments: list[str] = field(default_factory=list)
-    recovery_route: str | None = None
-    blocked_doors: list[str] = field(default_factory=list)
-    driver_notes: list[str] = field(default_factory=list)
-    recent_summary: list[str] = field(default_factory=list)
-
-
-@dataclass(frozen=True)
-class PressureMetricVM:
-    label: str
-    primary: str
-    detail: str | None = None
-    tone: str = "neutral"
-
-
-@dataclass(frozen=True)
-class PressureSummaryVM:
-    projected_score: float
-    score_tier: str
-    biggest_risk: str
-    credit_score: int
-    credit_tier: str
-    credit_progress_label: str
-    credit_progress_detail: str
-    credit_progress_fraction: float
-    progress_label: str
-    progress_detail: str
-    progress_fraction: float
-    run_killer: str = ""
-    fastest_fix: str = ""
-    pressure_family: str = ""
-    month_driver: str = ""
-    recovery_route: str | None = None
-    persistent_commitments: list[str] = field(default_factory=list)
-    blocked_doors: list[str] = field(default_factory=list)
-    pending_fallout_count: int = 0
-    pending_decisions: list[str] = field(default_factory=list)
-    primary_metrics: list[PressureMetricVM] = field(default_factory=list)
-    secondary_metrics: list[PressureMetricVM] = field(default_factory=list)
-    active_modifiers: list[str] = field(default_factory=list)
-    crisis_watch: list[str] = field(default_factory=list)
-
-    @property
-    def tier(self) -> str:
-        return self.score_tier
-
-
-@dataclass(frozen=True)
-class ScoreDeltaVM:
-    previous_score: float | None
-    current_score: float
-    delta: float
-    previous_tier: str | None
-    tier: str
-    strongest_category: str
-    weakest_category: str
-    diagnosis: str
-
-    @property
-    def prev_score(self) -> float | None:
-        return self.previous_score
-
-    @property
-    def prev_tier(self) -> str | None:
-        return self.previous_tier
-
-
-@dataclass(frozen=True)
-class LearnTopicVM:
-    id: str
-    title: str
-    what_it_is: str
-    how_to_raise: list[str] = field(default_factory=list)
-    how_to_lower: list[str] = field(default_factory=list)
-    why_it_matters: list[str] = field(default_factory=list)
-    common_drivers: list[str] = field(default_factory=list)
-    related_situation_families: list[str] = field(default_factory=list)
-
-
-@dataclass(frozen=True)
-class LearnDrawerVM:
-    active_pressure_family: str
-    credit_line: str
-    stress_line: str
-    pressure_sources: list[str] = field(default_factory=list)
-    topics: list[LearnTopicVM] = field(default_factory=list)
-
-
-def _lookup_option(options: list[tuple[str, str, str]], value_id: str | None) -> tuple[str, str, str]:
-    if value_id is not None:
-        for option in options:
-            if option[1] == value_id:
-                return option
-    return options[0]
-
-
-def _money(value: int) -> str:
-    return f"${value:,}"
-
-
-def _format_preview(base: str, effects: list[str]) -> str:
-    effects = [item for item in effects if item]
-    if not effects:
-        return base
-    return f"{base} Likely changes: {', '.join(effects)}."
-
-
-_PERSISTENT_TAG_LABELS = {
-    "scope_push_lane": "Scope Push Lane",
-    "consistency_lane": "Consistency Lane",
-    "retail_management_command_lane": "Retail Command Lane",
-    "retail_management_stability_lane": "Retail Stability Lane",
-    "dispatch_command_lane": "Dispatch Command Lane",
-    "dispatch_coordination_lane": "Dispatch Coordination Lane",
-    "office_scope_lane": "Office Scope Lane",
-    "office_consistency_lane": "Office Consistency Lane",
-    "healthcare_triage_command_lane": "Healthcare Triage Command Lane",
-    "healthcare_continuity_lane": "Healthcare Continuity Lane",
-    "trades_emergency_rotation_lane": "Trades Emergency Rotation Lane",
-    "trades_precision_schedule_lane": "Trades Precision Schedule Lane",
-}
-
-
-def _format_persistent_commitments(tags: list[str]) -> list[str]:
-    labels: list[str] = []
-    seen: set[str] = set()
-    for tag in tags:
-        label = _PERSISTENT_TAG_LABELS.get(tag, tag.replace("_", " ").title())
-        if label in seen:
-            continue
-        seen.add(label)
-        labels.append(label)
-    return labels
-
-
-def _signed_label(value: int, label: str, *, unit: str = "") -> str | None:
-    if value == 0:
-        return None
-    suffix = unit or ""
-    return f"{label} {value:+d}{suffix}"
-
-
-def _percent_label(value: float, label: str) -> str | None:
-    if value == 0:
-        return None
-    sign = "+" if value >= 0 else ""
-    return f"{label} {sign}{value * 100:.0f}%"
-
-
-def _career_preview(track) -> str:
-    tier = track.tiers[0]
-    effects = [
-        f"income starts at {_money(tier.monthly_income)}/mo",
-        _signed_label(tier.stress_delta, "stress"),
-        _signed_label(tier.energy_delta, "energy"),
-        _signed_label(tier.life_satisfaction_delta, "life"),
-        f"promotion target {tier.promotion_target}",
-    ]
-    return _format_preview(track.description, [effect for effect in effects if effect])
-
-
-def _career_branch_preview(branch) -> str:
-    effects = [
-        _percent_label(branch.income_multiplier - 1.0, "income"),
-        _signed_label(branch.stress_delta, "stress"),
-        _signed_label(branch.energy_delta, "energy"),
-        _signed_label(branch.promotion_progress_bonus, "promo"),
-        _signed_label(branch.layoff_pressure_delta, "layoff pressure"),
-    ]
-    if branch.min_transport_reliability is not None:
-        effects.append(f"transport {branch.min_transport_reliability}+")
-    if branch.min_social_stability is not None:
-        effects.append(f"social {branch.min_social_stability}+")
-    if branch.min_energy is not None:
-        effects.append(f"energy floor {branch.min_energy}+")
-    if branch.max_stress is not None:
-        effects.append(f"stress cap {branch.max_stress}")
-    return _format_preview(branch.description, [effect for effect in effects if effect])
-
-
-def _housing_preview(option) -> str:
-    effects = [
-        f"rent {_money(option.base_monthly_cost)}/mo",
-        _signed_label(option.stress_delta, "stress"),
-        _signed_label(option.life_satisfaction_delta, "life"),
-        _signed_label(option.social_stability_delta, "social"),
-    ]
-    if option.minimum_credit_score:
-        effects.append(f"credit gate {option.minimum_credit_score}+")
-    return _format_preview(option.description, [effect for effect in effects if effect])
-
-
-def _transport_preview(option, upfront: int, monthly: int) -> str:
-    effects = [
-        f"upfront {_money(upfront)}",
-        f"monthly {_money(monthly)}",
-        f"access {option.access_level}",
-        f"reliability {option.reliability * 100:.0f}%",
-        _signed_label(option.commute_stress_delta, "commute stress"),
-    ]
-    if option.minimum_credit_score:
-        effects.append(f"credit gate {option.minimum_credit_score}+")
-    return _format_preview(option.description, [effect for effect in effects if effect])
-
-
-def _budget_preview(stance) -> str:
-    effects = [
-        f"debt payment x{stance.debt_payment_multiplier:.2f}",
-        f"savings {stance.savings_contribution_rate * 100:.0f}%",
-        _signed_label(stance.stress_delta, "stress"),
-        _signed_label(stance.energy_delta, "energy"),
-        _signed_label(stance.life_satisfaction_delta, "life"),
-        _signed_label(stance.social_stability_delta, "social"),
-    ]
-    return _format_preview(stance.description, [effect for effect in effects if effect])
-
-
-def _wealth_preview(strategy) -> str:
-    effects = [
-        f"emergency floor {_money(strategy.emergency_cash_floor)}",
-        f"debt pay rate {strategy.extra_debt_payment_rate * 100:.0f}%",
-        f"savings {strategy.safe_savings_rate * 100:.0f}%",
-        f"index {strategy.index_invest_rate * 100:.0f}%",
-        f"growth {strategy.growth_invest_rate * 100:.0f}%",
-        f"risk bias {strategy.risk_bias}",
-    ]
-    return _format_preview(strategy.description, effects)
-
-
-def _focus_preview(focus) -> str:
-    effects = [
-        f"income x{focus.income_multiplier:.2f}",
-        _signed_label(focus.promotion_progress_bonus, "promo"),
-        _signed_label(focus.education_progress_bonus, "education"),
-        _signed_label(focus.stress_delta, "stress"),
-        _signed_label(focus.energy_delta, "energy"),
-        _signed_label(focus.life_satisfaction_delta, "life"),
-        _signed_label(focus.social_stability_delta, "social"),
-    ]
-    return _format_preview(focus.description, [effect for effect in effects if effect])
-
-
-def _education_intensity_options(program) -> list[tuple[str, str, str]]:
-    return [
-        (
-            "Standard",
-            "standard",
-            _format_preview(
-                "Normal pace and stress.",
-                [
-                    "baseline progress",
-                    "school stays balanced with the rest of the run",
-                ],
-            ),
-        ),
-        (
-            "Intensive",
-            "intensive",
-            _format_preview(
-                "Higher cost, higher stress, better GPA trend.",
-                [
-                    "stress +3",
-                    "energy -2",
-                    "progress stronger",
-                    "best when you can afford to push the school lane",
-                ],
-            ),
-        ),
-        (
-            "Light",
-            "light",
-            _format_preview(
-                "Lower cost, lower stress, risk of slipping GPA.",
-                [
-                    "stress -2",
-                    "energy +1",
-                    "progress softer",
-                    "good when you need recovery more than speed",
-                ],
-            ),
-        ),
-    ]
+from .choice_previews import (
+    _budget_preview,
+    _career_branch_preview,
+    _career_preview,
+    _education_intensity_options,
+    _focus_preview,
+    _housing_preview,
+    _money,
+    _transport_preview,
+    _wealth_preview,
+)
+from .diagnostics import (
+    _best_breakdown_category,
+    _best_recovery_route,
+    _blocked_door_lines,
+    _build_crisis_warnings,
+    _build_month_outlook_lines,
+    _diagnosis_for_family,
+    _pending_decision_lines,
+    _pressure_map_lines,
+    _run_progress_fraction,
+    _run_progress_text,
+    _score_progress_fraction,
+    _score_progress_text,
+)
+from .setup_dialog import (
+    _lookup_option,
+    build_setup_summary_lines,
+    compute_setup_dialog_geometry,
+)
+from .view_builders import (
+    _current_focus_description,
+    _current_focus_name,
+    _format_persistent_commitments,
+    _resolve_context,
+)
+from .view_models import (
+    BuildSnapshotVM,
+    BuildSystemVM,
+    LearnDrawerVM,
+    LearnTopicVM,
+    MonthlyForecastVM,
+    PressureMetricVM,
+    PressureSummaryVM,
+    ScoreDeltaVM,
+    _SetupGroup,
+)
 
 
 def should_use_compact_layout(width: int, height: int) -> bool:
@@ -404,335 +108,6 @@ def _configure_dark_notebook_style(master: tk.Misc) -> str:
         foreground=[("selected", TEXT_HEADING), ("active", TEXT_HEADING)],
     )
     return style_name
-
-
-def compute_setup_dialog_geometry(
-    *,
-    parent_x: int,
-    parent_y: int,
-    parent_width: int,
-    parent_height: int,
-    screen_width: int,
-    screen_height: int,
-) -> tuple[int, int, int, int]:
-    margin = 24
-    width_cap = max(640, min(parent_width - margin * 2, screen_width - margin * 2, 1320))
-    height_cap = max(560, min(parent_height - margin * 2, screen_height - margin * 2, 860))
-    width = min(max(860, int(parent_width * 0.84)), width_cap)
-    height = min(max(600, int(parent_height * 0.84)), height_cap)
-    x = parent_x + max(margin, (parent_width - width) // 2)
-    y = parent_y + max(margin, (parent_height - height) // 2)
-    x = max(0, min(x, screen_width - width))
-    y = max(0, min(y, screen_height - height))
-    return x, y, width, height
-
-
-@dataclass(frozen=True)
-class _Context:
-    state: object
-    bundle: object
-
-
-def _resolve_context(source, bundle=None) -> _Context:
-    if bundle is None and hasattr(source, "state") and hasattr(source, "bundle"):
-        return _Context(state=source.state, bundle=source.bundle)
-    if bundle is not None:
-        return _Context(state=source, bundle=bundle)
-    raise TypeError("Expected a controller or a (state, bundle) pair.")
-
-
-def _find_label(options: list, value_id: str, default: str = "") -> str:
-    for option in options:
-        if option.id == value_id:
-            return option.name
-    return default
-
-
-def _current_focus_name(controller) -> str:
-    player = controller.state.player
-    return _find_label(controller.bundle.focus_actions, player.selected_focus_action_id, "Focus")
-
-
-def _current_focus_description(controller) -> str:
-    player = controller.state.player
-    for option in controller.bundle.focus_actions:
-        if option.id == player.selected_focus_action_id:
-            return option.description
-    return "Choose a monthly focus."
-
-
-def _current_career_tier_label(controller) -> str:
-    state = controller.state
-    track = next(track for track in controller.bundle.careers if track.id == state.player.career.track_id)
-    return track.tiers[state.player.career.tier_index].label
-
-
-def _current_career_track_name(controller) -> str:
-    state = controller.state
-    track = next(track for track in controller.bundle.careers if track.id == state.player.career.track_id)
-    return track.name
-
-
-def _current_city(controller) -> str:
-    city = next(item for item in controller.bundle.cities if item.id == controller.state.player.current_city_id)
-    return city.name
-
-
-def _build_crisis_warnings(state, bundle) -> list[str]:
-    player = state.player
-    warnings: list[str] = []
-    if player.credit_score < 580:
-        warnings.append(f"Credit is limiting housing and transport options ({player.credit_score}).")
-    elif player.credit_score < 670:
-        warnings.append(f"Credit is still fair; some housing and transport doors stay narrow ({player.credit_score}).")
-    if player.debt >= state.debt_game_over_threshold * bundle.config.crisis_warning_debt_ratio:
-        warnings.append("Debt is getting close to collections.")
-    if player.stress >= bundle.config.crisis_warning_stress:
-        warnings.append("Stress is getting close to burnout territory.")
-    if player.energy <= bundle.config.crisis_warning_energy:
-        warnings.append("Energy is dangerously low.")
-    if player.energy < 30:
-        warnings.append("Energy is capping your income - overtime and gig hours are unreliable.")
-    if player.housing.missed_payment_streak >= bundle.config.crisis_warning_housing_streak:
-        warnings.append("Housing stability is wobbling.")
-    if player.education.failure_streak >= max(1, state.academic_failure_streak_limit - 1):
-        warnings.append("School pressure is close to a hard setback.")
-    if player.housing.housing_stability <= 40:
-        warnings.append("Housing stability is sliding and may cascade into stress.")
-    if player.transport.reliability_score <= 45:
-        warnings.append("Transport reliability is now threatening your work consistency.")
-    if player.career.transition_penalty_months > 0:
-        warnings.append("Career transition drag is still active.")
-    if player.social_stability <= 35:
-        warnings.append("Social isolation is dragging down recovery and performance.")
-    if player.social_stability > 80:
-        current_year = ((state.current_month - 1) // 12) + 1
-        if player.last_social_lifeline_year < current_year:
-            warnings.append("Your strong network can bail you out once this year if things go bad.")
-    warnings.extend(_blocked_door_lines(state, bundle))
-    if state.pending_events:
-        warnings.append(f"Something is building - {len(state.pending_events)} consequence(s) pending.")
-    if state.pending_promotion_branch_track_id:
-        warnings.append("A promotion branch decision is pending.")
-    return warnings
-
-
-def _blocked_door_lines(state, bundle) -> list[str]:
-    player = state.player
-    blocked: list[str] = []
-    if player.housing_id != "solo_rental":
-        solo_allowed, solo_reason = can_switch_housing(bundle, state, "solo_rental")
-        if not solo_allowed and ("credit" in solo_reason.lower() or "debt" in solo_reason.lower() or "lease" in solo_reason.lower()):
-            blocked.append(f"Solo rental blocked: {solo_reason}")
-    if player.transport_id != "financed_car":
-        financed_allowed, financed_reason = can_switch_transport(bundle, state, "financed_car")
-        if not financed_allowed and (
-            "credit" in financed_reason.lower()
-            or "debt" in financed_reason.lower()
-            or "payment" in financed_reason.lower()
-            or "cash" in financed_reason.lower()
-        ):
-            blocked.append(f"Financed car blocked: {financed_reason}")
-    return blocked
-
-
-def _best_recovery_route(state, bundle) -> str | None:
-    player = state.player
-    current_year = ((state.current_month - 1) // 12) + 1
-    if (
-        player.stress >= 78
-        and player.social_stability >= 74
-        and player.family_support >= 62
-        and player.last_social_lifeline_year < current_year
-    ):
-        return "Best recovery route: your network can absorb one bad month if you stop forcing upside."
-    if (
-        player.credit_score >= 705
-        and player.debt >= 2600
-        and player.monthly_surplus >= 0
-        and player.housing.missed_payment_streak == 0
-    ):
-        return "Best recovery route: strong credit can unlock debt relief if you keep the month clean."
-    if (
-        player.housing.housing_stability <= 34
-        and player.current_city_id == "hometown_low_cost"
-        and player.family_support >= bundle.config.minimum_parent_fallback_support + 8
-        and player.housing.option_id != "parents"
-    ):
-        return "Best recovery route: move back home to stop the housing spiral before it compounds."
-    if (
-        player.housing.option_id in {"roommates", "solo_rental"}
-        and player.housing.housing_stability <= 35
-        and (player.housing.missed_payment_streak > 0 or player.monthly_surplus < 0)
-        and ((player.savings + player.high_interest_savings) >= 900 or player.emergency_liquidation_count > 0)
-        and player.wealth_strategy_id in {"cushion_first", "steady_builder"}
-    ):
-        return "Best recovery route: spend the cash buffer to stabilize housing instead of forcing growth."
-    if player.stress >= 72:
-        return "Best recovery route: run a recovery month and stop stacking pressure on a fragile turn."
-    return None
-
-
-def _pending_decision_lines(state, bundle) -> list[str]:
-    lines: list[str] = []
-    pending_event = state.pending_user_choice_event
-    if pending_event is not None:
-        lines.append(f"Situation choice pending: {pending_event.name}")
-    elif state.pending_user_choice_event_id:
-        event = next((item for item in bundle.events if item.id == state.pending_user_choice_event_id), None)
-        label = event.name if event is not None else state.pending_user_choice_event_id.replace("_", " ").title()
-        lines.append(f"Situation choice pending: {label}")
-    if state.pending_promotion_branch_track_id:
-        track = next((item for item in bundle.careers if item.id == state.pending_promotion_branch_track_id), None)
-        lane = track.name if track is not None else state.pending_promotion_branch_track_id.replace("_", " ").title()
-        lines.append(f"Promotion branch pending: {lane}")
-    return lines
-
-
-def _build_month_outlook_lines(state, bundle) -> list[str]:
-    player = state.player
-    city = next(item for item in bundle.cities if item.id == player.current_city_id)
-    focus_name = _find_label(bundle.focus_actions, player.selected_focus_action_id, "Focus")
-    credit_tier = credit_tier_label(player.credit_score)
-    credit_progress_label, credit_progress_detail, _ = credit_progress_summary(player.credit_score)
-    outlook = [
-        f"{city.name}: {city.opportunity_text}",
-        f"Pressure: {city.pressure_text}",
-        f"Current lane: {player.career.track_id.replace('_', ' ').title()}.",
-        f"Focus: {focus_name}.",
-        f"Credit: {player.credit_score} ({credit_tier})",
-        f"{credit_progress_label}: {credit_progress_detail}",
-        f"Situation family: {dominant_pressure_family(state)}.",
-    ]
-    outlook.extend(_build_crisis_warnings(state, bundle))
-    return outlook
-
-
-def _best_breakdown_category(breakdown: dict[str, float], *, reverse: bool) -> str:
-    labels = {
-        "net_worth": "Net Worth",
-        "monthly_surplus": "Cash Flow",
-        "debt_ratio": "Debt",
-        "career_tier": "Career",
-        "credentials_education": "Education",
-        "housing_stability": "Housing",
-        "life_satisfaction": "Life",
-        "stress_burnout": "Wellness",
-    }
-    key = max(breakdown, key=breakdown.get) if reverse else min(breakdown, key=breakdown.get)
-    return labels.get(key, key.replace("_", " ").title())
-
-
-def _score_progress_text(score: float) -> tuple[str, str]:
-    if score < 40:
-        return "Progress to Silver", f"{40 - score:.1f} points"
-    if score < 60:
-        return "Progress to Gold", f"{60 - score:.1f} points"
-    if score < 80:
-        return "Progress to Elite", f"{80 - score:.1f} points"
-    return "Progress", "Top tier reached"
-
-
-def _score_progress_fraction(score: float) -> float:
-    if score < 40:
-        return max(0.0, min(1.0, score / 40))
-    if score < 60:
-        return max(0.0, min(1.0, (score - 40) / 20))
-    if score < 80:
-        return max(0.0, min(1.0, (score - 60) / 20))
-    return 1.0
-
-
-def _diagnosis_for_family(state) -> tuple[str, str]:
-    family = dominant_pressure_family(state)
-    player = state.player
-    if family == "Credit pressure":
-        return ("Run killer: credit squeeze", "Fastest fix: stabilize monthly swing and stop debt growth.")
-    if family == "Debt pressure":
-        return ("Run killer: debt spiral", "Fastest fix: move to debt payoff and protect surplus.")
-    if family == "Housing squeeze":
-        return ("Run killer: unstable housing", "Fastest fix: reduce rent pressure or use fallback housing.")
-    if family == "Transport friction":
-        return ("Run killer: transport fragility", "Fastest fix: switch into reliability before pushing career.")
-    if family == "Education pressure":
-        return ("Run killer: school drag", "Fastest fix: lower education intensity until stress stabilizes.")
-    if family == "Career turbulence":
-        return ("Run killer: career turbulence", "Fastest fix: hold one lane and rebuild momentum.")
-    if family == "Situation fallout":
-        return ("Run killer: chained situations", "Fastest fix: clear active pressure cards before forcing upside.")
-    if player.stress >= 75:
-        return ("Run killer: burnout pressure", "Fastest fix: run recovery focus and protect sleep/energy.")
-    return ("Run killer: none dominant", "Fastest fix: push your strongest lane while holding stability.")
-
-
-def _run_progress_text(state) -> tuple[str, str]:
-    current_month = state.current_month
-    total_months = state.total_months
-    months_complete = max(0, current_month - 1)
-    run_pct = (months_complete / max(1, total_months)) * 100
-    return (
-        "Run progress",
-        f"Month {current_month} of {total_months} | {run_pct:.0f}% complete",
-    )
-
-
-def _run_progress_fraction(state) -> float:
-    return max(0.0, min(1.0, (max(0, state.current_month - 1)) / max(1, state.total_months)))
-
-
-def _pressure_map_lines(state, bundle) -> list[str]:
-    player = state.player
-    focus_name = player.selected_focus_action_id.replace("_", " ")
-    candidates: list[tuple[int, str]] = []
-
-    work_pressure = player.stress + max(0, player.career.transition_penalty_months * 10)
-    if player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
-        work_pressure += 10
-    candidates.append((
-        work_pressure,
-        f"Work overload {'rising' if work_pressure >= 70 else 'stable'}: {focus_name.title()} and {player.career.track_id.replace('_', ' ')} are pushing recovery.",
-    ))
-
-    if player.housing.housing_stability <= 65 or player.housing.missed_payment_streak > 0:
-        housing_pressure = (100 - player.housing.housing_stability) + (player.housing.missed_payment_streak * 15)
-        candidates.append((
-            housing_pressure,
-            f"Housing squeeze {'rising' if housing_pressure >= 55 else 'stable'}: stability is {player.housing.housing_stability}/100 in {player.housing.option_id.replace('_', ' ')}.",
-        ))
-
-    if player.transport.reliability_score <= 70 or player.transport.breakdown_pressure > 0:
-        transport_pressure = (100 - player.transport.reliability_score) + (player.transport.breakdown_pressure * 10)
-        candidates.append((
-            transport_pressure,
-            f"Transport friction {'rising' if transport_pressure >= 55 else 'stable'}: reliability is {player.transport.reliability_score}/100 with {player.transport.option_id.replace('_', ' ')}.",
-        ))
-
-    debt_pressure = max(0, min(100, int(player.debt / 120))) + (20 if player.monthly_surplus < 0 else 0)
-    if player.debt > 0 or player.credit_score < 670:
-        candidates.append((
-            debt_pressure,
-            f"Debt anxiety {'rising' if debt_pressure >= 45 else 'stable'}: debt is {_money(player.debt)} and credit is {player.credit_score}.",
-        ))
-
-    if player.education.is_active or player.education.standing < 65:
-        education_pressure = (100 - player.education.standing) + (player.education.failure_streak * 12)
-        candidates.append((
-            education_pressure,
-            f"Education pressure {'rising' if education_pressure >= 50 else 'stable'}: standing is {player.education.standing}/100.",
-        ))
-
-    if player.social_stability <= 45 or player.family_support <= 40:
-        support_pressure = (100 - player.social_stability) + max(0, 50 - player.family_support)
-        candidates.append((
-            support_pressure,
-            f"Support strain {'rising' if support_pressure >= 55 else 'stable'}: family/social buffers are thin this month.",
-        ))
-
-    candidates.sort(key=lambda item: item[0], reverse=True)
-    lines = [text for score, text in candidates if score > 0][:3]
-    if not lines:
-        return ["Pressure is fairly stable. Your monthly focus will drive most of the next swing."]
-    return lines
 
 
 def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
@@ -969,55 +344,6 @@ def build_score_delta_summary(
 
 def build_learn_drawer(source, bundle=None) -> LearnDrawerVM:
     return build_learn_drawer_vm(source, bundle)
-
-
-def build_setup_summary_lines(bundle, selections: dict[str, str], player_name: str) -> list[str]:
-    preset = next(item for item in bundle.presets if item.id == selections["preset_id"])
-    city = next(item for item in bundle.cities if item.id == selections["city_id"])
-    academic = next(item for item in bundle.config.academic_levels if item.id == selections["academic_level_id"])
-    support = next(item for item in bundle.config.family_support_levels if item.id == selections["family_support_level_id"])
-    savings = next(item for item in bundle.config.savings_bands if item.id == selections["savings_band_id"])
-    path = next(item for item in bundle.config.opening_paths if item.id == selections["opening_path_id"])
-    difficulty = next(item for item in bundle.difficulties if item.id == selections["difficulty_id"])
-    opening_cash = preset.starting_cash + savings.cash_delta
-    opening_savings = preset.starting_savings + savings.savings_delta
-    opening_debt = preset.starting_debt + savings.debt_delta
-    opening_net = opening_cash + opening_savings - opening_debt
-    tags: list[str] = []
-    if opening_net >= 0:
-        tags.append("Safe Start")
-    if opening_debt > opening_cash + opening_savings:
-        tags.append("Debt Risk")
-    if support.name.lower() in {"high", "strong", "best", "excellent"} or support.description.lower().find("family") >= 0:
-        tags.append("Beginner Friendly")
-    if academic.name.lower() in {"average", "strong", "excellent"}:
-        tags.append("High Upside")
-    if not tags:
-        tags.append("Rough Start")
-    forecast = "You can likely absorb a mistake early." if opening_net >= 0 else "You will need to protect cash flow early."
-    return [
-        f"Player: {player_name or 'Player'}",
-        "",
-        "Opening Identity",
-        "Your Start",
-        f"Preset: {preset.name}",
-        f"City: {city.name}",
-        "",
-        "Opening Lane",
-        "Your Pressure",
-        f"Path: {path.name}",
-        f"Academics: {academic.name}",
-        f"Family support: {support.name}",
-        f"Starting cushion: {savings.name}",
-        "",
-        "Run Preview",
-        "Your Best Edge",
-        f"Cash: {_money(opening_cash)} | Savings: {_money(opening_savings)} | Debt: {_money(opening_debt)}",
-        f"Opening net worth: {_money(opening_net)}",
-        f"Forecast: {forecast}",
-        f"Tags: {', '.join(tags)}",
-        f"Difficulty: {difficulty.name}",
-    ]
 
 
 def build_learn_drawer_vm(source, bundle=None) -> LearnDrawerVM:
