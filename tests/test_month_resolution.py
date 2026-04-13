@@ -143,6 +143,40 @@ def test_phase_status_arc_education_drag_hurts_standing_in_quiet_month(bundle, c
     assert slipping.state.player.education.standing < clean.state.player.education.standing
 
 
+def test_phase_status_arc_lease_warning_starts_and_enforcement_escalates_arc(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    state = controller.state
+    state.current_month = 14
+    state.player.housing.option_id = "solo_rental"
+    state.player.housing.housing_stability = 36
+    state.player.credit_score = 552
+    state.player.debt = 12600
+    state.player.cash = 140
+    state.player.savings = 0
+    state.player.monthly_surplus = -220
+
+    lease_warning = next(item for item in bundle.events if item.id == "lease_default_warning")
+    enforcement = next(item for item in bundle.events if item.id == "lease_enforcement_notice")
+
+    resolve_event(bundle, state, lease_warning)
+
+    assert len(state.active_status_arcs) == 1
+    first_arc = state.active_status_arcs[0]
+    assert first_arc.arc_id == "lease_pressure"
+    assert first_arc.source_event_id == "lease_default_warning"
+    first_months = first_arc.remaining_months
+
+    resolve_event_choice(bundle, state, "lease_default_warning", "borrow_to_cover_shortfall")
+    resolve_event(bundle, state, enforcement)
+
+    assert len(state.active_status_arcs) == 1
+    lease_arc = state.active_status_arcs[0]
+    assert lease_arc.arc_id == "lease_pressure"
+    assert lease_arc.source_event_id == "lease_enforcement_notice"
+    assert lease_arc.remaining_months > first_months
+    assert lease_arc.severity == 3
+
+
 def test_career_tracks_produce_distinct_monthly_income(bundle, controller_factory):
     warehouse = controller_factory(opening_path_id="full_time_work")
     sales = controller_factory(opening_path_id="gap_year_mixed_hustle", city_id="high_opportunity_metro")

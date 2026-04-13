@@ -842,6 +842,43 @@ def test_phase_status_arc_education_raises_probation_followup_pressure(bundle, c
     assert event_weight(bundle, slipping.state, probation) > event_weight(bundle, clean.state, probation)
 
 
+def test_phase_status_arc_lease_raises_followup_pressure_and_score_penalty(bundle, controller_factory):
+    stable = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    pressured = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    stable.state.current_month = 14
+    stable.state.player.housing.option_id = "parents"
+    stable.state.player.housing.housing_stability = 82
+    stable.state.player.credit_score = 742
+    stable.state.player.debt = 1800
+    stable.state.player.monthly_surplus = 320
+
+    pressured.state.current_month = 14
+    pressured.state.player.housing.option_id = "solo_rental"
+    pressured.state.player.housing.housing_stability = 34
+    pressured.state.player.credit_score = 556
+    pressured.state.player.debt = 12200
+    pressured.state.player.cash = 120
+    pressured.state.player.savings = 0
+    pressured.state.player.monthly_surplus = -220
+    start_status_arc(
+        bundle,
+        pressured.state,
+        "lease_pressure",
+        source_event_id="lease_default_warning",
+        duration_months=4,
+        severity=2,
+    )
+
+    enforcement = next(event for event in bundle.events if event.id == "lease_enforcement_notice")
+
+    stable_score = calculate_final_score(bundle, stable.state).final_score
+    pressured_score = calculate_final_score(bundle, pressured.state).final_score
+
+    assert event_weight(bundle, pressured.state, enforcement) > event_weight(bundle, stable.state, enforcement)
+    assert pressured_score < stable_score
+
+
 def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):
     strong_bundle = bundle.model_copy(deep=True)
     strong_bundle.config = strong_bundle.config.model_copy(

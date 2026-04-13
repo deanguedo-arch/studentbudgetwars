@@ -58,6 +58,24 @@ _EVENT_START_RULES = {
         "severity": 3,
         "note": "Funding pressure is compounding the school slide.",
     },
+    "rent_increase": {
+        "arc_id": "lease_pressure",
+        "duration_months": 2,
+        "severity": 1,
+        "note": "Rent pressure is starting to tighten the housing lane.",
+    },
+    "lease_default_warning": {
+        "arc_id": "lease_pressure",
+        "duration_months": 4,
+        "severity": 2,
+        "note": "Housing instability is now an active lease problem, not just a tight month.",
+    },
+    "lease_enforcement_notice": {
+        "arc_id": "lease_pressure",
+        "duration_months": 4,
+        "severity": 3,
+        "note": "Lease pressure has escalated into enforcement risk.",
+    },
 }
 
 _CHOICE_RULES = {
@@ -278,4 +296,13 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.14 + severity_bonus
         elif event_id == "overtime_exam_collision":
             multiplier *= 1.08 + (0.06 * education_arc.severity)
+    lease_arc = get_active_status_arc(state, "lease_pressure")
+    if lease_arc is not None:
+        severity_bonus = 0.08 * lease_arc.severity
+        if event_id == "lease_default_warning":
+            multiplier *= 1.12 + severity_bonus
+        elif event_id == "lease_enforcement_notice":
+            multiplier *= 1.16 + severity_bonus
+        elif event_id == "rent_increase":
+            multiplier *= 1.06 + (0.05 * lease_arc.severity)
     return multiplier

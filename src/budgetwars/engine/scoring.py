@@ -265,6 +265,8 @@ def _status_arc_pressure_adjustment(state: GameState) -> float:
             adjustment -= 0.4 + (0.35 * arc.severity)
         elif arc.arc_id == "education_slipping":
             adjustment -= 0.45 + (0.4 * arc.severity)
+        elif arc.arc_id == "lease_pressure":
+            adjustment -= 0.55 + (0.45 * arc.severity)
     return max(-4.5, min(0.0, adjustment))
 
 
