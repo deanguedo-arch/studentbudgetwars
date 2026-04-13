@@ -139,7 +139,8 @@
       "trades_apprenticeship",
       "healthcare_support",
       "sales",
-      "degree_gated_professional"
+      "degree_gated_professional",
+      "delivery_gig"
     ],
     "eligible_education_ids": [],
     "eligible_opening_path_ids": [],
@@ -4168,5 +4169,882 @@
       }
     ],
     "log_entry": "Strong support created a temporary recovery bridge."
+  },
+  {
+    "id": "delivery_route_crush_week",
+    "name": "Route Crush Week",
+    "description": "Dense route clustering created a short window for better cash if you can keep your vehicle and body intact.",
+    "weight": 4,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_branch_ids": [
+      "delivery_route_grind_track"
+    ],
+    "choices": [
+      {
+        "id": "stack_the_route",
+        "label": "Stack the route",
+        "description": "Take the extra volume and accept more physical wear.",
+        "stat_effects": {
+          "cash": 190,
+          "promotion_progress": 2,
+          "stress": 2,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_the_vehicle",
+        "label": "Protect the vehicle",
+        "description": "Keep the route cleaner and preserve reliability.",
+        "stat_effects": {
+          "cash": 80,
+          "stress": -1,
+          "promotion_progress": 1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Route-grind delivery work turned into a volume-versus-wear decision."
+  },
+  {
+    "id": "delivery_stack_rebalance_window",
+    "name": "Stack Rebalance Window",
+    "description": "A cleaner platform mix opened up. You can commit to margin discipline or squeeze another surge month.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_branch_ids": [
+      "delivery_platform_optimizer_track"
+    ],
+    "choices": [
+      {
+        "id": "lock_margin_discipline",
+        "label": "Lock margin discipline",
+        "description": "Cut low-quality orders and build a steadier route book.",
+        "stat_effects": {
+          "cash": 140,
+          "promotion_progress": 2,
+          "stress": -1,
+          "social_stability": 1
+        },
+        "persistent_tag": "delivery_margin_control_lane"
+      },
+      {
+        "id": "milk_the_surge",
+        "label": "Milk the surge",
+        "description": "Push the temporary routing edge harder this month.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 2,
+          "energy": -1
+        }
+      }
+    ],
+    "log_entry": "Platform optimization opened a real margin-versus-volume fork."
+  },
+  {
+    "id": "delivery_operator_contract_bid",
+    "name": "Operator Contract Bid",
+    "description": "A local contract lane opened. You can bid for bigger scope or keep your operator setup lighter and more recoverable.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_branch_ids": [
+      "delivery_independent_operator_track"
+    ],
+    "choices": [
+      {
+        "id": "bid_for_scope",
+        "label": "Bid for scope",
+        "description": "Push into a larger route promise with better upside and more pressure.",
+        "stat_effects": {
+          "cash": 240,
+          "promotion_progress": 3,
+          "stress": 3,
+          "energy": -1
+        },
+        "persistent_tag": "delivery_surge_scope_lane"
+      },
+      {
+        "id": "keep_operator_flexible",
+        "label": "Keep it flexible",
+        "description": "Protect your recovery room and preserve optionality.",
+        "stat_effects": {
+          "cash": 130,
+          "promotion_progress": 1,
+          "stress": -1,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Independent-operator delivery created a scope-versus-flexibility decision."
+  },
+  {
+    "id": "delivery_margin_discipline_compound",
+    "name": "Margin Discipline Compound",
+    "description": "Your tighter routing discipline is compounding. Bank the cleaner lane or spend it for a short-term push.",
+    "weight": 3,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_persistent_tags": [
+      "delivery_margin_control_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_cleaner_margin",
+        "label": "Bank cleaner margin",
+        "description": "Convert routing discipline into steadier advancement.",
+        "stat_effects": {
+          "cash": 120,
+          "promotion_progress": 1,
+          "stress": -2,
+          "social_stability": 1
+        }
+      },
+      {
+        "id": "spend_margin_buffer",
+        "label": "Spend the buffer",
+        "description": "Use your cleaner book for a harder push this month.",
+        "stat_effects": {
+          "cash": 180,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Margin-first delivery play created a compounding reliability edge."
+  },
+  {
+    "id": "delivery_surge_scope_backlash",
+    "name": "Surge Scope Backlash",
+    "description": "The bigger operator lane is paying, but the strain is starting to show. Keep pushing or protect the base you built.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_persistent_tags": [
+      "delivery_surge_scope_lane"
+    ],
+    "choices": [
+      {
+        "id": "hold_the_contract_push",
+        "label": "Hold the push",
+        "description": "Keep the larger lane and accept the fatigue cost.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "trim_route_promises",
+        "label": "Trim promises",
+        "description": "Reduce strain and give back some short-term upside.",
+        "stat_effects": {
+          "cash": 70,
+          "promotion_progress": 1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Scope-first delivery play created a recurring pressure fork."
+  },
+  {
+    "id": "trades_field_crew_weather_crunch",
+    "name": "Field Crew Weather Crunch",
+    "description": "A rough weather run turned crew reliability into a direct advancement test.",
+    "weight": 4,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_branch_ids": [
+      "trades_field_crew_track"
+    ],
+    "choices": [
+      {
+        "id": "push_the_crew_day",
+        "label": "Push the day",
+        "description": "Keep the job moving and take the physical hit.",
+        "stat_effects": {
+          "cash": 180,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_the_pace",
+        "label": "Protect the pace",
+        "description": "Slow the day down and preserve your body and transport.",
+        "stat_effects": {
+          "cash": 70,
+          "promotion_progress": 1,
+          "stress": -1,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Field-crew trades play turned into a grind-versus-recovery decision."
+  },
+  {
+    "id": "trades_precision_quote_window",
+    "name": "Precision Quote Window",
+    "description": "A cleaner specialist quote landed on your desk. You can protect the quality premium or stretch for faster output.",
+    "weight": 4,
+    "min_month": 16,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_branch_ids": [
+      "trades_precision_specialist_track"
+    ],
+    "choices": [
+      {
+        "id": "protect_the_quality_premium",
+        "label": "Protect quality",
+        "description": "Keep the specialist reputation clean and bank steady growth.",
+        "stat_effects": {
+          "cash": 140,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      },
+      {
+        "id": "sprint_the_quote",
+        "label": "Sprint the quote",
+        "description": "Use the clean work to press more volume now.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 2
+        }
+      }
+    ],
+    "log_entry": "Precision-specialist trades play opened a quality-versus-throughput fork."
+  },
+  {
+    "id": "trades_scope_change_order_wave",
+    "name": "Scope Change-Order Wave",
+    "description": "Supervisor-side scope changes are piling up. You can own the negotiation load or protect schedule stability.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_branch_ids": [
+      "trades_estimator_supervisor_track"
+    ],
+    "choices": [
+      {
+        "id": "own_the_change_orders",
+        "label": "Own the changes",
+        "description": "Take the coordination pressure for better advancement leverage.",
+        "stat_effects": {
+          "cash": 190,
+          "promotion_progress": 2,
+          "stress": 3,
+          "social_stability": -1
+        }
+      },
+      {
+        "id": "stabilize_the_scope",
+        "label": "Stabilize scope",
+        "description": "Reduce churn and accept a smaller short-term win.",
+        "stat_effects": {
+          "cash": 90,
+          "promotion_progress": 1,
+          "stress": -1,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Estimator-supervisor trades play created a scope-versus-stability decision."
+  },
+  {
+    "id": "healthcare_floor_care_double_shift",
+    "name": "Floor Care Double Shift",
+    "description": "Coverage collapsed and the unit is leaning on you. You can absorb the extra load or protect recovery.",
+    "weight": 4,
+    "min_month": 14,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_branch_ids": [
+      "healthcare_floor_care_track"
+    ],
+    "choices": [
+      {
+        "id": "cover_the_floor_gap",
+        "label": "Cover the gap",
+        "description": "Take the extra shift and accept the fatigue hit.",
+        "stat_effects": {
+          "cash": 170,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_shift_recovery",
+        "label": "Protect recovery",
+        "description": "Stay available without fully eating the staffing gap.",
+        "stat_effects": {
+          "cash": 60,
+          "promotion_progress": 1,
+          "stress": -1,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Floor-care healthcare play became a load-versus-recovery fork."
+  },
+  {
+    "id": "healthcare_technical_device_window",
+    "name": "Device Specialist Window",
+    "description": "A technical device-support problem opened a cleaner advancement lane if you can manage it well.",
+    "weight": 4,
+    "min_month": 16,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_branch_ids": [
+      "healthcare_technical_support_track"
+    ],
+    "choices": [
+      {
+        "id": "take_the_device_lead",
+        "label": "Take device lead",
+        "description": "Own the fix and take the short-term pressure.",
+        "stat_effects": {
+          "cash": 180,
+          "promotion_progress": 2,
+          "stress": 2,
+          "energy": -1
+        }
+      },
+      {
+        "id": "stage_the_support_fix",
+        "label": "Stage the fix",
+        "description": "Protect consistency and keep the lane steadier.",
+        "stat_effects": {
+          "cash": 90,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Technical-support healthcare play opened a clean specialist decision."
+  },
+  {
+    "id": "healthcare_schedule_gap_cascade",
+    "name": "Schedule Gap Cascade",
+    "description": "Coordination gaps are spilling into patient flow. You can triage the board hard or preserve team stability.",
+    "weight": 4,
+    "min_month": 16,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_branch_ids": [
+      "healthcare_scheduling_coordination_track"
+    ],
+    "choices": [
+      {
+        "id": "triage_the_gap_board",
+        "label": "Triage the board",
+        "description": "Push the schedule hard and take a stress spike.",
+        "stat_effects": {
+          "cash": 160,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -1
+        }
+      },
+      {
+        "id": "protect_team_stability",
+        "label": "Protect stability",
+        "description": "Reduce churn and accept slower visible gains.",
+        "stat_effects": {
+          "cash": 70,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 2
+        }
+      }
+    ],
+    "log_entry": "Scheduling healthcare play created a pressure-versus-stability choice."
+  },
+  {
+    "id": "sales_volume_sprint_window",
+    "name": "Volume Sprint Window",
+    "description": "A sprint board opened. You can lean into hunter mode or protect your close-rate baseline.",
+    "weight": 4,
+    "min_month": 16,
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_branch_ids": [
+      "sales_volume_closer_track"
+    ],
+    "choices": [
+      {
+        "id": "lean_into_hunter_mode",
+        "label": "Lean into hunter mode",
+        "description": "Push hard for upside and accept the stress profile.",
+        "stat_effects": {
+          "cash": 260,
+          "promotion_progress": 3,
+          "stress": 3,
+          "energy": -1
+        },
+        "persistent_tag": "sales_hunter_lane"
+      },
+      {
+        "id": "protect_close_rate",
+        "label": "Protect close rate",
+        "description": "Keep the month cleaner and avoid overextending the book.",
+        "stat_effects": {
+          "cash": 140,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Volume-closing sales play opened a hunter-versus-consistency fork."
+  },
+  {
+    "id": "sales_renewal_book_window",
+    "name": "Renewal Book Window",
+    "description": "A cleaner renewal book is within reach. Build the relationship base or squeeze it for a harder month.",
+    "weight": 4,
+    "min_month": 16,
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_branch_ids": [
+      "sales_account_manager_track"
+    ],
+    "choices": [
+      {
+        "id": "build_the_book",
+        "label": "Build the book",
+        "description": "Turn the account lane into steadier recurring value.",
+        "stat_effects": {
+          "cash": 170,
+          "promotion_progress": 2,
+          "stress": -1,
+          "social_stability": 2
+        },
+        "persistent_tag": "sales_book_builder_lane"
+      },
+      {
+        "id": "squeeze_the_quarter",
+        "label": "Squeeze the quarter",
+        "description": "Pull more revenue now at a relationship cost.",
+        "stat_effects": {
+          "cash": 230,
+          "promotion_progress": 2,
+          "stress": 2,
+          "social_stability": -1
+        }
+      }
+    ],
+    "log_entry": "Account-manager sales play became a book-building decision."
+  },
+  {
+    "id": "sales_enterprise_cycle_window",
+    "name": "Enterprise Cycle Window",
+    "description": "A longer-cycle deal can move your ceiling if you are willing to own the strategic drag and visibility.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_branch_ids": [
+      "sales_enterprise_strategy_track"
+    ],
+    "choices": [
+      {
+        "id": "take_the_strategic_cycle",
+        "label": "Take strategic scope",
+        "description": "Own the harder cycle and chase the bigger upside lane.",
+        "stat_effects": {
+          "cash": 240,
+          "promotion_progress": 3,
+          "stress": 2,
+          "energy": -1
+        },
+        "persistent_tag": "sales_strategic_scope_lane"
+      },
+      {
+        "id": "protect_pipeline_quality",
+        "label": "Protect pipeline quality",
+        "description": "Keep the lane healthier and avoid overloading the cycle.",
+        "stat_effects": {
+          "cash": 130,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Enterprise sales opened a scope-versus-pipeline discipline choice."
+  },
+  {
+    "id": "sales_hunter_pressure_cycle",
+    "name": "Hunter Pressure Cycle",
+    "description": "Hunter-mode selling is paying, but the pace is becoming the whole run. Keep pushing or reclaim some recoverability.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_persistent_tags": [
+      "sales_hunter_lane"
+    ],
+    "choices": [
+      {
+        "id": "ride_the_pressure_cycle",
+        "label": "Ride the cycle",
+        "description": "Take the upside and absorb the stress load.",
+        "stat_effects": {
+          "cash": 230,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "reclaim_recovery_blocks",
+        "label": "Reclaim recovery",
+        "description": "Protect your base and accept a smaller win.",
+        "stat_effects": {
+          "cash": 90,
+          "promotion_progress": 1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Hunter-mode sales created a recurring pressure fork."
+  },
+  {
+    "id": "sales_book_compound_window",
+    "name": "Book Compound Window",
+    "description": "Relationship discipline is compounding into a cleaner revenue book. Bank it or spend it for a harder quarter.",
+    "weight": 3,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_persistent_tags": [
+      "sales_book_builder_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_the_book",
+        "label": "Bank the book",
+        "description": "Turn trust into steadier long-run momentum.",
+        "stat_effects": {
+          "cash": 150,
+          "promotion_progress": 1,
+          "stress": -2,
+          "social_stability": 2
+        }
+      },
+      {
+        "id": "press_the_book",
+        "label": "Press the book",
+        "description": "Use your clean book for an immediate push.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Book-building sales play opened a compounding stability edge."
+  },
+  {
+    "id": "sales_strategic_scope_dividend",
+    "name": "Strategic Scope Dividend",
+    "description": "The harder strategic lane is starting to pay off. Keep the broader scope or trim the politics around it.",
+    "weight": 3,
+    "min_month": 24,
+    "eligible_career_ids": [
+      "sales"
+    ],
+    "eligible_persistent_tags": [
+      "sales_strategic_scope_lane"
+    ],
+    "choices": [
+      {
+        "id": "keep_the_broader_scope",
+        "label": "Keep broader scope",
+        "description": "Hold the long-cycle lane and take the added pressure.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 2,
+          "social_stability": -1
+        }
+      },
+      {
+        "id": "trim_the_politics",
+        "label": "Trim the politics",
+        "description": "Protect consistency and keep the longer game alive.",
+        "stat_effects": {
+          "cash": 110,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Strategic-scope sales play created a recurring leadership fork."
+  },
+  {
+    "id": "professional_deep_work_breakthrough",
+    "name": "Deep-Work Breakthrough",
+    "description": "A harder technical problem landed in your lane. You can own the deep work and turn it into specialist leverage.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "degree_gated_professional"
+    ],
+    "eligible_branch_ids": [
+      "professional_technical_specialist_track"
+    ],
+    "choices": [
+      {
+        "id": "own_the_specialist_work",
+        "label": "Own the specialist work",
+        "description": "Take the harder work and build a deeper expertise lane.",
+        "stat_effects": {
+          "cash": 230,
+          "promotion_progress": 3,
+          "stress": 2,
+          "energy": -1
+        },
+        "persistent_tag": "professional_specialist_lane"
+      },
+      {
+        "id": "protect_execution_bandwidth",
+        "label": "Protect bandwidth",
+        "description": "Keep the month cleaner and avoid overloading your focus.",
+        "stat_effects": {
+          "cash": 120,
+          "promotion_progress": 1,
+          "stress": -1,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Technical professional work opened a depth-versus-bandwidth decision."
+  },
+  {
+    "id": "professional_stakeholder_pitch_cycle",
+    "name": "Stakeholder Pitch Cycle",
+    "description": "A broader stakeholder ask opened. You can take the visible scope or protect your current lane.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "degree_gated_professional"
+    ],
+    "eligible_branch_ids": [
+      "professional_client_lead_track"
+    ],
+    "choices": [
+      {
+        "id": "take_visible_scope",
+        "label": "Take visible scope",
+        "description": "Own the pitch cycle and accept the political load.",
+        "stat_effects": {
+          "cash": 250,
+          "promotion_progress": 3,
+          "stress": 3,
+          "social_stability": -1
+        },
+        "persistent_tag": "professional_scope_lane"
+      },
+      {
+        "id": "protect_delivery_quality",
+        "label": "Protect delivery quality",
+        "description": "Keep the month steadier and avoid overextending your credibility.",
+        "stat_effects": {
+          "cash": 130,
+          "promotion_progress": 1,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Client-lead professional work became a scope-versus-delivery decision."
+  },
+  {
+    "id": "professional_team_systems_rollout",
+    "name": "Team Systems Rollout",
+    "description": "An ops-heavy systems rollout needs an owner. You can anchor the team lane or push it harder for faster upside.",
+    "weight": 4,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "degree_gated_professional"
+    ],
+    "eligible_branch_ids": [
+      "professional_people_ops_track"
+    ],
+    "choices": [
+      {
+        "id": "anchor_the_team_system",
+        "label": "Anchor the system",
+        "description": "Turn the rollout into a steadier operations reputation.",
+        "stat_effects": {
+          "cash": 160,
+          "promotion_progress": 2,
+          "stress": 0,
+          "social_stability": 2
+        },
+        "persistent_tag": "professional_ops_anchor_lane"
+      },
+      {
+        "id": "push_the_rollout_scope",
+        "label": "Push rollout scope",
+        "description": "Use the system work for a harder visibility push.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 2,
+          "energy": -1
+        }
+      }
+    ],
+    "log_entry": "People-ops professional work opened a systems-versus-scope fork."
+  },
+  {
+    "id": "professional_scope_politics_wave",
+    "name": "Scope Politics Wave",
+    "description": "Visible-scope work is paying, but now the politics come with it. Keep the stretch lane or reclaim stability.",
+    "weight": 4,
+    "min_month": 24,
+    "eligible_career_ids": [
+      "degree_gated_professional"
+    ],
+    "eligible_persistent_tags": [
+      "professional_scope_lane"
+    ],
+    "choices": [
+      {
+        "id": "hold_the_visible_lane",
+        "label": "Hold the lane",
+        "description": "Keep the visibility and pay the pressure cost.",
+        "stat_effects": {
+          "cash": 240,
+          "promotion_progress": 2,
+          "stress": 3,
+          "social_stability": -1
+        }
+      },
+      {
+        "id": "recenter_the_scope",
+        "label": "Recenter scope",
+        "description": "Protect your baseline and slow the pace slightly.",
+        "stat_effects": {
+          "cash": 100,
+          "promotion_progress": 1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Scope-first professional play created a recurring politics fork."
+  },
+  {
+    "id": "professional_specialist_reputation_dividend",
+    "name": "Specialist Reputation Dividend",
+    "description": "Your specialist reputation is compounding into cleaner work and better trust. Bank it or spend it for a push.",
+    "weight": 3,
+    "min_month": 24,
+    "eligible_career_ids": [
+      "degree_gated_professional"
+    ],
+    "eligible_persistent_tags": [
+      "professional_specialist_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_reputation_dividend",
+        "label": "Bank reputation",
+        "description": "Turn deeper trust into steadier long-run momentum.",
+        "stat_effects": {
+          "cash": 160,
+          "promotion_progress": 1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      },
+      {
+        "id": "spend_the_reputation",
+        "label": "Spend reputation",
+        "description": "Use the stronger reputation for immediate upside.",
+        "stat_effects": {
+          "cash": 230,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Specialist-first professional play opened a compounding trust edge."
+  },
+  {
+    "id": "professional_ops_stability_dividend",
+    "name": "Ops Stability Dividend",
+    "description": "Your steadier systems work is paying off. Keep the clean lane or convert it into broader scope now.",
+    "weight": 3,
+    "min_month": 24,
+    "eligible_career_ids": [
+      "degree_gated_professional"
+    ],
+    "eligible_persistent_tags": [
+      "professional_ops_anchor_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_ops_trust",
+        "label": "Bank ops trust",
+        "description": "Turn stability into cleaner momentum and lower pressure.",
+        "stat_effects": {
+          "cash": 150,
+          "promotion_progress": 1,
+          "stress": -2,
+          "social_stability": 2
+        }
+      },
+      {
+        "id": "convert_ops_to_scope",
+        "label": "Convert to scope",
+        "description": "Spend the cleaner systems lane for a harder month.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Ops-anchor professional play created a compounding stability fork."
   }
 ]

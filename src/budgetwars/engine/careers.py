@@ -9,6 +9,263 @@ from .effects import append_log
 from .lookups import get_career_track, get_city, get_current_career_tier, get_transport_option
 
 
+_TRACK_ROLE_BANDS: dict[str, dict[str, dict[str, int | float | str]]] = {
+    "retail_service": {
+        "stretch_scope_band": {
+            "label": "Scope-Heavy Lead",
+            "income_multiplier": 1.09,
+            "base_income_bonus": 120,
+            "income_step_bonus": 55,
+            "monthly_stress_delta": 2,
+            "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Retention Anchor",
+            "income_multiplier": 1.04,
+            "base_income_bonus": 60,
+            "income_step_bonus": 30,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+    "warehouse_logistics": {
+        "stretch_scope_band": {
+            "label": "Network Command",
+            "income_multiplier": 1.08,
+            "base_income_bonus": 135,
+            "income_step_bonus": 60,
+            "monthly_stress_delta": 2,
+            "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Reliability Foreman",
+            "income_multiplier": 1.04,
+            "base_income_bonus": 70,
+            "income_step_bonus": 34,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+    "delivery_gig": {
+        "stretch_scope_band": {
+            "label": "Independent Operator",
+            "income_multiplier": 1.1,
+            "base_income_bonus": 100,
+            "income_step_bonus": 50,
+            "monthly_stress_delta": 1,
+            "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Route Anchor",
+            "income_multiplier": 1.03,
+            "base_income_bonus": 45,
+            "income_step_bonus": 24,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+    "office_admin": {
+        "stretch_scope_band": {
+            "label": "Ops Scope Owner",
+            "income_multiplier": 1.08,
+            "base_income_bonus": 115,
+            "income_step_bonus": 52,
+            "monthly_stress_delta": 2,
+            "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Execution Anchor",
+            "income_multiplier": 1.04,
+            "base_income_bonus": 58,
+            "income_step_bonus": 28,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+    "trades_apprenticeship": {
+        "stretch_scope_band": {
+            "label": "Emergency Crew Lead",
+            "income_multiplier": 1.09,
+            "base_income_bonus": 145,
+            "income_step_bonus": 62,
+            "monthly_stress_delta": 2,
+            "monthly_energy_delta": -2,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Precision Lead",
+            "income_multiplier": 1.04,
+            "base_income_bonus": 68,
+            "income_step_bonus": 32,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+    "healthcare_support": {
+        "stretch_scope_band": {
+            "label": "Triage Command",
+            "income_multiplier": 1.08,
+            "base_income_bonus": 120,
+            "income_step_bonus": 56,
+            "monthly_stress_delta": 2,
+            "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Continuity Lead",
+            "income_multiplier": 1.04,
+            "base_income_bonus": 62,
+            "income_step_bonus": 30,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+    "sales": {
+        "stretch_scope_band": {
+            "label": "Stretch Territory Closer",
+            "income_multiplier": 1.12,
+            "base_income_bonus": 140,
+            "income_step_bonus": 70,
+            "monthly_stress_delta": 2,
+            "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Book Builder",
+            "income_multiplier": 1.05,
+            "base_income_bonus": 70,
+            "income_step_bonus": 36,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+    "degree_gated_professional": {
+        "stretch_scope_band": {
+            "label": "High-Scope Principal",
+            "income_multiplier": 1.09,
+            "base_income_bonus": 150,
+            "income_step_bonus": 74,
+            "monthly_stress_delta": 2,
+            "monthly_energy_delta": -1,
+            "momentum_delta": 1,
+        },
+        "stability_anchor_band": {
+            "label": "Trusted Specialist",
+            "income_multiplier": 1.05,
+            "base_income_bonus": 76,
+            "income_step_bonus": 38,
+            "monthly_stress_delta": -1,
+            "monthly_energy_delta": 0,
+            "momentum_delta": 0,
+        },
+    },
+}
+
+_STRETCH_SCOPE_TAGS = {
+    "scope_push_lane",
+    "delivery_surge_scope_lane",
+    "retail_management_command_lane",
+    "retail_management_crisis_lead_lane",
+    "dispatch_command_lane",
+    "dispatch_escalation_lane",
+    "office_scope_lane",
+    "healthcare_triage_command_lane",
+    "sales_hunter_lane",
+    "sales_strategic_scope_lane",
+    "trades_emergency_rotation_lane",
+    "professional_scope_lane",
+}
+
+_STABILITY_ANCHOR_TAGS = {
+    "consistency_lane",
+    "delivery_margin_control_lane",
+    "retail_management_stability_lane",
+    "retail_management_sustainable_ops_lane",
+    "dispatch_coordination_lane",
+    "dispatch_resilience_lane",
+    "office_consistency_lane",
+    "healthcare_continuity_lane",
+    "sales_book_builder_lane",
+    "trades_precision_schedule_lane",
+    "professional_specialist_lane",
+    "professional_ops_anchor_lane",
+}
+
+_DEFAULT_STRETCH_BRANCHES = {
+    "retail_sales_track",
+    "retail_clienteling_track",
+    "warehouse_ops_track",
+    "warehouse_equipment_track",
+    "delivery_independent_operator_track",
+    "trades_field_crew_track",
+    "healthcare_floor_care_track",
+    "sales_volume_closer_track",
+    "sales_enterprise_strategy_track",
+    "professional_client_lead_track",
+}
+
+_DEFAULT_STABILITY_BRANCHES = {
+    "retail_management_track",
+    "warehouse_dispatch_track",
+    "delivery_platform_optimizer_track",
+    "delivery_route_grind_track",
+    "office_operations_track",
+    "office_people_track",
+    "office_compliance_track",
+    "trades_precision_specialist_track",
+    "trades_estimator_supervisor_track",
+    "healthcare_technical_support_track",
+    "healthcare_scheduling_coordination_track",
+    "sales_account_manager_track",
+    "professional_technical_specialist_track",
+    "professional_people_ops_track",
+}
+
+
+def _role_band_settings(track_id: str, band_id: str | None) -> dict[str, int | float | str] | None:
+    if not band_id:
+        return None
+    return _TRACK_ROLE_BANDS.get(track_id, {}).get(band_id)
+
+
+def _role_band_label(track_id: str, band_id: str | None) -> str | None:
+    settings = _role_band_settings(track_id, band_id)
+    if settings is None:
+        return None
+    return str(settings["label"])
+
+
+def _resolve_role_band_id(state: GameState) -> str:
+    tags = set(state.player.persistent_tags)
+    branch_id = state.player.career.branch_id
+    if tags & _STABILITY_ANCHOR_TAGS:
+        return "stability_anchor_band"
+    if tags & _STRETCH_SCOPE_TAGS:
+        return "stretch_scope_band"
+    if branch_id in _DEFAULT_STABILITY_BRANCHES:
+        return "stability_anchor_band"
+    if branch_id in _DEFAULT_STRETCH_BRANCHES:
+        return "stretch_scope_band"
+    if state.player.career.recent_performance_tag == "uptrend" and state.player.career.promotion_momentum >= 70:
+        return "stretch_scope_band"
+    return "stability_anchor_band"
+
+
+def current_role_band_label(state: GameState) -> str | None:
+    return _role_band_label(state.player.career.track_id, state.player.career.role_band_id)
+
+
 def can_enter_career(bundle: ContentBundle, state: GameState, career_id: str) -> tuple[bool, str]:
     track = get_career_track(bundle, career_id)
     player = state.player
@@ -119,6 +376,10 @@ def current_income(bundle: ContentBundle, state: GameState, income_multiplier: f
     )
     if branch is not None:
         income *= branch.income_multiplier
+    role_band = _role_band_settings(track.id, state.player.career.role_band_id)
+    if role_band is not None:
+        income = (income * float(role_band["income_multiplier"])) + int(role_band["base_income_bonus"])
+        income += int(role_band["income_step_bonus"]) * state.player.career.post_cap_advancement_level
     return max(0, int(round(income)))
 
 
@@ -220,6 +481,14 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
         state.player.energy += branch.energy_delta
         state.player.stress += branch.stress_delta
         state.player.career.layoff_pressure = max(0, state.player.career.layoff_pressure + branch.layoff_pressure_delta)
+    role_band = _role_band_settings(track.id, state.player.career.role_band_id)
+    if role_band is not None:
+        state.player.energy += int(role_band["monthly_energy_delta"])
+        state.player.stress += int(role_band["monthly_stress_delta"])
+        state.player.career.promotion_momentum = max(
+            0,
+            min(100, state.player.career.promotion_momentum + int(role_band["momentum_delta"])),
+        )
     state.player.life_satisfaction += tier.life_satisfaction_delta
     state.player.social_stability += tier.social_stability_delta
     state.player.career.months_in_track += 1
@@ -260,20 +529,21 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
 def add_promotion_progress(bundle: ContentBundle, state: GameState, bonus: int) -> None:
     track = get_career_track(bundle, state.player.career.track_id)
     branch = _current_branch(bundle, state)
-    progress_gain = 1 + max(0, bonus)
+    progress_gain = 1 if bonus > 0 else 0
+    progress_gain += min(1, max(0, bonus))
     if branch is not None:
-        progress_gain += branch.promotion_progress_bonus
+        progress_gain += min(1, max(0, branch.promotion_progress_bonus))
     if state.player.career.recent_performance_tag == "uptrend":
         progress_gain += 1
     elif state.player.career.recent_performance_tag == "downtrend":
         progress_gain -= 1
-    if state.player.energy >= 55:
+    if state.player.energy >= 65 and state.player.stress <= 60:
         progress_gain += 1
-    if state.player.stress >= 80:
+    if state.player.stress >= 76:
         progress_gain -= 1
-    if state.player.social_stability >= 60 and track.social_income_factor > 0:
+    if state.player.social_stability >= 68 and track.social_income_factor > 0:
         progress_gain += 1
-    if state.player.career.promotion_momentum >= 68:
+    if state.player.career.promotion_momentum >= 75:
         progress_gain += 1
     if state.player.career.promotion_momentum <= 30:
         progress_gain -= 1
@@ -283,6 +553,7 @@ def add_promotion_progress(bundle: ContentBundle, state: GameState, bonus: int) 
         progress_gain -= 1
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
     progress_gain = max(0, int(round(progress_gain * difficulty.progress_multiplier * track.promotion_weight)))
+    progress_gain = min(progress_gain, 4)
     state.player.career.promotion_progress += progress_gain
 
 
@@ -331,6 +602,25 @@ def promotion_blockers(bundle: ContentBundle, state: GameState) -> list[str]:
 def maybe_promote(bundle: ContentBundle, state: GameState) -> None:
     track = get_career_track(bundle, state.player.career.track_id)
     if state.player.career.tier_index >= len(track.tiers) - 1:
+        final_target = track.tiers[-1].promotion_target
+        if state.player.career.promotion_progress < final_target:
+            return
+        band_id = _resolve_role_band_id(state)
+        band_label = _role_band_label(track.id, band_id) or band_id.replace("_", " ").title()
+        if state.player.career.role_band_id != band_id:
+            state.player.career.role_band_id = band_id
+            state.player.career.post_cap_advancement_level = max(1, state.player.career.post_cap_advancement_level)
+            state.player.career.promotion_progress = 0
+            state.player.career.promotion_momentum = min(100, state.player.career.promotion_momentum + 5)
+            append_log(state, f"Late-career band locked in: {band_label}.")
+            return
+        state.player.career.post_cap_advancement_level = min(3, state.player.career.post_cap_advancement_level + 1)
+        state.player.career.promotion_progress = 0
+        state.player.career.promotion_momentum = min(100, state.player.career.promotion_momentum + 4)
+        append_log(
+            state,
+            f"Late-career raise: {band_label} level {state.player.career.post_cap_advancement_level}.",
+        )
         return
     if promotion_blockers(bundle, state):
         return

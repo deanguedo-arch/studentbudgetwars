@@ -3,6 +3,7 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
 
+from budgetwars.engine.careers import current_role_band_label
 from budgetwars.core import GameSession, StartupOptions
 from budgetwars.engine.scoring import (
     build_live_score_snapshot,
@@ -125,10 +126,17 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
     wealth = next(item for item in controller.bundle.wealth_strategies if item.id == player.wealth_strategy_id)
     focus = next(item for item in controller.bundle.focus_actions if item.id == player.selected_focus_action_id)
     branch = next((item for item in career_track.branches if item.id == player.career.branch_id), None)
+    role_band_label = current_role_band_label(state)
     focus_name = _current_focus_name(controller)
     career_progress = f"Progress: {player.career.promotion_progress}/{career_track.tiers[player.career.tier_index].promotion_target}"
     if player.career.tier_index >= len(career_track.tiers) - 1:
-        career_progress = f"Progress: max tier reached | momentum {player.career.promotion_momentum}"
+        if role_band_label:
+            career_progress = (
+                f"Late-career: {role_band_label} L{player.career.post_cap_advancement_level} | "
+                f"momentum {player.career.promotion_momentum}"
+            )
+        else:
+            career_progress = f"Progress: max tier reached | momentum {player.career.promotion_momentum}"
     education_progress = (
         f"Progress: {player.education.months_completed}/{next((program.duration_months for program in controller.bundle.education_programs if program.id == player.education.program_id), 0)} months"
         if player.education.is_active and player.education.program_id != "none"
@@ -182,9 +190,11 @@ def build_build_snapshot_vm(source, bundle=None) -> BuildSnapshotVM:
             "focus",
         ),
     ]
-    identity_line = (
-        f"{career_track.name} | {branch.name if branch is not None else 'Uncommitted lane'} | {wealth.name}"
-    )
+    identity_parts = [career_track.name, branch.name if branch is not None else "Uncommitted lane"]
+    if role_band_label:
+        identity_parts.append(role_band_label)
+    identity_parts.append(wealth.name)
+    identity_line = " | ".join(identity_parts)
     commitments = _format_persistent_commitments(player.persistent_tags)
     return BuildSnapshotVM(
         player_name=player.name,

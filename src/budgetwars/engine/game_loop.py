@@ -218,6 +218,8 @@ class GameController:
         self.state.player.stress += self.bundle.config.career_switch_stress_cost
         self.state.player.career.track_id = career_id
         self.state.player.career.branch_id = None
+        self.state.player.career.role_band_id = None
+        self.state.player.career.post_cap_advancement_level = 0
         self.state.pending_promotion_branch_track_id = None
         self.state.player.career.tier_index = 0
         self.state.player.career.months_in_track = 0
@@ -245,6 +247,8 @@ class GameController:
         track = get_career_track(self.bundle, self.state.player.career.track_id)
         branch = next(item for item in track.branches if item.id == branch_id)
         self.state.player.career.branch_id = branch_id
+        self.state.player.career.role_band_id = None
+        self.state.player.career.post_cap_advancement_level = 0
         self.state.pending_promotion_branch_track_id = None
         self.state.player.career.promotion_momentum = min(100, self.state.player.career.promotion_momentum + 4)
         resolve_status_arc(self.state, "promotion_window_open")

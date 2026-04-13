@@ -88,6 +88,20 @@ def test_build_snapshot_surfaces_persistent_commitments(controller_factory):
     assert "Dispatch Command Lane" in snapshot.persistent_commitments
 
 
+def test_build_snapshot_surfaces_late_career_band(controller_factory):
+    controller = controller_factory(opening_path_id="full_time_work")
+    controller.state.player.career.track_id = "office_admin"
+    controller.state.player.career.tier_index = 4
+    controller.state.player.career.branch_id = "office_operations_track"
+    controller.state.player.career.role_band_id = "stretch_scope_band"
+    controller.state.player.career.post_cap_advancement_level = 2
+
+    snapshot = build_build_snapshot(controller.state, controller.bundle)
+
+    assert "Ops Scope Owner" in snapshot.identity_line
+    assert "Late-career" in snapshot.items[0].progress
+
+
 def test_monthly_forecast_exposes_named_sections(controller_factory):
     controller = controller_factory()
 

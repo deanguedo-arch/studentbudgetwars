@@ -40,6 +40,8 @@ class CareerState(BaseModel):
     tier_index: int = Field(ge=0, default=0)
     months_in_track: int = Field(ge=0, default=0)
     promotion_progress: int = Field(ge=0, default=0)
+    role_band_id: str | None = None
+    post_cap_advancement_level: int = Field(ge=0, default=0)
     layoff_pressure: int = Field(ge=0, default=0)
     promotion_momentum: int = Field(ge=0, le=100, default=45)
     transition_penalty_months: int = Field(ge=0, default=0)
