@@ -121,6 +121,7 @@ class PressureSummaryVM:
     pressure_family: str = ""
     month_driver: str = ""
     recovery_route: str | None = None
+    persistent_commitments: list[str] = field(default_factory=list)
     blocked_doors: list[str] = field(default_factory=list)
     pending_fallout_count: int = 0
     pending_decisions: list[str] = field(default_factory=list)
@@ -201,6 +202,12 @@ _PERSISTENT_TAG_LABELS = {
     "retail_management_stability_lane": "Retail Stability Lane",
     "dispatch_command_lane": "Dispatch Command Lane",
     "dispatch_coordination_lane": "Dispatch Coordination Lane",
+    "office_scope_lane": "Office Scope Lane",
+    "office_consistency_lane": "Office Consistency Lane",
+    "healthcare_triage_command_lane": "Healthcare Triage Command Lane",
+    "healthcare_continuity_lane": "Healthcare Continuity Lane",
+    "trades_emergency_rotation_lane": "Trades Emergency Rotation Lane",
+    "trades_precision_schedule_lane": "Trades Precision Schedule Lane",
 }
 
 
@@ -890,6 +897,7 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
     )
     blocked_doors = _blocked_door_lines(state, controller.bundle)
     recovery_route = _best_recovery_route(state, controller.bundle)
+    commitments = _format_persistent_commitments(player.persistent_tags)
     pending_decisions = _pending_decision_lines(state, controller.bundle)
     return PressureSummaryVM(
         projected_score=snapshot.projected_score,
@@ -908,6 +916,7 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
         pressure_family=pressure_family,
         month_driver=month_driver,
         recovery_route=recovery_route,
+        persistent_commitments=commitments,
         blocked_doors=blocked_doors,
         pending_fallout_count=len(state.pending_events),
         pending_decisions=pending_decisions,

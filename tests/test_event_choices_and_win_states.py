@@ -234,6 +234,90 @@ def test_dispatch_promotion_choice_alters_future_event_pool(bundle, controller_f
     assert "dispatch_fire_drill" not in coordination_ids
 
 
+def test_office_lane_commitment_choice_alters_future_event_pool(bundle, controller_factory) -> None:
+    execution = controller_factory(opening_path_id="full_time_work")
+    execution.state.current_month = 24
+    execution.state.player.career.track_id = "office_admin"
+    execution.state.player.career.tier_index = 3
+    execution.state.player.social_stability = 66
+    offer = next(item for item in bundle.events if item.id == "office_advancement_charter")
+    resolve_event(bundle, execution.state, offer)
+    execution.resolve_event_choice("take_operating_scope")
+    execution.state.active_modifiers = []
+    execution_ids = {event.id for event in eligible_events(bundle, execution.state)}
+
+    consistency = controller_factory(opening_path_id="full_time_work")
+    consistency.state.current_month = 24
+    consistency.state.player.career.track_id = "office_admin"
+    consistency.state.player.career.tier_index = 3
+    consistency.state.player.social_stability = 66
+    resolve_event(bundle, consistency.state, offer)
+    consistency.resolve_event_choice("bank_operating_consistency")
+    consistency.state.active_modifiers = []
+    consistency_ids = {event.id for event in eligible_events(bundle, consistency.state)}
+
+    assert "office_scope_overflow_wave" in execution_ids
+    assert "office_consistency_flywheel" not in execution_ids
+    assert "office_consistency_flywheel" in consistency_ids
+    assert "office_scope_overflow_wave" not in consistency_ids
+
+
+def test_healthcare_lane_commitment_choice_alters_future_event_pool(bundle, controller_factory) -> None:
+    command = controller_factory(opening_path_id="full_time_work")
+    command.state.current_month = 24
+    command.state.player.career.track_id = "healthcare_support"
+    command.state.player.career.tier_index = 3
+    command.state.player.social_stability = 64
+    offer = next(item for item in bundle.events if item.id == "healthcare_shift_lead_offer")
+    resolve_event(bundle, command.state, offer)
+    command.resolve_event_choice("take_triage_command")
+    command.state.active_modifiers = []
+    command_ids = {event.id for event in eligible_events(bundle, command.state)}
+
+    continuity = controller_factory(opening_path_id="full_time_work")
+    continuity.state.current_month = 24
+    continuity.state.player.career.track_id = "healthcare_support"
+    continuity.state.player.career.tier_index = 3
+    continuity.state.player.social_stability = 64
+    resolve_event(bundle, continuity.state, offer)
+    continuity.resolve_event_choice("protect_care_continuity")
+    continuity.state.active_modifiers = []
+    continuity_ids = {event.id for event in eligible_events(bundle, continuity.state)}
+
+    assert "healthcare_triage_surge" in command_ids
+    assert "healthcare_continuity_protocol_win" not in command_ids
+    assert "healthcare_continuity_protocol_win" in continuity_ids
+    assert "healthcare_triage_surge" not in continuity_ids
+
+
+def test_trades_lane_commitment_choice_alters_future_event_pool(bundle, controller_factory) -> None:
+    expansion = controller_factory(opening_path_id="full_time_work")
+    expansion.state.current_month = 24
+    expansion.state.player.career.track_id = "trades_apprenticeship"
+    expansion.state.player.career.tier_index = 3
+    expansion.state.player.transport.reliability_score = 74
+    offer = next(item for item in bundle.events if item.id == "trades_crew_lead_offer")
+    resolve_event(bundle, expansion.state, offer)
+    expansion.resolve_event_choice("take_emergency_call_rotation")
+    expansion.state.active_modifiers = []
+    expansion_ids = {event.id for event in eligible_events(bundle, expansion.state)}
+
+    precision = controller_factory(opening_path_id="full_time_work")
+    precision.state.current_month = 24
+    precision.state.player.career.track_id = "trades_apprenticeship"
+    precision.state.player.career.tier_index = 3
+    precision.state.player.transport.reliability_score = 74
+    resolve_event(bundle, precision.state, offer)
+    precision.resolve_event_choice("anchor_precision_schedule")
+    precision.state.active_modifiers = []
+    precision_ids = {event.id for event in eligible_events(bundle, precision.state)}
+
+    assert "trades_emergency_callout_wave" in expansion_ids
+    assert "trades_quality_contract_pipeline" not in expansion_ids
+    assert "trades_quality_contract_pipeline" in precision_ids
+    assert "trades_emergency_callout_wave" not in precision_ids
+
+
 def test_persistent_career_tag_is_saved_on_choice(bundle, controller_factory) -> None:
     controller = controller_factory()
     event = next(item for item in bundle.events if item.id == "promotion_window")

@@ -2783,6 +2783,451 @@
     "log_entry": "Compliance debt became a direct promotion drag."
   },
   {
+    "id": "office_advancement_charter",
+    "name": "Office Advancement Charter",
+    "description": "Leadership is opening a higher-visibility charter. You can run broader scope now or lock in a steadier execution lane.",
+    "weight": 3,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "minimum_social_stability": 56,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_operating_scope",
+        "label": "Take operating scope",
+        "description": "Own a wider queue and accept the added pressure load.",
+        "stat_effects": {
+          "cash": 230,
+          "stress": 3,
+          "promotion_progress": 4,
+          "energy": -1
+        },
+        "modifier": {
+          "id": "office_scope_load",
+          "label": "Office Scope Load",
+          "duration_months": 8,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.04,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "office_scope_lane"
+      },
+      {
+        "id": "bank_operating_consistency",
+        "label": "Bank consistency",
+        "description": "Keep the operating lane clean and convert reliability into steadier growth.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": 1,
+          "social_stability": 2,
+          "promotion_progress": 2,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "office_consistency_rhythm",
+          "label": "Office Consistency Rhythm",
+          "duration_months": 8,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.02,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "office_consistency_lane"
+      }
+    ],
+    "log_entry": "Office advancement became a scope-versus-consistency commitment."
+  },
+  {
+    "id": "office_scope_overflow_wave",
+    "name": "Office Scope Overflow Wave",
+    "description": "The broader charter started routing extra escalations to your desk. Push through for upside or de-risk the queue now.",
+    "weight": 4,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_persistent_tags": [
+      "office_scope_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "hold_the_scope_wave",
+        "label": "Hold the wave",
+        "description": "Keep the larger scope and absorb the stress.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -2
+        }
+      },
+      {
+        "id": "trim_scope_edges",
+        "label": "Trim scope",
+        "description": "Reduce immediate load and protect stability.",
+        "stat_effects": {
+          "promotion_progress": -1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Scope-first office play triggered a second-order pressure fork."
+  },
+  {
+    "id": "office_consistency_flywheel",
+    "name": "Office Consistency Flywheel",
+    "description": "Your steadier execution style is compounding. You can bank trust or press temporary output while the team is aligned.",
+    "weight": 3,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_persistent_tags": [
+      "office_consistency_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_trust_dividend",
+        "label": "Bank trust",
+        "description": "Convert consistency into cleaner momentum.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "press_output_spike",
+        "label": "Press output",
+        "description": "Use the stable baseline to push harder this month.",
+        "stat_effects": {
+          "cash": 200,
+          "stress": 2,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "Consistency-first office play opened a compounding reliability edge."
+  },
+  {
+    "id": "healthcare_shift_lead_offer",
+    "name": "Healthcare Shift Lead Offer",
+    "description": "A shift lead gap opened. You can take triage command or anchor continuity standards across the unit.",
+    "weight": 3,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "minimum_social_stability": 50,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_triage_command",
+        "label": "Take triage command",
+        "description": "Own the hardest shift flow and carry more acute pressure.",
+        "stat_effects": {
+          "cash": 250,
+          "stress": 4,
+          "promotion_progress": 4,
+          "energy": -2
+        },
+        "modifier": {
+          "id": "triage_command_load",
+          "label": "Triage Command Load",
+          "duration_months": 8,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.04,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "healthcare_triage_command_lane"
+      },
+      {
+        "id": "protect_care_continuity",
+        "label": "Protect continuity",
+        "description": "Lock in care consistency and grow with less volatility.",
+        "stat_effects": {
+          "cash": 140,
+          "stress": 1,
+          "social_stability": 2,
+          "promotion_progress": 2,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "care_continuity_rhythm",
+          "label": "Care Continuity Rhythm",
+          "duration_months": 8,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.02,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "healthcare_continuity_lane"
+      }
+    ],
+    "log_entry": "Healthcare progression became a triage-versus-continuity commitment."
+  },
+  {
+    "id": "healthcare_triage_surge",
+    "name": "Healthcare Triage Surge",
+    "description": "Your command role drew a high-acuity surge. You can absorb the load for upside or preserve team sustainability.",
+    "weight": 4,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_persistent_tags": [
+      "healthcare_triage_command_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "run_hot_triage",
+        "label": "Run hot",
+        "description": "Push high throughput and pay the recovery cost.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_staff_capacity",
+        "label": "Protect capacity",
+        "description": "Reduce acute pressure and accept slower gains.",
+        "stat_effects": {
+          "promotion_progress": -1,
+          "stress": -2,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Triage-command lane triggered a second-order healthcare pressure fork."
+  },
+  {
+    "id": "healthcare_continuity_protocol_win",
+    "name": "Healthcare Continuity Protocol Win",
+    "description": "Continuity discipline improved handoffs and reduced avoidable chaos. Bank the stability or use it to push output.",
+    "weight": 3,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_persistent_tags": [
+      "healthcare_continuity_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_protocol_gain",
+        "label": "Bank stability",
+        "description": "Convert cleaner operations into durable consistency.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "press_throughput_window",
+        "label": "Press throughput",
+        "description": "Use the cleaner baseline for immediate upside.",
+        "stat_effects": {
+          "cash": 200,
+          "stress": 2,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "Continuity-first healthcare play unlocked a compounding operations edge."
+  },
+  {
+    "id": "trades_crew_lead_offer",
+    "name": "Trades Crew Lead Offer",
+    "description": "A higher-responsibility crew lead slot opened. You can run emergency call rotations or anchor a precision schedule lane.",
+    "weight": 3,
+    "min_month": 18,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "minimum_social_stability": 42,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_emergency_call_rotation",
+        "label": "Take emergency rotation",
+        "description": "Chase higher upside and accept heavier strain.",
+        "stat_effects": {
+          "cash": 280,
+          "stress": 4,
+          "promotion_progress": 4,
+          "energy": -2
+        },
+        "modifier": {
+          "id": "call_rotation_pressure",
+          "label": "Call Rotation Pressure",
+          "duration_months": 8,
+          "stat_effects": {
+            "stress": 1,
+            "energy": -1
+          },
+          "income_multiplier": 1.05,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "trades_emergency_rotation_lane"
+      },
+      {
+        "id": "anchor_precision_schedule",
+        "label": "Anchor precision schedule",
+        "description": "Keep project flow steadier and build a reliability premium.",
+        "stat_effects": {
+          "cash": 160,
+          "stress": 1,
+          "social_stability": 1,
+          "promotion_progress": 2,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "precision_schedule_rhythm",
+          "label": "Precision Schedule Rhythm",
+          "duration_months": 8,
+          "stat_effects": {
+            "social_stability": 1
+          },
+          "income_multiplier": 1.02,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "trades_precision_schedule_lane"
+      }
+    ],
+    "log_entry": "Trades progression became an emergency-versus-precision commitment."
+  },
+  {
+    "id": "trades_emergency_callout_wave",
+    "name": "Trades Emergency Callout Wave",
+    "description": "Emergency rotation commitments stacked up this month. You can keep the upside push or protect your body and pacing.",
+    "weight": 4,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_persistent_tags": [
+      "trades_emergency_rotation_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "cover_the_callouts",
+        "label": "Cover callouts",
+        "description": "Keep authority and momentum at a higher fatigue cost.",
+        "stat_effects": {
+          "cash": 240,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -3
+        }
+      },
+      {
+        "id": "protect_recovery_blocks",
+        "label": "Protect recovery",
+        "description": "Stabilize your pace and accept a short-term slowdown.",
+        "stat_effects": {
+          "promotion_progress": -1,
+          "stress": -2,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Emergency-rotation trades play triggered a second-order pressure fork."
+  },
+  {
+    "id": "trades_quality_contract_pipeline",
+    "name": "Trades Quality Contract Pipeline",
+    "description": "Your precision-first reputation opened a cleaner contract pipeline. Bank the reliability edge or press extra volume now.",
+    "weight": 3,
+    "min_month": 20,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_persistent_tags": [
+      "trades_precision_schedule_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_quality_reputation",
+        "label": "Bank quality edge",
+        "description": "Convert quality consistency into durable momentum.",
+        "stat_effects": {
+          "cash": 140,
+          "stress": -2,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "press_volume_window",
+        "label": "Press volume",
+        "description": "Use the stronger pipeline for immediate upside.",
+        "stat_effects": {
+          "cash": 220,
+          "stress": 2,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "Precision-first trades play unlocked a compounding contract edge."
+  },
+  {
     "id": "management_overload_wave",
     "name": "Management Overload Wave",
     "description": "You took command and the floor now routes every fire through you. Hold the line for upside or absorb an immediate reset.",

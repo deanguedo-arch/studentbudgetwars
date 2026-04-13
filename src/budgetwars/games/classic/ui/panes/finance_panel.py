@@ -173,6 +173,54 @@ class FinancePanel(tk.Frame):
                 wraplength=300,
             ).pack(anchor="w", pady=(1, 0))
 
+        commitments = list(getattr(summary, "persistent_commitments", []) or [])
+        if commitments:
+            commits_wrap = tk.Frame(left, bg=BG_CARD)
+            commits_wrap.pack(fill="x", pady=(PAD_S, 0))
+            tk.Label(
+                commits_wrap,
+                text="Committed Lanes",
+                bg=BG_CARD,
+                fg=TEXT_MUTED,
+                font=FONT_TINY,
+                anchor="w",
+            ).pack(fill="x", anchor="w", pady=(0, 2))
+
+            max_visible = 2 if compact else 4
+            visible = commitments[:max_visible]
+            chip_grid = tk.Frame(commits_wrap, bg=BG_CARD)
+            chip_grid.pack(fill="x", anchor="w")
+            for index, label in enumerate(visible):
+                chip = tk.Label(
+                    chip_grid,
+                    text=label,
+                    bg=BG_DARK,
+                    fg=TEXT_PRIMARY,
+                    font=FONT_TINY,
+                    padx=6,
+                    pady=2,
+                    highlightbackground=BORDER,
+                    highlightthickness=1,
+                )
+                chip.grid(
+                    row=index // 2,
+                    column=index % 2,
+                    sticky="w",
+                    padx=(0, 4),
+                    pady=(0, 2),
+                )
+
+            hidden_count = max(0, len(commitments) - max_visible)
+            if hidden_count:
+                tk.Label(
+                    commits_wrap,
+                    text=f"+{hidden_count} more",
+                    bg=BG_CARD,
+                    fg=TEXT_MUTED,
+                    font=FONT_TINY,
+                    anchor="w",
+                ).pack(fill="x", anchor="w", pady=(0, 1))
+
         if delta is not None:
             delta_color = COLOR_POSITIVE if delta.delta >= 0 else COLOR_NEGATIVE
             tk.Label(

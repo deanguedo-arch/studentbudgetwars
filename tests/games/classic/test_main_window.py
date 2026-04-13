@@ -22,6 +22,7 @@ from budgetwars.games.classic.ui.main_window import (
     should_use_compact_layout,
 )
 from budgetwars.games.classic.ui.panes.life_panel import LifePanel
+from budgetwars.games.classic.ui.panes.finance_panel import FinancePanel
 from budgetwars.games.classic.ui.panes.event_popup import preview_choice_detail
 from budgetwars.games.classic.ui.panes.menu_bar import (
     build_menu_bar,
@@ -111,6 +112,17 @@ def test_monthly_forecast_surfaces_persistent_commitments(controller_factory):
 
     assert hasattr(forecast, "persistent_commitments")
     assert "Consistency Lane" in forecast.persistent_commitments
+
+
+def test_pressure_summary_surfaces_persistent_commitments(controller_factory):
+    controller = controller_factory()
+    controller.state.player.persistent_tags = ["dispatch_command_lane", "office_scope_lane"]
+
+    summary = build_pressure_summary(controller.state, controller.bundle)
+
+    assert hasattr(summary, "persistent_commitments")
+    assert "Dispatch Command Lane" in summary.persistent_commitments
+    assert "Office Scope Lane" in summary.persistent_commitments
 
 
 def test_monthly_forecast_surfaces_recovery_route(controller_factory):
@@ -668,5 +680,87 @@ def test_life_panel_rerender_does_not_duplicate_build_subtitle(controller_factor
             if isinstance(child, tk.Label)
         ]
         assert labels.count(snapshot.identity_line) == 1
+    finally:
+        root.destroy()
+
+
+def test_finance_panel_compact_limits_commitment_chips_with_overflow_note(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory()
+        controller.state.player.persistent_tags = [
+            "scope_push_lane",
+            "consistency_lane",
+            "dispatch_command_lane",
+            "office_scope_lane",
+            "healthcare_continuity_lane",
+            "trades_precision_schedule_lane",
+        ]
+        summary = build_pressure_summary(controller.state, controller.bundle)
+        panel = FinancePanel(root)
+        panel.render_summary(summary, compact=True)
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert "Committed Lanes" in texts
+        assert "Scope Push Lane" in texts
+        assert "Consistency Lane" in texts
+        assert "Dispatch Command Lane" not in texts
+        assert "+4 more" in texts
+    finally:
+        root.destroy()
+
+
+def test_finance_panel_desktop_shows_more_commitment_chips_with_overflow_note(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory()
+        controller.state.player.persistent_tags = [
+            "scope_push_lane",
+            "consistency_lane",
+            "dispatch_command_lane",
+            "office_scope_lane",
+            "healthcare_continuity_lane",
+            "trades_precision_schedule_lane",
+        ]
+        summary = build_pressure_summary(controller.state, controller.bundle)
+        panel = FinancePanel(root)
+        panel.render_summary(summary, compact=False)
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert "Committed Lanes" in texts
+        assert "Scope Push Lane" in texts
+        assert "Consistency Lane" in texts
+        assert "Dispatch Command Lane" in texts
+        assert "Office Scope Lane" in texts
+        assert "Healthcare Continuity Lane" not in texts
+        assert "+2 more" in texts
     finally:
         root.destroy()
