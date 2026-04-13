@@ -484,6 +484,33 @@ def test_top_victory_requires_stability_not_just_money(controller_factory) -> No
     assert "financial_anchor" not in eligible_ids
 
 
+def test_phase7_top_victory_requires_branch_identity_even_with_money(controller_factory) -> None:
+    controller = controller_factory(opening_path_id="full_time_work")
+    player = controller.state.player
+    player.cash = 180_000
+    player.savings = 35_000
+    player.high_interest_savings = 12_000
+    player.index_fund = 20_000
+    player.aggressive_growth_fund = 8_000
+    player.debt = 0
+    player.credit_score = 760
+    player.housing.housing_stability = 82
+    player.social_stability = 74
+    player.monthly_surplus = 700
+    player.stress = 28
+    player.energy = 82
+    player.career.track_id = "warehouse_logistics"
+    player.career.tier_index = 4
+    player.career.branch_id = None
+
+    without_branch_ids = {win_state.id for win_state in controller.available_win_states()}
+    assert "financial_anchor" not in without_branch_ids
+
+    player.career.branch_id = "warehouse_dispatch_track"
+    with_branch_ids = {win_state.id for win_state in controller.available_win_states()}
+    assert "financial_anchor" in with_branch_ids
+
+
 def test_branch_specific_victory_requires_matching_branch(controller_factory) -> None:
     dispatch = controller_factory(opening_path_id="full_time_work")
     player = dispatch.state.player

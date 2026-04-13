@@ -908,6 +908,73 @@ def test_phase5_score_reflects_wealth_signature_alignment(bundle, controller_fac
     assert crusher_score > chaser_score
 
 
+def test_phase7_similar_money_fragility_and_branch_quality_split_scores(bundle, controller_factory):
+    strong = controller_factory(opening_path_id="full_time_work")
+    fragile = controller_factory(opening_path_id="full_time_work")
+
+    for controller in (strong, fragile):
+        player = controller.state.player
+        player.cash = 22000
+        player.savings = 12000
+        player.high_interest_savings = 4000
+        player.index_fund = 7000
+        player.aggressive_growth_fund = 2000
+        player.debt = 4500
+        player.monthly_surplus = 360
+        player.career.track_id = "warehouse_logistics"
+        player.career.tier_index = 3
+        player.career.promotion_progress = 6
+
+    strong.state.player.career.branch_id = "warehouse_dispatch_track"
+    strong.state.player.career.promotion_momentum = 74
+    strong.state.player.credit_score = 742
+    strong.state.player.housing.housing_stability = 80
+    strong.state.player.social_stability = 70
+    strong.state.player.stress = 34
+    strong.state.player.energy = 76
+    strong.state.player.emergency_liquidation_count = 0
+
+    fragile.state.player.career.branch_id = None
+    fragile.state.player.career.promotion_momentum = 34
+    fragile.state.player.credit_score = 610
+    fragile.state.player.housing.housing_stability = 46
+    fragile.state.player.housing.missed_payment_streak = 1
+    fragile.state.player.social_stability = 40
+    fragile.state.player.stress = 76
+    fragile.state.player.energy = 32
+    fragile.state.player.emergency_liquidation_count = 2
+
+    strong_score = calculate_final_score(bundle, strong.state).final_score
+    fragile_score = calculate_final_score(bundle, fragile.state).final_score
+
+    assert strong_score >= fragile_score + 8
+
+
+def test_phase7_final_summary_names_built_worked_and_held_back(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="full_time_work")
+    player = controller.state.player
+    player.career.track_id = "warehouse_logistics"
+    player.career.branch_id = "warehouse_dispatch_track"
+    player.career.tier_index = 3
+    player.cash = 24000
+    player.savings = 12000
+    player.high_interest_savings = 5000
+    player.index_fund = 8000
+    player.debt = 2600
+    player.monthly_surplus = 520
+    player.credit_score = 736
+    player.housing.housing_stability = 78
+    player.social_stability = 66
+    player.stress = 40
+    player.energy = 72
+
+    summary = calculate_final_score(bundle, controller.state)
+
+    assert "Built:" in summary.outcome
+    assert "Worked:" in summary.outcome
+    assert "Held back:" in summary.outcome
+
+
 def test_scoring_rewards_committed_branch_identity(bundle, controller_factory):
     unbranched = controller_factory(opening_path_id="full_time_work")
     branched = controller_factory(opening_path_id="full_time_work")

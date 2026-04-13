@@ -74,14 +74,15 @@ class GameController:
         victory_state = self._victory_state()
         if victory_state is None:
             return summary
+        victory_outcome = (
+            f"You claimed the {victory_state.ending_label} path through {summary.run_identity}."
+            if summary.run_identity
+            else f"You claimed the {victory_state.ending_label} path."
+        )
         return FinalScoreSummary(
             final_score=round(summary.final_score * victory_state.score_multiplier, 2),
             survived_to_28=summary.survived_to_28,
-            outcome=(
-                f"You claimed the {victory_state.ending_label} path through {summary.run_identity}."
-                if summary.run_identity
-                else f"You claimed the {victory_state.ending_label} path."
-            ),
+            outcome=f"{victory_outcome}\n{summary.outcome}",
             ending_label=victory_state.ending_label,
             run_identity=summary.run_identity,
             breakdown=summary.breakdown,
@@ -103,6 +104,7 @@ class GameController:
         if self.is_finished():
             return []
         snapshot = self.live_score_snapshot()
+        summary = calculate_final_score(self.bundle, self.state)
         player = self.state.player
         current_track_id = player.career.track_id
         eligible = []
@@ -135,6 +137,14 @@ class GameController:
                 win_state.maximum_emergency_liquidation_count is not None
                 and player.emergency_liquidation_count > win_state.maximum_emergency_liquidation_count
             ):
+                continue
+            if win_state.minimum_score >= 65 and player.career.branch_id is None:
+                continue
+            if win_state.minimum_score >= 65 and summary.breakdown["life_satisfaction"] < 55:
+                continue
+            if win_state.id == "life_position" and summary.breakdown["stress_burnout"] < 58:
+                continue
+            if win_state.id == "life_position" and player.credit_missed_obligation_streak > 0:
                 continue
             if player.career.tier_index < win_state.minimum_career_tier_index:
                 continue

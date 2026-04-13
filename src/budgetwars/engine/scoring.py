@@ -3,7 +3,9 @@ from __future__ import annotations
 from budgetwars.models import ContentBundle, FinalScoreSummary, GameState, LiveScoreSnapshot
 
 from .effects import net_worth
-from .lookups import get_career_track, get_housing_option
+from .housing import can_switch_housing
+from .lookups import get_career_track, get_housing_option, get_wealth_strategy
+from .transport import can_switch_transport
 
 
 def _clamp_score(value: float) -> float:
@@ -190,6 +192,111 @@ def _wealth_signature_score_adjustment(bundle: ContentBundle, state: GameState) 
     return max(-4.0, min(4.0, adjustment))
 
 
+def _branch_quality_adjustment(state: GameState) -> float:
+    player = state.player
+    adjustment = 0.0
+    if player.career.branch_id:
+        adjustment += 1.6
+        if player.career.tier_index >= 3:
+            adjustment += 1.0
+        if player.career.promotion_momentum >= 60:
+            adjustment += 0.9
+        if player.stress >= 78:
+            adjustment -= 0.8
+    elif player.career.tier_index >= 2:
+        adjustment -= 1.8
+
+    if state.pending_promotion_branch_track_id:
+        adjustment -= 1.2
+    if not player.career.branch_id and player.career.transition_penalty_months > 0 and player.career.tier_index >= 1:
+        adjustment -= 0.8
+    return max(-4.0, min(4.0, adjustment))
+
+
+def _access_earned_adjustment(bundle: ContentBundle, state: GameState) -> float:
+    player = state.player
+    adjustment = 0.0
+
+    housing_allowed, housing_reason = can_switch_housing(bundle, state, "solo_rental")
+    housing_access = player.housing_id == "solo_rental" or housing_allowed
+    if housing_access:
+        adjustment += 1.1
+    elif any(token in housing_reason.lower() for token in ("credit", "debt", "lease", "cash")):
+        adjustment -= 1.0
+
+    transport_allowed, transport_reason = can_switch_transport(bundle, state, "financed_car")
+    transport_access = player.transport_id in {"financed_car", "reliable_used_car", "luxury_financed_car"} or transport_allowed
+    if transport_access:
+        adjustment += 1.1
+    elif any(token in transport_reason.lower() for token in ("credit", "debt", "payment", "cash")):
+        adjustment -= 1.0
+
+    return max(-3.0, min(3.0, adjustment))
+
+
+def _recovery_execution_adjustment(state: GameState) -> float:
+    player = state.player
+    adjustment = 0.0
+    if player.credit_rebuild_streak >= 2:
+        adjustment += 1.0
+    if player.credit_missed_obligation_streak >= 2:
+        adjustment -= 1.4
+    if player.housing.missed_payment_streak == 0 and player.monthly_surplus >= 0:
+        adjustment += 0.8
+    elif player.housing.missed_payment_streak > 0:
+        adjustment -= 1.2
+    if player.emergency_liquidation_count == 0:
+        adjustment += 0.6
+    elif player.emergency_liquidation_count >= 2:
+        adjustment -= 1.4
+    if state.pending_events or state.pending_user_choice_event_id:
+        adjustment -= 1.2
+    if player.education.is_paused and player.stress < 75:
+        adjustment += 0.4
+    return max(-3.5, min(3.5, adjustment))
+
+
+def _breakdown_label(key: str) -> str:
+    labels = {
+        "net_worth": "asset growth",
+        "monthly_surplus": "cash-flow control",
+        "debt_ratio": "debt discipline",
+        "career_tier": "career branch momentum",
+        "credentials_education": "credential progress",
+        "housing_stability": "housing stability",
+        "life_satisfaction": "life stability",
+        "stress_burnout": "stress control",
+    }
+    return labels.get(key, key.replace("_", " "))
+
+
+def _build_outcome_text(bundle: ContentBundle, state: GameState, *, survived: bool, final_score: float, run_identity: str | None, breakdown: dict[str, float]) -> str:
+    if survived:
+        base = "You reached age 28 and preserved a viable future."
+    elif state.game_over_reason == "collections":
+        base = "Debt pressure broke the run before age 28."
+    elif state.game_over_reason == "housing_loss":
+        base = "Housing instability collapsed the run before you could recover."
+    elif state.game_over_reason == "burnout_collapse":
+        base = "Burnout hit hard enough to break the run early."
+    elif state.game_over_reason == "academic_collapse":
+        base = "School collapsed badly enough to close the run's main lane."
+    else:
+        base = "The run ended before you reached age 28."
+
+    strongest = sorted(breakdown.items(), key=lambda item: item[1], reverse=True)[:2]
+    weakest_key, _ = min(breakdown.items(), key=lambda item: item[1])
+    track = get_career_track(bundle, state.player.career.track_id)
+    strategy = get_wealth_strategy(bundle, state.player.wealth_strategy_id)
+    built = run_identity or f"{track.name} lane ({strategy.name})"
+    worked = " + ".join(_breakdown_label(key) for key, _ in strongest)
+    held_back = _breakdown_label(weakest_key)
+    if final_score < 45 and state.pending_events:
+        held_back = f"{held_back}, unresolved fallout"
+
+    return f"{base}\nBuilt: {built}\nWorked: {worked}\nHeld back: {held_back}"
+
+
 def _biggest_risk_label(breakdown: dict[str, float], warnings: list[str]) -> str:
     if warnings:
         return warnings[0]
@@ -271,28 +378,34 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
         + (breakdown["stress_burnout"] * weights.stress_burnout)
     )
     wealth_adjustment = _wealth_signature_score_adjustment(bundle, state)
-    final_score = round(_clamp_score(weighted_score + wealth_adjustment - _consequence_pressure_penalty(state)), 2)
+    branch_adjustment = _branch_quality_adjustment(state)
+    access_adjustment = _access_earned_adjustment(bundle, state)
+    recovery_adjustment = _recovery_execution_adjustment(state)
+    final_score = round(
+        _clamp_score(
+            weighted_score
+            + wealth_adjustment
+            + branch_adjustment
+            + access_adjustment
+            + recovery_adjustment
+            - _consequence_pressure_penalty(state)
+        ),
+        2,
+    )
     branch = _current_branch(bundle, state)
     run_identity = None
     if branch is not None:
         track = get_career_track(bundle, state.player.career.track_id)
         run_identity = f"{track.name} | {branch.name}"
     survived = state.game_over_reason is None and state.current_month > state.total_months
-    if survived:
-        if branch is not None:
-            outcome = f"You reached age 28 and carved out a real life position through the {branch.name} branch."
-        else:
-            outcome = "You reached age 28 and carved out a real life position."
-    elif state.game_over_reason == "collections":
-        outcome = "Debt pressure broke the run before age 28."
-    elif state.game_over_reason == "housing_loss":
-        outcome = "Housing instability collapsed the run before you could recover."
-    elif state.game_over_reason == "burnout_collapse":
-        outcome = "Burnout hit hard enough to break the run early."
-    elif state.game_over_reason == "academic_collapse":
-        outcome = "School collapsed badly enough to close the run's main lane."
-    else:
-        outcome = "The run ended before you reached age 28."
+    outcome = _build_outcome_text(
+        bundle,
+        state,
+        survived=survived,
+        final_score=final_score,
+        run_identity=run_identity,
+        breakdown=breakdown,
+    )
     return FinalScoreSummary(
         final_score=final_score,
         survived_to_28=survived,
