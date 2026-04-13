@@ -6,6 +6,7 @@ from budgetwars.engine.transport import can_switch_transport
 
 from .choice_previews import _money
 from .view_builders import _find_label
+from .view_models import StatusArcVM
 
 
 def _build_crisis_warnings(state, bundle) -> list[str]:
@@ -103,6 +104,37 @@ def _best_recovery_route(state, bundle) -> str | None:
     return None
 
 
+def _active_status_arc_vms(state, bundle, *, limit: int = 3) -> list[StatusArcVM]:
+    definitions = {arc.id: arc for arc in bundle.status_arcs}
+    ranked = sorted(
+        state.active_status_arcs,
+        key=lambda arc: (
+            definitions.get(arc.arc_id).ui_priority if definitions.get(arc.arc_id) is not None else 0,
+            arc.severity,
+            arc.remaining_months,
+        ),
+        reverse=True,
+    )
+    vms: list[StatusArcVM] = []
+    for active in ranked[:limit]:
+        definition = definitions.get(active.arc_id)
+        if definition is None:
+            continue
+        vms.append(
+            StatusArcVM(
+                arc_id=active.arc_id,
+                name=definition.name,
+                summary=active.note or definition.summary,
+                severity=active.severity,
+                months_remaining=active.remaining_months,
+                tone=definition.tone,
+                resolution_hint=definition.resolution_hint,
+                blocked_door_hints=list(definition.blocked_door_hints),
+            )
+        )
+    return vms
+
+
 def _pending_decision_lines(state, bundle) -> list[str]:
     lines: list[str] = []
     pending_event = state.pending_user_choice_event
@@ -193,6 +225,19 @@ def _diagnosis_for_family(state) -> tuple[str, str]:
     if player.stress >= 75:
         return ("Run killer: burnout pressure", "Fastest fix: run recovery focus and protect sleep/energy.")
     return ("Run killer: none dominant", "Fastest fix: push your strongest lane while holding stability.")
+
+
+def _status_arc_diagnosis(state, bundle) -> tuple[str, str] | None:
+    active = _active_status_arc_vms(state, bundle, limit=1)
+    if not active:
+        return None
+    top = active[0]
+    run_killer = f"Run killer: {top.name.lower()}"
+    if top.resolution_hint:
+        fastest_fix = top.resolution_hint.replace("Best resolution: ", "Fastest fix: ")
+    else:
+        fastest_fix = "Fastest fix: stabilize the active scar before forcing upside."
+    return run_killer, fastest_fix
 
 
 def _run_progress_text(state) -> tuple[str, str]:

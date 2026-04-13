@@ -5,7 +5,6 @@ from budgetwars.models import ContentBundle, FinalScoreSummary, GameState, LiveS
 from .effects import net_worth
 from .housing import can_switch_housing
 from .lookups import get_career_track, get_housing_option, get_wealth_strategy
-from .status_arcs import get_active_status_arc
 from .transport import can_switch_transport
 
 

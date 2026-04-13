@@ -59,6 +59,7 @@ class MonthlyForecastVM:
     progress_detail: str
     progress_fraction: float
     persistent_commitments: list[str] = field(default_factory=list)
+    active_status_arcs: list["StatusArcVM"] = field(default_factory=list)
     recovery_route: str | None = None
     blocked_doors: list[str] = field(default_factory=list)
     driver_notes: list[str] = field(default_factory=list)
@@ -71,6 +72,18 @@ class PressureMetricVM:
     primary: str
     detail: str | None = None
     tone: str = "neutral"
+
+
+@dataclass(frozen=True)
+class StatusArcVM:
+    arc_id: str
+    name: str
+    summary: str
+    severity: int
+    months_remaining: int
+    tone: str = "warning"
+    resolution_hint: str | None = None
+    blocked_door_hints: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -90,6 +103,7 @@ class PressureSummaryVM:
     fastest_fix: str = ""
     pressure_family: str = ""
     month_driver: str = ""
+    active_status_arcs: list[StatusArcVM] = field(default_factory=list)
     recovery_route: str | None = None
     persistent_commitments: list[str] = field(default_factory=list)
     blocked_doors: list[str] = field(default_factory=list)

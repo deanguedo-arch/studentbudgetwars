@@ -39,6 +39,7 @@ from .choice_previews import (
     _wealth_preview,
 )
 from .diagnostics import (
+    _active_status_arc_vms,
     _best_breakdown_category,
     _best_recovery_route,
     _blocked_door_lines,
@@ -51,6 +52,7 @@ from .diagnostics import (
     _run_progress_text,
     _score_progress_fraction,
     _score_progress_text,
+    _status_arc_diagnosis,
 )
 from .setup_dialog import (
     _lookup_option,
@@ -206,7 +208,12 @@ def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
     situation_family = dominant_pressure_family(state)
     blocked_doors = _blocked_door_lines(state, controller.bundle)
     recovery_route = _best_recovery_route(state, controller.bundle)
-    main_threat = warnings[0] if warnings else (city.pressure_text or "No major threat is pressing right now.")
+    active_status_arcs = _active_status_arc_vms(state, controller.bundle)
+    main_threat = (
+        active_status_arcs[0].summary
+        if active_status_arcs
+        else (warnings[0] if warnings else (city.pressure_text or "No major threat is pressing right now."))
+    )
     best_opportunity = city.opportunity_text
     expected_swing = f"Projected monthly swing {_money(player.monthly_surplus)} before pressure"
     recent_summary = list(state.recent_summary[:3])
@@ -227,6 +234,7 @@ def build_monthly_forecast_vm(source, bundle=None) -> MonthlyForecastVM:
         progress_detail=progress_detail,
         progress_fraction=_run_progress_fraction(state),
         persistent_commitments=commitments,
+        active_status_arcs=active_status_arcs,
         recovery_route=recovery_route,
         blocked_doors=blocked_doors,
         driver_notes=driver_notes,
@@ -263,7 +271,8 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
         PressureMetricVM("Transport Reliability", f"{player.transport.reliability_score}/100"),
     ]
     progress_label, progress_detail = _score_progress_text(snapshot.projected_score)
-    run_killer, fastest_fix = _diagnosis_for_family(state)
+    status_arc_diagnosis = _status_arc_diagnosis(state, controller.bundle)
+    run_killer, fastest_fix = status_arc_diagnosis or _diagnosis_for_family(state)
     pressure_family = dominant_pressure_family(state)
     month_driver = (
         state.month_driver_notes[0]
@@ -274,6 +283,7 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
     recovery_route = _best_recovery_route(state, controller.bundle)
     commitments = _format_persistent_commitments(player.persistent_tags)
     pending_decisions = _pending_decision_lines(state, controller.bundle)
+    active_status_arcs = _active_status_arc_vms(state, controller.bundle)
     return PressureSummaryVM(
         projected_score=snapshot.projected_score,
         score_tier=snapshot.score_tier,
@@ -290,6 +300,7 @@ def build_pressure_summary_vm(source, bundle=None, snapshot: LiveScoreSnapshot |
         fastest_fix=fastest_fix,
         pressure_family=pressure_family,
         month_driver=month_driver,
+        active_status_arcs=active_status_arcs,
         recovery_route=recovery_route,
         persistent_commitments=commitments,
         blocked_doors=blocked_doors,
@@ -1073,6 +1084,10 @@ class MainWindow(tk.Frame):
         ]
         if vm.recovery_route:
             outlook += ["", vm.recovery_route]
+        if vm.active_status_arcs:
+            outlook += ["", "Active arcs:"]
+            for arc in vm.active_status_arcs[:2]:
+                outlook.append(f"{arc.name} | S{arc.severity} | {arc.months_remaining}mo")
         if vm.blocked_doors:
             outlook += ["", "Blocked doors:"] + vm.blocked_doors[:2]
         if vm.driver_notes:
@@ -1101,6 +1116,11 @@ class MainWindow(tk.Frame):
         lines.append("")
         if vm.recovery_route:
             lines.append(vm.recovery_route)
+            lines.append("")
+        if vm.active_status_arcs:
+            lines.append("Active Arcs:")
+            for arc in vm.active_status_arcs[:2]:
+                lines.append(f"{arc.name} | S{arc.severity} | {arc.months_remaining}mo")
             lines.append("")
         if vm.blocked_doors:
             lines.append("Blocked Doors:")

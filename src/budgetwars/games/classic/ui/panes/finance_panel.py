@@ -172,6 +172,37 @@ class FinancePanel(tk.Frame):
                 justify="left",
                 wraplength=300,
             ).pack(anchor="w", pady=(1, 0))
+        if getattr(summary, "active_status_arcs", None):
+            tk.Label(
+                left,
+                text="Active Arcs",
+                bg=BG_CARD,
+                fg=TEXT_HEADING,
+                font=FONT_SMALL,
+                anchor="w",
+            ).pack(anchor="w", pady=(PAD_S, 0))
+            for arc in summary.active_status_arcs[:2]:
+                tk.Label(
+                    left,
+                    text=f"{arc.name} | S{arc.severity} | {arc.months_remaining} mo",
+                    bg=BG_CARD,
+                    fg=COLOR_WARNING if arc.tone == "negative" else TEXT_PRIMARY,
+                    font=FONT_SMALL,
+                    anchor="w",
+                    justify="left",
+                    wraplength=300,
+                ).pack(anchor="w", pady=(1, 0))
+                if arc.resolution_hint:
+                    tk.Label(
+                        left,
+                        text=arc.resolution_hint,
+                        bg=BG_CARD,
+                        fg=TEXT_SECONDARY,
+                        font=FONT_TINY,
+                        anchor="w",
+                        justify="left",
+                        wraplength=300,
+                    ).pack(anchor="w")
 
         commitments = list(getattr(summary, "persistent_commitments", []) or [])
         if commitments:

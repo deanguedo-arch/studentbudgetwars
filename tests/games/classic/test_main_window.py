@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from budgetwars.engine.status_arcs import start_status_arc
 from budgetwars.games.classic.ui.main_window import (
     ActionsPanel,
     ClassicSetupDialog,
@@ -115,6 +116,27 @@ def test_monthly_forecast_surfaces_persistent_commitments(controller_factory):
     assert "Consistency Lane" in forecast.persistent_commitments
 
 
+def test_monthly_forecast_surfaces_top_active_status_arcs(controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    start_status_arc(
+        controller.bundle,
+        controller.state,
+        "credit_squeeze",
+        source_event_id="collections_warning",
+        duration_months=4,
+        severity=2,
+    )
+
+    forecast = build_monthly_forecast(controller.state, controller.bundle)
+
+    assert hasattr(forecast, "active_status_arcs")
+    assert forecast.active_status_arcs
+    assert forecast.active_status_arcs[0].name == "Credit Squeeze"
+    assert forecast.active_status_arcs[0].severity == 2
+    assert forecast.active_status_arcs[0].months_remaining == 4
+    assert forecast.active_status_arcs[0].resolution_hint
+
+
 def test_pressure_summary_surfaces_persistent_commitments(controller_factory):
     controller = controller_factory()
     controller.state.player.persistent_tags = ["dispatch_command_lane", "office_scope_lane"]
@@ -124,6 +146,28 @@ def test_pressure_summary_surfaces_persistent_commitments(controller_factory):
     assert hasattr(summary, "persistent_commitments")
     assert "Dispatch Command Lane" in summary.persistent_commitments
     assert "Office Scope Lane" in summary.persistent_commitments
+
+
+def test_pressure_summary_uses_active_status_arcs_for_diagnosis(controller_factory):
+    controller = controller_factory(opening_path_id="college_university")
+    controller.state.player.education.program_id = "full_time_university"
+    controller.state.player.education.is_active = True
+    start_status_arc(
+        controller.bundle,
+        controller.state,
+        "education_slipping",
+        source_event_id="overtime_exam_collision",
+        duration_months=3,
+        severity=2,
+    )
+
+    summary = build_pressure_summary(controller.state, controller.bundle)
+
+    assert hasattr(summary, "active_status_arcs")
+    assert summary.active_status_arcs
+    assert summary.active_status_arcs[0].name == "Education Slipping"
+    assert "education slipping" in summary.run_killer.lower()
+    assert "reduce intensity" in summary.fastest_fix.lower() or "protect" in summary.fastest_fix.lower()
 
 
 def test_monthly_forecast_surfaces_recovery_route(controller_factory):
@@ -763,6 +807,84 @@ def test_finance_panel_desktop_shows_more_commitment_chips_with_overflow_note(co
         assert "Office Scope Lane" in texts
         assert "Healthcare Continuity Lane" not in texts
         assert "+2 more" in texts
+    finally:
+        root.destroy()
+
+
+def test_outlook_panel_renders_active_status_arcs(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory(opening_path_id="full_time_work")
+        controller.state.player.transport.option_id = "beater_car"
+        start_status_arc(
+            controller.bundle,
+            controller.state,
+            "transport_unstable",
+            source_event_id="car_repair",
+            duration_months=3,
+            severity=2,
+        )
+        panel = OutlookPanel(root, resolve_callback=lambda: None)
+        panel.render_forecast(
+            build_monthly_forecast(controller.state, controller.bundle),
+            compact=False,
+            show_resolve_button=False,
+        )
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert "Active Arcs" in texts
+        assert any("Transport Unstable" in text for text in texts)
+    finally:
+        root.destroy()
+
+
+def test_finance_panel_renders_active_status_arc_section(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+        start_status_arc(
+            controller.bundle,
+            controller.state,
+            "credit_squeeze",
+            source_event_id="collections_warning",
+            duration_months=4,
+            severity=2,
+        )
+        summary = build_pressure_summary(controller.state, controller.bundle)
+        panel = FinancePanel(root)
+        panel.render_summary(summary, compact=False)
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert "Active Arcs" in texts
+        assert any("Credit Squeeze" in text for text in texts)
     finally:
         root.destroy()
 
