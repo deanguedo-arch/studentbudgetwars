@@ -183,6 +183,59 @@ def _resilience_score(state: GameState) -> float:
     return score
 
 
+def _branch_weight_multiplier(state: GameState, event: EventDefinition) -> float:
+    player = state.player
+    branch_id = player.career.branch_id
+    if not branch_id:
+        return 1.0
+
+    multiplier = 1.0
+    if event.eligible_branch_ids and branch_id in event.eligible_branch_ids:
+        multiplier *= 1.25
+
+    if player.career.track_id == "retail_service":
+        if branch_id == "retail_management_track":
+            if event.id in {"retail_inventory_crunch", "management_overload_wave", "retail_leadership_offer"}:
+                multiplier *= 1.35
+            if event.id in {"burnout_month", "overtime_attrition_warning"} and player.stress >= 64:
+                multiplier *= 1.2
+            if event.id == "job_layoff" and player.stress >= 74:
+                multiplier *= 1.15
+        elif branch_id == "retail_sales_track":
+            if event.id in {"sales_whale_month", "sales_territory_offer"}:
+                multiplier *= 1.35
+            if event.id == "sales_hot_streak" and player.social_stability >= 66:
+                multiplier *= 1.35
+            if event.id == "sales_cold_streak" and player.social_stability < 58:
+                multiplier *= 1.35
+        elif branch_id == "retail_clienteling_track":
+            if event.id in {"client_book_referral", "clienteling_key_account_offer"} and player.social_stability >= 64:
+                multiplier *= 1.4
+            if event.id == "client_book_attrition_risk" and (player.social_stability <= 58 or player.stress >= 68):
+                multiplier *= 1.35
+            if event.id == "job_layoff" and player.social_stability >= 68 and player.housing.housing_stability >= 55:
+                multiplier *= 0.85
+
+    if player.career.track_id == "warehouse_logistics":
+        if branch_id == "warehouse_ops_track":
+            if event.id in {"dock_bottleneck", "warehouse_foreman_offer"}:
+                multiplier *= 1.35
+            if event.id == "warehouse_safety_crunch" and (player.energy < 42 or player.transport.reliability_score < 66):
+                multiplier *= 1.4
+        elif branch_id == "warehouse_dispatch_track":
+            if event.id in {"dispatch_route_rewrite", "dispatch_fire_drill", "dispatch_process_upgrade", "dispatch_lead_offer"}:
+                multiplier *= 1.35
+            if event.id == "dispatch_process_upgrade" and player.social_stability >= 56 and player.transport.reliability_score >= 68:
+                multiplier *= 1.15
+        elif branch_id == "warehouse_equipment_track":
+            if event.id in {"equipment_cert_window", "equipment_shift_contract", "equipment_specialist_offer"}:
+                multiplier *= 1.35
+            if event.id == "equipment_safety_recall" and (player.transport.reliability_score < 66 or player.stress >= 70):
+                multiplier *= 1.35
+
+    return max(0.35, multiplier)
+
+
 def event_severity_multiplier(bundle: ContentBundle, state: GameState, event: EventDefinition) -> float:
     if event.id not in SEVERITY_EVENT_IDS:
         return 1.0
@@ -577,6 +630,7 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         if state.player.stress >= 74:
             weight *= 1.2
 
+    weight *= _branch_weight_multiplier(state, event)
     weight *= _matrix_weight_multiplier(bundle, state, event)
     return max(0.05, weight * difficulty.event_weight_multiplier)
 

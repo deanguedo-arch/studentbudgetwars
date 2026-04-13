@@ -1461,7 +1461,7 @@
     "id": "client_book_referral",
     "name": "Client Book Referral",
     "description": "A steady customer started feeding you repeat business and reputation instead of just random volume.",
-    "weight": 3,
+    "weight": 5,
     "min_month": 9,
     "eligible_career_ids": [
       "retail_service"
@@ -1758,7 +1758,7 @@
     "id": "sales_territory_offer",
     "name": "Sales Territory Offer",
     "description": "A better territory opened. It can lift the lane or spike the volatility depending on how you take it.",
-    "weight": 3,
+    "weight": 4,
     "min_month": 18,
     "eligible_career_ids": [
       "retail_service"
@@ -1831,7 +1831,7 @@
     "id": "dispatch_lead_offer",
     "name": "Dispatch Lead Offer",
     "description": "The routing board needs a lead. Taking it changes whether you become the calm center or the bottleneck.",
-    "weight": 3,
+    "weight": 4,
     "min_month": 18,
     "eligible_career_ids": [
       "warehouse_logistics"
@@ -1904,7 +1904,7 @@
     "id": "equipment_shift_contract",
     "name": "Equipment Shift Contract",
     "description": "Operations wants someone certified and reliable for the premium machine-heavy shifts.",
-    "weight": 3,
+    "weight": 4,
     "min_month": 18,
     "eligible_career_ids": [
       "warehouse_logistics"
@@ -2439,7 +2439,7 @@
     "id": "warehouse_foreman_offer",
     "name": "Foreman Offer",
     "description": "Ops leadership opened up. You can take command with higher pressure or stay on a steadier floor trajectory.",
-    "weight": 4,
+    "weight": 5,
     "min_month": 20,
     "eligible_career_ids": [
       "warehouse_logistics"
@@ -3231,7 +3231,7 @@
     "id": "management_overload_wave",
     "name": "Management Overload Wave",
     "description": "You took command and the floor now routes every fire through you. Hold the line for upside or absorb an immediate reset.",
-    "weight": 4,
+    "weight": 5,
     "min_month": 20,
     "eligible_career_ids": [
       "retail_service"
@@ -3357,7 +3357,7 @@
     "id": "dispatch_process_upgrade",
     "name": "Dispatch Process Upgrade",
     "description": "Staying coordination-side paid off with a process redesign opportunity that rewards consistency over heroics.",
-    "weight": 3,
+    "weight": 4,
     "min_month": 20,
     "eligible_career_ids": [
       "warehouse_logistics"

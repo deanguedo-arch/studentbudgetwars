@@ -1019,6 +1019,155 @@ def test_selected_branch_changes_income_profile(bundle, controller_factory):
     assert mgmt_income != sales_income
 
 
+def test_phase2_retail_branches_shift_top_weighted_mix(bundle, controller_factory):
+    management = controller_factory(opening_path_id="full_time_work")
+    management.change_career("retail_service")
+    management.state.current_month = 22
+    management.state.player.career.tier_index = 2
+    management.state.player.career.branch_id = "retail_management_track"
+    management.state.player.social_stability = 62
+    management.state.player.energy = 54
+    management.state.player.stress = 68
+    management.state.player.transport.reliability_score = 72
+
+    sales = controller_factory(opening_path_id="full_time_work")
+    sales.change_career("retail_service")
+    sales.state.current_month = 22
+    sales.state.player.career.tier_index = 2
+    sales.state.player.career.branch_id = "retail_sales_track"
+    sales.state.player.social_stability = 70
+    sales.state.player.energy = 58
+    sales.state.player.stress = 56
+    sales.state.player.transport.reliability_score = 70
+
+    clienteling = controller_factory(opening_path_id="full_time_work")
+    clienteling.change_career("retail_service")
+    clienteling.state.current_month = 22
+    clienteling.state.player.career.tier_index = 2
+    clienteling.state.player.career.branch_id = "retail_clienteling_track"
+    clienteling.state.player.social_stability = 72
+    clienteling.state.player.energy = 58
+    clienteling.state.player.stress = 50
+    clienteling.state.player.transport.reliability_score = 74
+
+    management_top = _top_weighted_event_ids(bundle, management.state)
+    sales_top = _top_weighted_event_ids(bundle, sales.state)
+    clienteling_top = _top_weighted_event_ids(bundle, clienteling.state)
+
+    assert "retail_inventory_crunch" in management_top
+    assert "retail_leadership_offer" in management_top
+    assert "sales_whale_month" in sales_top
+    assert "sales_territory_offer" in sales_top
+    assert "clienteling_key_account_offer" in clienteling_top
+    assert "client_book_referral" in clienteling_top
+    assert set(management_top) != set(sales_top)
+    assert set(sales_top) != set(clienteling_top)
+
+
+def test_phase2_warehouse_branches_shift_top_weighted_mix(bundle, controller_factory):
+    ops = controller_factory(opening_path_id="full_time_work")
+    ops.state.current_month = 24
+    ops.state.player.career.tier_index = 2
+    ops.state.player.career.branch_id = "warehouse_ops_track"
+    ops.state.player.transport.reliability_score = 76
+    ops.state.player.energy = 58
+    ops.state.player.stress = 52
+    ops.state.player.social_stability = 50
+
+    dispatch = controller_factory(opening_path_id="full_time_work")
+    dispatch.state.current_month = 24
+    dispatch.state.player.career.tier_index = 2
+    dispatch.state.player.career.branch_id = "warehouse_dispatch_track"
+    dispatch.state.player.transport.reliability_score = 78
+    dispatch.state.player.energy = 56
+    dispatch.state.player.stress = 50
+    dispatch.state.player.social_stability = 62
+
+    equipment = controller_factory(opening_path_id="full_time_work")
+    equipment.state.current_month = 24
+    equipment.state.player.career.tier_index = 2
+    equipment.state.player.career.branch_id = "warehouse_equipment_track"
+    equipment.state.player.transport.reliability_score = 80
+    equipment.state.player.energy = 60
+    equipment.state.player.stress = 48
+    equipment.state.player.social_stability = 56
+
+    ops_top = _top_weighted_event_ids(bundle, ops.state)
+    dispatch_top = _top_weighted_event_ids(bundle, dispatch.state)
+    equipment_top = _top_weighted_event_ids(bundle, equipment.state)
+
+    assert "warehouse_foreman_offer" in ops_top
+    assert "dispatch_route_rewrite" in dispatch_top
+    assert "dispatch_lead_offer" in dispatch_top
+    assert "equipment_specialist_offer" in equipment_top
+    assert "equipment_shift_contract" in equipment_top
+    assert set(ops_top) != set(dispatch_top)
+    assert set(dispatch_top) != set(equipment_top)
+
+
+def test_phase2_branch_specific_promotion_blockers_diverge(bundle, controller_factory):
+    management = controller_factory(opening_path_id="full_time_work")
+    management.change_career("retail_service")
+    management.state.player.career.tier_index = 2
+    management.state.player.career.promotion_progress = 99
+    management.state.player.career.branch_id = "retail_management_track"
+    management.state.player.stress = 78
+    management.state.player.energy = 52
+    management.state.player.social_stability = 62
+    management.state.player.housing.housing_stability = 58
+    management.state.player.transport.reliability_score = 74
+
+    clienteling = controller_factory(opening_path_id="full_time_work")
+    clienteling.change_career("retail_service")
+    clienteling.state.player.career.tier_index = 2
+    clienteling.state.player.career.promotion_progress = 99
+    clienteling.state.player.career.branch_id = "retail_clienteling_track"
+    clienteling.state.player.stress = 56
+    clienteling.state.player.energy = 54
+    clienteling.state.player.social_stability = 56
+    clienteling.state.player.housing.housing_stability = 46
+    clienteling.state.player.transport.reliability_score = 74
+
+    management_blockers = promotion_blockers(bundle, management.state)
+    clienteling_blockers = promotion_blockers(bundle, clienteling.state)
+    management_text = " ".join(management_blockers).lower()
+    clienteling_text = " ".join(clienteling_blockers).lower()
+
+    assert "management" in management_text
+    assert "stress" in management_text
+    assert "client" in clienteling_text
+    assert "social" in clienteling_text
+    assert management_text != clienteling_text
+
+
+def test_phase2_branch_prerequisites_gate_fragile_profiles(controller_factory):
+    retail = controller_factory(opening_path_id="full_time_work")
+    retail.change_career("retail_service")
+    retail.state.player.career.tier_index = 1
+    retail.state.player.social_stability = 58
+    retail.state.player.transport.reliability_score = 48
+    retail.state.player.energy = 36
+
+    retail_status = {branch.id: (allowed, reason) for branch, allowed, reason in retail.available_career_branches()}
+    clienteling_allowed, clienteling_reason = retail_status["retail_clienteling_track"]
+    assert not clienteling_allowed
+    assert "social" in clienteling_reason.lower() or "transport" in clienteling_reason.lower()
+
+    warehouse = controller_factory(opening_path_id="full_time_work")
+    warehouse.state.player.career.tier_index = 1
+    warehouse.state.player.transport.reliability_score = 62
+    warehouse.state.player.energy = 35
+    warehouse.state.player.social_stability = 46
+
+    warehouse_status = {branch.id: (allowed, reason) for branch, allowed, reason in warehouse.available_career_branches()}
+    equipment_allowed, equipment_reason = warehouse_status["warehouse_equipment_track"]
+    dispatch_allowed, dispatch_reason = warehouse_status["warehouse_dispatch_track"]
+    assert not equipment_allowed
+    assert "transport" in equipment_reason.lower() or "energy" in equipment_reason.lower()
+    assert not dispatch_allowed
+    assert "social" in dispatch_reason.lower() or "energy" in dispatch_reason.lower()
+
+
 def test_phase1_contrast_builds_have_distinct_top_event_profiles(bundle, controller_factory):
     stable = controller_factory(
         opening_path_id="stay_home_stack_cash",

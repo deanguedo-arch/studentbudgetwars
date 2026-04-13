@@ -122,6 +122,79 @@ def current_income(bundle: ContentBundle, state: GameState, income_multiplier: f
     return max(0, int(round(income)))
 
 
+def _apply_branch_identity_momentum(state: GameState, track_id: str, branch_id: str | None) -> None:
+    if not branch_id:
+        return
+    player = state.player
+    career = player.career
+    if track_id == "retail_service":
+        if branch_id == "retail_management_track":
+            if player.stress >= 74:
+                career.promotion_momentum = max(0, career.promotion_momentum - 2)
+                career.layoff_pressure += 1
+            if player.social_stability >= 62 and player.housing.housing_stability >= 55:
+                career.promotion_momentum = min(100, career.promotion_momentum + 1)
+        elif branch_id == "retail_sales_track":
+            if player.social_stability >= 66 and player.energy >= 45:
+                career.promotion_momentum = min(100, career.promotion_momentum + 2)
+            if player.social_stability < 55:
+                career.promotion_momentum = max(0, career.promotion_momentum - 2)
+            if player.stress >= 78:
+                career.promotion_momentum = max(0, career.promotion_momentum - 1)
+        elif branch_id == "retail_clienteling_track":
+            if player.social_stability >= 68 and player.stress <= 64:
+                career.promotion_momentum = min(100, career.promotion_momentum + 3)
+            if player.social_stability <= 58 or player.housing.housing_stability < 50:
+                career.promotion_momentum = max(0, career.promotion_momentum - 3)
+                career.layoff_pressure += 1
+    if track_id == "warehouse_logistics":
+        if branch_id == "warehouse_ops_track":
+            if player.energy <= 38:
+                career.promotion_momentum = max(0, career.promotion_momentum - 3)
+                career.layoff_pressure += 1
+            if player.transport.reliability_score >= 70 and player.energy >= 50:
+                career.promotion_momentum = min(100, career.promotion_momentum + 1)
+        elif branch_id == "warehouse_dispatch_track":
+            if player.social_stability >= 58 and player.transport.reliability_score >= 68:
+                career.promotion_momentum = min(100, career.promotion_momentum + 2)
+            if player.social_stability < 48 or player.transport.reliability_score < 58:
+                career.promotion_momentum = max(0, career.promotion_momentum - 2)
+        elif branch_id == "warehouse_equipment_track":
+            if player.transport.reliability_score >= 72 and player.energy >= 48:
+                career.promotion_momentum = min(100, career.promotion_momentum + 2)
+            if player.transport.reliability_score < 66 or player.stress >= 72:
+                career.promotion_momentum = max(0, career.promotion_momentum - 3)
+                career.layoff_pressure += 1
+
+
+def _branch_specific_promotion_blockers(state: GameState, track_id: str, branch_id: str | None) -> list[str]:
+    if not branch_id:
+        return []
+    player = state.player
+    blockers: list[str] = []
+    if track_id == "retail_service":
+        if branch_id == "retail_management_track" and player.stress >= 74:
+            blockers.append("Management branch promotion is blocked by high stress.")
+        if branch_id == "retail_sales_track" and player.social_stability < 58:
+            blockers.append("Sales branch promotion needs stronger social consistency.")
+        if branch_id == "retail_clienteling_track":
+            if player.social_stability < 64:
+                blockers.append("Clienteling branch promotion needs stronger social consistency.")
+            if player.housing.housing_stability < 50:
+                blockers.append("Clienteling branch promotion needs steadier housing consistency.")
+    if track_id == "warehouse_logistics":
+        if branch_id == "warehouse_ops_track" and player.energy < 40:
+            blockers.append("Warehouse ops promotion needs more physical energy buffer.")
+        if branch_id == "warehouse_dispatch_track":
+            if player.social_stability < 50:
+                blockers.append("Warehouse dispatch promotion needs stronger coordination consistency.")
+            if player.transport.reliability_score < 60:
+                blockers.append("Warehouse dispatch promotion needs steadier transport reliability.")
+        if branch_id == "warehouse_equipment_track" and player.transport.reliability_score < 68:
+            blockers.append("Warehouse equipment promotion needs higher transport reliability.")
+    return blockers
+
+
 def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
     tier = get_current_career_tier(bundle, state)
     track = get_career_track(bundle, state.player.career.track_id)
@@ -154,6 +227,7 @@ def apply_career_effects(bundle: ContentBundle, state: GameState) -> None:
         state.player.career.promotion_momentum = max(0, state.player.career.promotion_momentum - 2)
     if state.player.housing.housing_stability <= 42:
         state.player.career.promotion_momentum = max(0, state.player.career.promotion_momentum - 1)
+    _apply_branch_identity_momentum(state, track.id, state.player.career.branch_id)
     if state.player.career.promotion_momentum >= 70:
         state.player.career.recent_performance_tag = "uptrend"
         state.player.career.best_performance_streak += 1
@@ -236,6 +310,7 @@ def promotion_blockers(bundle: ContentBundle, state: GameState) -> list[str]:
             blockers.append("Current branch needs higher transport reliability.")
         if branch.max_stress is not None and state.player.stress > branch.max_stress:
             blockers.append("Current branch is straining under current stress.")
+    blockers.extend(_branch_specific_promotion_blockers(state, track.id, state.player.career.branch_id))
     return blockers
 
 
