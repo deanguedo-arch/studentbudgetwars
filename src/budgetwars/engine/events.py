@@ -279,6 +279,11 @@ def event_severity_multiplier(bundle: ContentBundle, state: GameState, event: Ev
         multiplier += 0.16
     if event.id == "financed_car_insurance_spike" and state.player.credit_score < 640:
         multiplier += 0.12
+    if event.id in {"credit_limit_review", "collections_warning", "security_deposit_shock", "financed_car_insurance_spike"}:
+        if state.player.credit_missed_obligation_streak >= 1:
+            multiplier += min(0.24, state.player.credit_missed_obligation_streak * 0.06)
+        if state.player.credit_utilization_pressure >= 70:
+            multiplier += 0.12
     return max(0.7, min(1.8, multiplier))
 
 
@@ -344,6 +349,10 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
             return False
         if (player.cash + player.savings) < 1200:
             return False
+        if player.credit_missed_obligation_streak > 0:
+            return False
+        if player.credit_utilization_pressure >= 78:
+            return False
     if event.id == "collections_warning":
         if player.monthly_surplus > -50:
             return False
@@ -365,6 +374,11 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
         if player.debt < 4500:
             return False
         if player.credit_score < 740:
+            return False
+        if player.credit_missed_obligation_streak >= 2:
+            return False
+    if event.id == "refinance_window":
+        if player.credit_missed_obligation_streak >= 2:
             return False
     if event.id == "family_stability_surge":
         if player.monthly_surplus < 140:
@@ -532,6 +546,10 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.7
         if state.player.debt >= 2000:
             weight *= 1.15
+        if state.player.credit_missed_obligation_streak >= 1:
+            weight *= min(1.45, 1.1 + (state.player.credit_missed_obligation_streak * 0.12))
+        if state.player.credit_utilization_pressure >= 68:
+            weight *= 1.2
     if event.id == "refinance_window":
         if state.player.credit_score >= 700:
             weight *= 1.8
@@ -541,6 +559,10 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 0.25
         if state.player.debt >= 2500:
             weight *= 1.15
+        if state.player.credit_rebuild_streak >= 2:
+            weight *= 1.2
+        if state.player.credit_missed_obligation_streak >= 1:
+            weight *= 0.6
     if event.id == "credit_rebuild_window":
         if state.player.monthly_surplus >= 250:
             weight *= 1.5
@@ -548,6 +570,10 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.25
         if state.player.housing.missed_payment_streak > 0:
             weight *= 0.2
+        if state.player.credit_rebuild_streak >= 2:
+            weight *= 1.35
+        if state.player.credit_missed_obligation_streak > 0:
+            weight *= 0.35
     if event.id == "beater_cascade_choice":
         if state.player.transport.option_id == "beater_car":
             weight *= 1.45
@@ -581,6 +607,10 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.3
         if state.player.cash + state.player.savings < 600:
             weight *= 1.2
+        if state.player.credit_missed_obligation_streak >= 1:
+            weight *= min(1.5, 1.15 + (state.player.credit_missed_obligation_streak * 0.1))
+        if state.player.credit_utilization_pressure >= 70:
+            weight *= 1.2
     if event.id == "prime_refi_bridge":
         if state.player.credit_score >= 760:
             weight *= 1.2
@@ -590,6 +620,10 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.25
         if state.player.cash + state.player.savings < 600:
             weight *= 1.2
+        if state.player.credit_rebuild_streak >= 2:
+            weight *= 1.15
+        if state.player.credit_missed_obligation_streak >= 1:
+            weight *= 0.75
     if event.id == "market_margin_call":
         if state.player.monthly_surplus < -120:
             weight *= 1.2
@@ -623,6 +657,10 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.3
         if state.player.credit_score < 580:
             weight *= 1.25
+        if state.player.credit_missed_obligation_streak >= 1:
+            weight *= min(1.5, 1.15 + (state.player.credit_missed_obligation_streak * 0.1))
+        if state.player.credit_utilization_pressure >= 68:
+            weight *= 1.15
     if event.id == "beater_total_failure":
         if state.player.transport.option_id == "beater_car":
             weight *= 1.35

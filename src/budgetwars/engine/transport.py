@@ -23,26 +23,32 @@ def monthly_transport_cost(bundle: ContentBundle, state: GameState, *, modifier_
 
 def can_switch_transport(bundle: ContentBundle, state: GameState, transport_id: str) -> tuple[bool, str]:
     transport = get_transport_option(bundle, transport_id)
+    player = state.player
     if transport.id == state.player.transport_id:
         return False, "You already use that transport setup."
-    if state.player.credit_score < transport.minimum_credit_score:
-        return False, f"Your credit score ({state.player.credit_score}) is too low to finance this option."
+    if player.credit_score < transport.minimum_credit_score:
+        return False, f"Your credit score ({player.credit_score}) is too low to finance this option."
+    if transport.id in {"financed_car", "reliable_used_car", "luxury_financed_car"}:
+        if player.credit_missed_obligation_streak >= 2 and player.credit_score < 760:
+            return False, "Recent missed obligations are still blocking financing approval."
+        if player.credit_utilization_pressure >= 74 and player.credit_score < 760:
+            return False, "Credit utilization pressure is too high for new transport financing."
     if transport.id == "financed_car":
-        if state.player.monthly_surplus < 0:
+        if player.monthly_surplus < 0:
             return False, "A financed payment on an already negative monthly swing is too risky right now."
-        if state.player.credit_score < 660 and state.player.monthly_surplus < 120:
+        if player.credit_score < 660 and player.monthly_surplus < 120:
             return False, "Financing needs either stronger credit or a cleaner monthly cushion."
-        if state.player.credit_score < 680 and state.player.debt >= 9000:
+        if player.credit_score < 680 and player.debt >= 9000:
             return False, "Debt plus fair credit is still too fragile for this financing lane."
-        if state.player.debt >= 18000 and state.player.credit_score < 700:
+        if player.debt >= 18000 and player.credit_score < 700:
             return False, "Your debt pressure is too high for this financing lane right now."
     if transport.id == "reliable_used_car":
-        if state.player.credit_score < 600 and state.player.debt >= 12000:
+        if player.credit_score < 600 and player.debt >= 12000:
             return False, "Used-car financing terms are blocked until credit or debt improves."
     if transport.id == "luxury_financed_car":
-        if state.player.monthly_surplus < 250:
+        if player.monthly_surplus < 250:
             return False, "That payment needs a much stronger monthly cushion."
-        if state.player.debt >= 12000:
+        if player.debt >= 12000:
             return False, "That luxury financing lane is blocked while your debt load is still this high."
     return True, ""
 

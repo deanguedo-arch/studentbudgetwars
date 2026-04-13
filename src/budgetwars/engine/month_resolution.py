@@ -213,6 +213,10 @@ def _build_month_driver_notes(
         notes.append("Credit is now blocking some housing and transport moves.")
     elif player.credit_score < 670:
         notes.append("Credit is fair, but it still narrows the finance and housing lane.")
+    if player.credit_missed_obligation_streak >= 2:
+        notes.append("Recent missed obligations are now closing financing doors even with okay scores.")
+    if player.credit_utilization_pressure >= 72:
+        notes.append("Credit utilization pressure is high enough to trigger tougher approvals.")
     if housing_cost >= max(transport_cost * 2, 900):
         notes.append("Housing is one of the biggest forces shaping your monthly margin right now.")
     if transport_cost >= 400:
@@ -403,9 +407,14 @@ def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
         and player.debt >= 2600
         and player.monthly_surplus >= 0
         and player.housing.missed_payment_streak == 0
+        and player.credit_missed_obligation_streak == 0
+        and player.credit_utilization_pressure <= 78
     ):
-        debt_relief = min(460, max(180, int(player.debt * 0.04)))
+        debt_relief = min(520, max(200, int(player.debt * 0.045)))
+        if player.credit_score >= 760 or player.credit_rebuild_streak >= 2:
+            debt_relief = min(620, debt_relief + 90)
         player.debt = max(0, player.debt - debt_relief)
+        player.credit_rebuild_streak += 1
         player.stress -= 1
         append_log(state, f"Recovery route: strong credit unlocked debt relief (-${debt_relief}).")
     if (
@@ -414,9 +423,13 @@ def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
         and player.monthly_surplus >= 120
         and player.housing.missed_payment_streak == 0
         and (player.cash + player.savings) >= 1000
+        and player.credit_missed_obligation_streak == 0
     ):
         credit_gain = 4 if player.credit_score < 575 else 3
+        if player.credit_rebuild_streak >= 2:
+            credit_gain += 1
         player.credit_score += credit_gain
+        player.credit_rebuild_streak += 1
         player.stress -= 1
         append_log(state, f"Recovery route: clean-month credit rebuild added +{credit_gain} credit.")
     if (
@@ -499,6 +512,8 @@ def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | 
         and player.debt >= 2000
         and player.monthly_surplus >= 0
         and player.housing.missed_payment_streak == 0
+        and player.credit_missed_obligation_streak == 0
+        and player.credit_utilization_pressure <= 78
     ):
         return "Recovery route: strong credit kept debt relief available."
     if (
@@ -506,6 +521,7 @@ def _best_recovery_route_line(state: GameState, bundle: ContentBundle) -> str | 
         and player.debt <= 4500
         and player.monthly_surplus >= 120
         and player.housing.missed_payment_streak == 0
+        and player.credit_missed_obligation_streak == 0
     ):
         return "Recovery route: clean months are rebuilding a fragile credit file."
     if player.housing.option_id == "parents" and player.current_city_id == "hometown_low_cost":
@@ -597,6 +613,47 @@ def _apply_credit_drift(
     credit_adjustment = 0
     credit_parts: list[str] = []
     liquid_buffer = player.cash + player.savings + player.high_interest_savings
+    debt_load_ratio = player.debt / max(1, player.monthly_income * 6)
+
+    missed_debt_obligation = debt_due > 0 and debt_paid < debt_due
+    missed_housing_obligation = housing_shortfall > 0
+    heavy_shortfall = player.monthly_surplus < -80
+    missed_obligation_month = missed_debt_obligation or missed_housing_obligation or heavy_shortfall
+    clean_obligation_month = housing_shortfall == 0 and (debt_due == 0 or debt_paid >= debt_due) and player.monthly_surplus >= 120
+    strong_rebuild_month = clean_obligation_month and player.debt <= debt_start and liquid_buffer >= 1000
+
+    if missed_obligation_month:
+        player.credit_missed_obligation_streak += 1
+        player.credit_rebuild_streak = 0
+    else:
+        if strong_rebuild_month:
+            player.credit_missed_obligation_streak = 0
+        else:
+            player.credit_missed_obligation_streak = max(0, player.credit_missed_obligation_streak - 1)
+        if strong_rebuild_month:
+            player.credit_rebuild_streak += 1
+        elif clean_obligation_month:
+            player.credit_rebuild_streak = max(0, player.credit_rebuild_streak)
+        else:
+            player.credit_rebuild_streak = max(0, player.credit_rebuild_streak - 1)
+
+    utilization_raw = int(
+        round((player.debt / max(1, (player.monthly_income * 5) + liquid_buffer + 1200)) * 100)
+    )
+    if player.monthly_surplus < 0:
+        utilization_raw += 8
+    if player.debt > debt_start:
+        utilization_raw += 6
+    if player.credit_missed_obligation_streak >= 2:
+        utilization_raw += 10
+    if player.credit_rebuild_streak >= 2:
+        utilization_raw -= 8
+    utilization_raw = max(0, min(100, utilization_raw))
+    player.credit_utilization_pressure = int(
+        round((player.credit_utilization_pressure * 0.55) + (utilization_raw * 0.45))
+    )
+    player.credit_utilization_pressure = max(0, min(100, player.credit_utilization_pressure))
+
     if debt_due > 0 and debt_paid >= debt_due:
         credit_adjustment += 1
         credit_parts.append("on-time debt payment +1")
@@ -612,7 +669,6 @@ def _apply_credit_drift(
     elif player.monthly_surplus < 0:
         credit_adjustment -= 2
         credit_parts.append("soft shortfall -2")
-    debt_load_ratio = player.debt / max(1, player.monthly_income * 6)
     if debt_load_ratio >= 2.0:
         credit_adjustment -= 3
         credit_parts.append("heavy debt ratio -3")
@@ -655,6 +711,26 @@ def _apply_credit_drift(
     if player.debt >= 7000 and liquid_buffer < 800:
         credit_adjustment -= 2
         credit_parts.append("thin buffer under debt -2")
+    if player.credit_missed_obligation_streak >= 1:
+        streak_penalty = min(6, 1 + player.credit_missed_obligation_streak)
+        credit_adjustment -= streak_penalty
+        credit_parts.append(f"obligation streak -{streak_penalty}")
+    if player.credit_utilization_pressure >= 80:
+        credit_adjustment -= 4
+        credit_parts.append("utilization pressure -4")
+    elif player.credit_utilization_pressure >= 68:
+        credit_adjustment -= 3
+        credit_parts.append("utilization pressure -3")
+    elif player.credit_utilization_pressure >= 55:
+        credit_adjustment -= 2
+        credit_parts.append("utilization pressure -2")
+    if player.credit_rebuild_streak >= 2:
+        rebuild_bonus = 2 if player.credit_rebuild_streak >= 4 else 1
+        credit_adjustment += rebuild_bonus
+        credit_parts.append(f"rebuild streak +{rebuild_bonus}")
+    if player.credit_rebuild_streak >= 5 and player.credit_score < 670:
+        credit_adjustment += 1
+        credit_parts.append("sustained rebuild +1")
     if player.credit_score < 620 and player.monthly_surplus >= 180 and player.debt <= debt_start:
         credit_adjustment += 1
         credit_parts.append("credit rebuild pace +1")
@@ -668,6 +744,13 @@ def _apply_credit_drift(
     if credit_adjustment:
         player.credit_score = max(300, min(850, player.credit_score + credit_adjustment))
         append_log(state, f"Credit drift: {credit_adjustment:+d} ({', '.join(credit_parts)})")
+    append_log(
+        state,
+        "Credit profile: "
+        f"missed streak {player.credit_missed_obligation_streak}, "
+        f"rebuild streak {player.credit_rebuild_streak}, "
+        f"utilization pressure {player.credit_utilization_pressure}.",
+    )
 
 
 def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:

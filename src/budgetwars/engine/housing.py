@@ -18,27 +18,34 @@ def monthly_housing_cost(bundle: ContentBundle, state: GameState, *, modifier_de
 
 def can_switch_housing(bundle: ContentBundle, state: GameState, housing_id: str) -> tuple[bool, str]:
     housing = get_housing_option(bundle, housing_id)
+    player = state.player
     if housing.id == state.player.housing_id:
         return False, "You already live there."
-    if housing.requires_hometown and state.player.current_city_id != "hometown_low_cost":
+    if housing.requires_hometown and player.current_city_id != "hometown_low_cost":
         return False, "You can only stay with parents in the hometown low-cost city."
-    if housing.minimum_family_support and state.player.family_support < housing.minimum_family_support:
+    if housing.minimum_family_support and player.family_support < housing.minimum_family_support:
         return False, "Your family support is too low for that fallback right now."
-    if housing.student_only and (not state.player.education.is_active or state.player.education.program_id == "none"):
+    if housing.student_only and (not player.education.is_active or player.education.program_id == "none"):
         return False, "Student residence only makes sense while you are actively enrolled."
-    if state.player.credit_score < housing.minimum_credit_score:
-        return False, f"Your credit score ({state.player.credit_score}) is too low to secure this lease."
+    if player.credit_score < housing.minimum_credit_score:
+        return False, f"Your credit score ({player.credit_score}) is too low to secure this lease."
+    if player.credit_missed_obligation_streak >= 2 and housing.id in {"roommates", "solo_rental"} and player.credit_score < 760:
+        return False, "Recent missed obligations are still blocking lease approvals."
+    if player.credit_utilization_pressure >= 72 and housing.id == "solo_rental" and player.credit_score < 760:
+        return False, "Credit utilization pressure is too high for a solo-lease approval."
     if housing.id == "roommates":
-        if state.player.credit_score < 580 and state.player.debt >= 9000:
+        if player.credit_score < 580 and player.debt >= 9000:
             return False, "Roommate applications are getting denied until credit or debt pressure improves."
-        if state.player.monthly_surplus < -180 and state.player.credit_score < 620:
+        if player.monthly_surplus < -180 and player.credit_score < 620:
             return False, "With this monthly deficit and credit profile, shared-lease approval is unlikely."
+        if player.credit_missed_obligation_streak >= 3 and player.credit_score < 700:
+            return False, "Recent payment history is too shaky for this shared lease."
     if housing.id == "solo_rental":
-        if state.player.credit_score < 700 and state.player.debt >= 10000:
+        if player.credit_score < 700 and player.debt >= 10000:
             return False, "Solo rental is blocked until credit improves or debt comes down."
-        if state.player.debt >= 14000 and state.player.credit_score < 740:
+        if player.debt >= 14000 and player.credit_score < 740:
             return False, "That lease wants stronger credit or less debt pressure first."
-        if state.player.monthly_surplus < -100 and (state.player.cash + state.player.savings) < (housing.move_in_cost + 300):
+        if player.monthly_surplus < -100 and (player.cash + player.savings) < (housing.move_in_cost + 300):
             return False, "A solo lease on a negative monthly swing is too fragile right now."
     return True, ""
 

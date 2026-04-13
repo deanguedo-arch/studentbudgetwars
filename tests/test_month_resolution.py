@@ -293,6 +293,45 @@ def test_repeated_clean_months_can_rebuild_fragile_credit_to_fair(bundle, contro
     assert controller.state.player.credit_score >= start_credit + 20
 
 
+def test_phase4_credit_profile_tracks_missed_and_rebuild_streaks(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    missed = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    missed.state.player.cash = 0
+    missed.state.player.savings = 0
+    missed.state.player.debt = 22000
+    missed.state.player.credit_score = 640
+    missed.state.player.credit_rebuild_streak = 2
+    missed.state.player.credit_missed_obligation_streak = 0
+    missed.state.active_modifiers.append(
+        ActiveMonthlyModifier(
+            id="phase4_forced_credit_miss",
+            label="Forced Credit Miss",
+            remaining_months=1,
+            income_multiplier=0.2,
+            housing_cost_delta=1600,
+        )
+    )
+
+    clean = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost", difficulty_id="easy")
+    clean.state.player.cash = 2400
+    clean.state.player.savings = 1800
+    clean.state.player.debt = 2600
+    clean.state.player.credit_score = 610
+    clean.state.player.selected_focus_action_id = "recovery_month"
+    clean.state.player.credit_rebuild_streak = 0
+    clean.state.player.credit_missed_obligation_streak = 2
+
+    resolve_month(quiet_bundle, missed.state, missed.rng)
+    resolve_month(quiet_bundle, clean.state, clean.rng)
+
+    assert missed.state.player.credit_missed_obligation_streak >= 1
+    assert missed.state.player.credit_rebuild_streak == 0
+    assert clean.state.player.credit_rebuild_streak >= 1
+    assert clean.state.player.credit_missed_obligation_streak == 0
+
+
 def test_recent_summary_includes_stress_and_energy_breakdown(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})

@@ -633,6 +633,139 @@ def test_strong_credit_and_stable_finances_unlock_financed_doors(bundle, control
     assert transport_allowed
 
 
+def test_phase4_credit_missed_obligation_streak_blocks_core_credit_doors(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.player.credit_score = 738
+    controller.state.player.debt = 7800
+    controller.state.player.monthly_surplus = 240
+    controller.state.player.cash = 2400
+    controller.state.player.savings = 1400
+    controller.state.player.credit_missed_obligation_streak = 2
+
+    housing_allowed, housing_reason = can_switch_housing(bundle, controller.state, "solo_rental")
+    transport_allowed, transport_reason = can_switch_transport(bundle, controller.state, "financed_car")
+
+    assert not housing_allowed
+    assert not transport_allowed
+    assert "payment" in housing_reason.lower() or "obligation" in housing_reason.lower() or "history" in housing_reason.lower()
+    assert "payment" in transport_reason.lower() or "obligation" in transport_reason.lower() or "history" in transport_reason.lower()
+
+
+def test_phase4_refinance_window_requires_recent_credit_stability(bundle, controller_factory):
+    stable = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    stable.state.current_month = 14
+    stable.state.player.credit_score = 748
+    stable.state.player.debt = 8600
+    stable.state.player.monthly_surplus = -60
+    stable.state.player.cash = 240
+    stable.state.player.savings = 180
+    stable.state.player.credit_missed_obligation_streak = 0
+
+    unstable = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    unstable.state.current_month = 14
+    unstable.state.player.credit_score = 748
+    unstable.state.player.debt = 8600
+    unstable.state.player.monthly_surplus = -60
+    unstable.state.player.cash = 240
+    unstable.state.player.savings = 180
+    unstable.state.player.credit_missed_obligation_streak = 2
+
+    stable_ids = {event.id for event in eligible_events(bundle, stable.state)}
+    unstable_ids = {event.id for event in eligible_events(bundle, unstable.state)}
+
+    assert "refinance_window" in stable_ids
+    assert "refinance_window" not in unstable_ids
+
+
+def test_phase4_credit_penalty_severity_scales_with_missed_obligation_streak(bundle, controller_factory):
+    event = next(item for item in bundle.events if item.id == "security_deposit_shock")
+
+    stable_file = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    stable_file.state.player.credit_score = 568
+    stable_file.state.player.debt = 5600
+    stable_file.state.player.monthly_surplus = -90
+    stable_file.state.player.credit_missed_obligation_streak = 0
+
+    stressed_file = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    stressed_file.state.player.credit_score = 568
+    stressed_file.state.player.debt = 5600
+    stressed_file.state.player.monthly_surplus = -90
+    stressed_file.state.player.credit_missed_obligation_streak = 3
+
+    assert event_severity_multiplier(bundle, stressed_file.state, event) > event_severity_multiplier(bundle, stable_file.state, event)
+
+
+def test_phase4_credit_rebuild_window_prefers_rebuild_streak(bundle, controller_factory):
+    rebuilding = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    rebuilding.state.current_month = 14
+    rebuilding.state.player.credit_score = 565
+    rebuilding.state.player.debt = 3200
+    rebuilding.state.player.cash = 2000
+    rebuilding.state.player.savings = 1400
+    rebuilding.state.player.monthly_surplus = 260
+    rebuilding.state.player.housing.missed_payment_streak = 0
+    rebuilding.state.player.credit_rebuild_streak = 3
+
+    flat = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    flat.state.current_month = 14
+    flat.state.player.credit_score = 565
+    flat.state.player.debt = 3200
+    flat.state.player.cash = 2000
+    flat.state.player.savings = 1400
+    flat.state.player.monthly_surplus = 260
+    flat.state.player.housing.missed_payment_streak = 0
+    flat.state.player.credit_rebuild_streak = 0
+
+    rebuild_event = next(event for event in bundle.events if event.id == "credit_rebuild_window")
+    assert event_weight(bundle, rebuilding.state, rebuild_event) > event_weight(bundle, flat.state, rebuild_event)
+
+
+def test_phase4_weak_vs_strong_credit_contrast_scenario(bundle, controller_factory):
+    weak = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    weak.state.current_month = 14
+    weak.state.player.credit_score = 556
+    weak.state.player.debt = 12800
+    weak.state.player.cash = 120
+    weak.state.player.savings = 0
+    weak.state.player.monthly_surplus = -150
+    weak.state.player.credit_missed_obligation_streak = 3
+    weak.state.player.credit_utilization_pressure = 84
+    weak.state.player.transport.option_id = "beater_car"
+
+    strong = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    strong.state.current_month = 14
+    strong.state.player.credit_score = 754
+    strong.state.player.debt = 2600
+    strong.state.player.cash = 2400
+    strong.state.player.savings = 1600
+    strong.state.player.monthly_surplus = 320
+    strong.state.player.credit_missed_obligation_streak = 0
+    strong.state.player.credit_rebuild_streak = 2
+    strong.state.player.credit_utilization_pressure = 34
+    strong.state.player.transport.option_id = "transit"
+
+    weak_housing_allowed, _ = can_switch_housing(bundle, weak.state, "solo_rental")
+    weak_transport_allowed, _ = can_switch_transport(bundle, weak.state, "financed_car")
+    strong_housing_allowed, _ = can_switch_housing(bundle, strong.state, "solo_rental")
+    strong_transport_allowed, _ = can_switch_transport(bundle, strong.state, "financed_car")
+
+    weak_ids = {event.id for event in eligible_events(bundle, weak.state)}
+    strong_ids = {event.id for event in eligible_events(bundle, strong.state)}
+
+    security_deposit_shock = next(event for event in bundle.events if event.id == "security_deposit_shock")
+    weak_severity = event_severity_multiplier(bundle, weak.state, security_deposit_shock)
+    strong_severity = event_severity_multiplier(bundle, strong.state, security_deposit_shock)
+
+    assert not weak_housing_allowed
+    assert not weak_transport_allowed
+    assert strong_housing_allowed
+    assert strong_transport_allowed
+    assert "collections_warning" in weak_ids
+    assert "refinance_window" not in weak_ids
+    assert "refinance_window" in strong_ids
+    assert weak_severity > strong_severity
+
+
 def test_used_car_window_requires_actual_vehicle(bundle, controller_factory):
     controller = controller_factory(opening_path_id="stay_home_stack_cash")
     controller.state.current_month = 6

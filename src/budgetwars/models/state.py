@@ -138,6 +138,9 @@ class PlayerState(BaseModel):
     consecutive_correction_months: int = 0
     emergency_liquidation_count: int = 0
     credit_score: int = Field(ge=300, le=850, default=650)
+    credit_missed_obligation_streak: int = Field(ge=0, default=0)
+    credit_rebuild_streak: int = Field(ge=0, default=0)
+    credit_utilization_pressure: int = Field(ge=0, le=100, default=40)
     last_social_lifeline_year: int = 0
     career: CareerState
     education: EducationState
