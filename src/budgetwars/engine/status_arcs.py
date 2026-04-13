@@ -88,6 +88,12 @@ _EVENT_START_RULES = {
         "severity": 3,
         "note": "Burnout is now a live collapse risk, not just a bad month.",
     },
+    "promotion_window": {
+        "arc_id": "promotion_window_open",
+        "duration_months": 3,
+        "severity": 1,
+        "note": "A real advancement opening is live for the next few months.",
+    },
 }
 
 _CHOICE_RULES = {
@@ -165,6 +171,20 @@ _CHOICE_RULES = {
         "duration_months": 2,
         "severity_delta": 1,
         "note": "Forcing hours is turning burnout risk into the shape of the run.",
+    },
+    ("promotion_window", "push_for_scope"): {
+        "action": "refresh",
+        "arc_id": "promotion_window_open",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "You pushed into the opening and raised both the upside and the pressure.",
+    },
+    ("promotion_window", "bank_consistency"): {
+        "action": "refresh",
+        "arc_id": "promotion_window_open",
+        "duration_months": 2,
+        "severity_delta": 0,
+        "note": "You kept the opening alive through steady credibility instead of raw stretch.",
     },
 }
 
@@ -338,4 +358,23 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.14 + severity_bonus
         elif event_id == "overtime_attrition_warning":
             multiplier *= 1.1 + (0.06 * burnout_arc.severity)
+    promotion_arc = get_active_status_arc(state, "promotion_window_open")
+    if promotion_arc is not None:
+        severity_bonus = 0.06 * promotion_arc.severity
+        if event_id == "promotion_window":
+            multiplier *= 1.1 + severity_bonus
+            if state.pending_promotion_branch_track_id == state.player.career.track_id:
+                multiplier *= 1.12
+        elif event_id in {
+            "retail_leadership_offer",
+            "sales_territory_offer",
+            "dispatch_lead_offer",
+            "equipment_specialist_offer",
+            "warehouse_foreman_offer",
+            "healthcare_shift_lead_offer",
+            "clienteling_key_account_offer",
+            "trades_crew_lead_offer",
+            "retail_crisis_lead_backfill_offer",
+        }:
+            multiplier *= 1.06 + severity_bonus
     return multiplier

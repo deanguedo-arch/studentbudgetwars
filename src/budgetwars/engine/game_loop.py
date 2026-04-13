@@ -30,6 +30,7 @@ from .scoring import (
     dominant_pressure_family,
 )
 from .setup import build_new_game_state
+from .status_arcs import resolve_status_arc
 from .transport import can_switch_transport
 
 
@@ -246,6 +247,7 @@ class GameController:
         self.state.player.career.branch_id = branch_id
         self.state.pending_promotion_branch_track_id = None
         self.state.player.career.promotion_momentum = min(100, self.state.player.career.promotion_momentum + 4)
+        resolve_status_arc(self.state, "promotion_window_open")
         append_log(self.state, f"Career branch selected: {branch.name}")
         trim_logs(self.bundle, self.state)
 

@@ -207,7 +207,11 @@ def _branch_quality_adjustment(state: GameState) -> float:
         adjustment -= 1.8
 
     if state.pending_promotion_branch_track_id:
-        adjustment -= 1.2
+        pending_opportunity = any(
+            arc.arc_id == "promotion_window_open"
+            for arc in state.active_status_arcs
+        )
+        adjustment -= 0.4 if pending_opportunity else 1.2
     if not player.career.branch_id and player.career.transition_penalty_months > 0 and player.career.tier_index >= 1:
         adjustment -= 0.8
     return max(-4.0, min(4.0, adjustment))
@@ -269,7 +273,11 @@ def _status_arc_pressure_adjustment(state: GameState) -> float:
             adjustment -= 0.55 + (0.45 * arc.severity)
         elif arc.arc_id == "burnout_risk":
             adjustment -= 0.6 + (0.45 * arc.severity)
-    return max(-4.5, min(0.0, adjustment))
+        elif arc.arc_id == "promotion_window_open":
+            adjustment += 0.35 + (0.25 * arc.severity)
+            if state.pending_promotion_branch_track_id == state.player.career.track_id:
+                adjustment += 0.2
+    return max(-4.5, min(1.5, adjustment))
 
 
 def _breakdown_label(key: str) -> str:

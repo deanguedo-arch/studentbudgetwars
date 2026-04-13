@@ -910,6 +910,42 @@ def test_phase_status_arc_burnout_raises_followup_pressure_and_score_penalty(bun
     assert strained_score < stable_score
 
 
+def test_phase_status_arc_promotion_raises_future_opportunity_weight_and_score(bundle, controller_factory):
+    flat = controller_factory(opening_path_id="full_time_work")
+    open_window = controller_factory(opening_path_id="full_time_work")
+
+    for controller in (flat, open_window):
+        controller.change_career("retail_service")
+        controller.state.current_month = 18
+        controller.state.player.career.tier_index = 1
+        controller.state.player.career.promotion_progress = 8
+        controller.state.player.career.promotion_momentum = 64
+        controller.state.player.credit_score = 708
+        controller.state.player.housing.housing_stability = 68
+        controller.state.player.transport.reliability_score = 72
+        controller.state.player.social_stability = 60
+        controller.state.player.stress = 44
+        controller.state.player.energy = 62
+
+    start_status_arc(
+        bundle,
+        open_window.state,
+        "promotion_window_open",
+        source_event_id="promotion_window",
+        duration_months=3,
+        severity=2,
+    )
+    open_window.state.pending_promotion_branch_track_id = open_window.state.player.career.track_id
+
+    promotion = next(event for event in bundle.events if event.id == "promotion_window")
+
+    flat_score = calculate_final_score(bundle, flat.state).final_score
+    open_score = calculate_final_score(bundle, open_window.state).final_score
+
+    assert event_weight(bundle, open_window.state, promotion) > event_weight(bundle, flat.state, promotion)
+    assert open_score > flat_score
+
+
 def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):
     strong_bundle = bundle.model_copy(deep=True)
     strong_bundle.config = strong_bundle.config.model_copy(

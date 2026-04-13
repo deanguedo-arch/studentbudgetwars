@@ -164,6 +164,33 @@ def test_promotion_window_scope_choices_have_persistent_modifiers(bundle) -> Non
     assert by_id["bank_consistency"].persistent_tag == "consistency_lane"
 
 
+def test_phase_status_arc_promotion_window_choice_keeps_opportunity_arc_active(bundle, controller_factory) -> None:
+    controller = controller_factory(opening_path_id="full_time_work")
+    controller.change_career("retail_service")
+    controller.state.current_month = 12
+    controller.state.player.career.promotion_progress = 6
+    controller.state.player.career.promotion_momentum = 62
+
+    event = next(item for item in bundle.events if item.id == "promotion_window")
+
+    resolve_event(bundle, controller.state, event)
+
+    assert len(controller.state.active_status_arcs) == 1
+    opening_arc = controller.state.active_status_arcs[0]
+    assert opening_arc.arc_id == "promotion_window_open"
+    assert opening_arc.source_event_id == "promotion_window"
+    opening_months = opening_arc.remaining_months
+
+    controller.resolve_event_choice("push_for_scope")
+
+    assert len(controller.state.active_status_arcs) == 1
+    active_arc = controller.state.active_status_arcs[0]
+    assert active_arc.arc_id == "promotion_window_open"
+    assert active_arc.remaining_months > opening_months
+    assert active_arc.severity == 2
+    assert "scope_push_lane" in controller.state.player.persistent_tags
+
+
 def test_branch_promotion_offer_events_are_choice_events(bundle) -> None:
     retail_offer = next(item for item in bundle.events if item.id == "retail_leadership_offer")
     warehouse_offer = next(item for item in bundle.events if item.id == "dispatch_lead_offer")
