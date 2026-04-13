@@ -363,6 +363,141 @@ def test_easy_big_city_recovery_reports_easing_pressure_trend(bundle, controller
     assert "easing" in trend_line
 
 
+def test_normal_mode_same_stable_recovery_setup_is_easier_in_hometown_than_metro(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    hometown = controller_factory(
+        difficulty_id="normal",
+        city_id="hometown_low_cost",
+        family_support_level_id="medium",
+        savings_band_id="some",
+        opening_path_id="move_out_immediately",
+    )
+    metro = controller_factory(
+        difficulty_id="normal",
+        city_id="high_opportunity_metro",
+        family_support_level_id="medium",
+        savings_band_id="some",
+        opening_path_id="move_out_immediately",
+    )
+
+    for controller in (hometown, metro):
+        player = controller.state.player
+        player.selected_focus_action_id = "recovery_month"
+        player.stress = 60
+        player.energy = 58
+        player.housing.housing_stability = 62
+        player.transport.reliability_score = 76
+        player.debt = 4200
+        player.credit_score = 650
+        player.social_stability = 58
+        player.family_support = 44
+
+    hometown_start = hometown.state.player.stress
+    metro_start = metro.state.player.stress
+
+    resolve_month(quiet_bundle, hometown.state, hometown.rng)
+    resolve_month(quiet_bundle, metro.state, metro.rng)
+
+    hometown_drop = hometown_start - hometown.state.player.stress
+    metro_drop = metro_start - metro.state.player.stress
+
+    assert hometown_drop > 0
+    assert metro_drop > 0
+    assert hometown_drop > metro_drop
+
+
+def test_severe_burnout_arc_cuts_metro_recovery_capacity(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    clean = controller_factory(
+        difficulty_id="normal",
+        city_id="high_opportunity_metro",
+        family_support_level_id="medium",
+        savings_band_id="some",
+        opening_path_id="move_out_immediately",
+    )
+    strained = controller_factory(
+        difficulty_id="normal",
+        city_id="high_opportunity_metro",
+        family_support_level_id="medium",
+        savings_band_id="some",
+        opening_path_id="move_out_immediately",
+    )
+
+    for controller in (clean, strained):
+        player = controller.state.player
+        player.selected_focus_action_id = "recovery_month"
+        player.stress = 60
+        player.energy = 58
+        player.housing.housing_stability = 62
+        player.transport.reliability_score = 76
+        player.debt = 4200
+        player.credit_score = 650
+        player.social_stability = 58
+        player.family_support = 44
+
+    start_status_arc(
+        bundle,
+        strained.state,
+        "burnout_risk",
+        source_event_id="burnout_month",
+        duration_months=3,
+        severity=3,
+    )
+
+    clean_start = clean.state.player.stress
+    strained_start = strained.state.player.stress
+
+    resolve_month(quiet_bundle, clean.state, clean.rng)
+    resolve_month(quiet_bundle, strained.state, strained.rng)
+
+    clean_drop = clean_start - clean.state.player.stress
+    strained_drop = strained_start - strained.state.player.stress
+
+    assert clean_drop > strained_drop
+
+
+def test_recent_summary_reports_recovery_balance_reason(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    controller = controller_factory(
+        difficulty_id="normal",
+        city_id="high_opportunity_metro",
+        family_support_level_id="medium",
+        savings_band_id="some",
+        opening_path_id="move_out_immediately",
+    )
+    player = controller.state.player
+    player.selected_focus_action_id = "recovery_month"
+    player.stress = 62
+    player.energy = 54
+    player.housing.housing_stability = 60
+    player.transport.reliability_score = 72
+    player.debt = 5600
+    player.credit_score = 640
+    player.social_stability = 54
+    player.family_support = 42
+
+    start_status_arc(
+        bundle,
+        controller.state,
+        "burnout_risk",
+        source_event_id="burnout_month",
+        duration_months=2,
+        severity=2,
+    )
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    balance_line = next((line for line in controller.state.recent_summary if line.startswith("Recovery balance:")), "")
+    assert balance_line
+    assert any(keyword in balance_line.lower() for keyword in ("recovery", "pressure", "city", "arc"))
+
+
 def test_stress_pressure_map_rises_for_fragile_build_and_relieves_for_stable_build(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})

@@ -21,6 +21,7 @@ from .events import roll_month_events
 from .housing import apply_housing_effects, can_switch_housing, monthly_housing_cost
 from .lookups import (
     get_career_track,
+    get_city,
     get_current_career_tier,
     get_difficulty,
     get_education_program,
@@ -338,51 +339,235 @@ def _pressure_map(state: GameState) -> list[tuple[str, int]]:
     )
 
 
-def _apply_pressure_dynamics(state: GameState, *, difficulty_stress_multiplier: float = 1.0) -> tuple[list[str], str]:
+def _city_stress_bias(bundle: ContentBundle, state: GameState) -> tuple[int, int, str]:
+    city = get_city(bundle, state.player.current_city_id)
+    if city.id == "hometown_low_cost":
+        return (2, 0, "hometown breathing room")
+    if city.id == "mid_size_city":
+        return (1, 1, "mid-size pace")
+    if city.id == "high_opportunity_metro":
+        return (0, 2, "metro pace")
+    return (0, 1, city.name.lower())
+
+
+def _active_arc_pressure_bias(state: GameState) -> tuple[int, int, list[str]]:
+    recovery_penalty = 0
+    pressure_penalty = 0
+    labels: list[str] = []
+    for arc in state.active_status_arcs:
+        if arc.severity >= 2:
+            recovery_penalty += arc.severity - 1
+            pressure_penalty += 1
+            if arc.severity >= 3:
+                pressure_penalty += 1
+            labels.append(arc.arc_id.replace("_", " "))
+    return recovery_penalty, pressure_penalty, labels[:3]
+
+
+def _stress_recovery_capacity(
+    bundle: ContentBundle,
+    state: GameState,
+    *,
+    difficulty_stress_multiplier: float = 1.0,
+) -> tuple[int, list[str]]:
+    player = state.player
+    capacity = 5
+    reasons: list[str] = []
+
+    focus_id = player.selected_focus_action_id
+    if focus_id == "recovery_month":
+        capacity += 7
+        reasons.append("recovery month")
+    elif focus_id == "social_maintenance":
+        capacity += 4
+        reasons.append("social maintenance")
+    elif focus_id == "move_prep":
+        capacity += 2
+        reasons.append("move prep")
+
+    if player.housing.housing_stability >= 70:
+        capacity += 2
+        reasons.append("stable housing")
+    elif player.housing.housing_stability >= 55:
+        capacity += 1
+        reasons.append("okay housing")
+    elif player.housing.housing_stability <= 40:
+        capacity -= 2
+
+    if player.transport.reliability_score >= 80:
+        capacity += 2
+        reasons.append("reliable transport")
+    elif player.transport.reliability_score >= 65:
+        capacity += 1
+        reasons.append("usable transport")
+    elif player.transport.reliability_score <= 50:
+        capacity -= 2
+
+    if player.social_stability >= 65:
+        capacity += 2
+        reasons.append("strong social footing")
+    elif player.social_stability >= 50:
+        capacity += 1
+        reasons.append("steady support")
+    elif player.social_stability <= 35:
+        capacity -= 2
+
+    if player.family_support >= 60:
+        capacity += 1
+        reasons.append("family buffer")
+    elif player.family_support <= 30:
+        capacity -= 1
+
+    liquid_buffer = player.cash + player.savings + player.high_interest_savings
+    if liquid_buffer >= 2500:
+        capacity += 2
+        reasons.append("cash cushion")
+    elif liquid_buffer >= 1000:
+        capacity += 1
+        reasons.append("some buffer")
+    elif liquid_buffer < 250:
+        capacity -= 1
+
+    if player.energy >= 65:
+        capacity += 1
+        reasons.append("good energy")
+    elif player.energy <= 35:
+        capacity -= 2
+
+    city_recovery_bias, _, city_label = _city_stress_bias(bundle, state)
+    capacity += city_recovery_bias
+    if city_recovery_bias > 0:
+        reasons.append(city_label)
+
+    recovery_penalty, _, arc_labels = _active_arc_pressure_bias(state)
+    if recovery_penalty:
+        capacity -= recovery_penalty
+        reasons.append(f"arc drag: {', '.join(arc_labels)}")
+
+    if difficulty_stress_multiplier < 1.0:
+        capacity += 1
+        reasons.append("easy mode breathing room")
+    elif difficulty_stress_multiplier > 1.0:
+        capacity -= 1
+
+    return max(0, capacity), reasons[:4]
+
+
+def _stress_pressure_burden(
+    bundle: ContentBundle,
+    state: GameState,
+    top_pressures: list[tuple[str, int]],
+    *,
+    difficulty_stress_multiplier: float = 1.0,
+) -> tuple[int, list[str]]:
+    player = state.player
+    if not top_pressures:
+        return (0, ["no dominant pressure"])
+
+    avg = sum(value for _, value in top_pressures) / len(top_pressures)
+    burden = max(0, int(round(avg / 18)))
+    reasons = [top_pressures[0][0]]
+
+    if player.stress >= 75:
+        burden += 2
+        reasons.append("high current stress")
+    elif player.stress >= 60:
+        burden += 1
+        reasons.append("elevated stress")
+
+    if player.energy <= 35:
+        burden += 2
+        reasons.append("low energy")
+    elif player.energy <= 50:
+        burden += 1
+        reasons.append("soft energy")
+
+    if player.debt >= 10000 or player.credit_score < 580:
+        burden += 1
+        reasons.append("debt pressure")
+
+    _, city_pressure_bias, city_label = _city_stress_bias(bundle, state)
+    burden += city_pressure_bias
+    if city_pressure_bias:
+        reasons.append(city_label)
+
+    if player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
+        burden += 1
+        reasons.append("push focus")
+
+    _, pressure_penalty, arc_labels = _active_arc_pressure_bias(state)
+    if pressure_penalty:
+        burden += pressure_penalty
+        reasons.append(f"active arcs: {', '.join(arc_labels)}")
+
+    if difficulty_stress_multiplier < 1.0:
+        burden = max(0, burden - 1)
+    elif difficulty_stress_multiplier > 1.0:
+        burden += 1
+        reasons.append("hard mode squeeze")
+
+    return burden, reasons[:4]
+
+
+def _apply_pressure_dynamics(
+    bundle: ContentBundle,
+    state: GameState,
+    *,
+    difficulty_stress_multiplier: float = 1.0,
+) -> tuple[list[str], str, str]:
     pressures = _pressure_map(state)
     top = [(name, value) for name, value in pressures if value > 0][:3]
     if not top:
-        return (["stable: no major pressure source is dominating"], "stable (+0 stress)")
+        return (
+            ["stable: no major pressure source is dominating"],
+            "stable (+0 stress)",
+            "Recovery balance: 0 capacity vs 0 pressure (quiet month).",
+        )
+
+    recovery_capacity, recovery_reasons = _stress_recovery_capacity(
+        bundle,
+        state,
+        difficulty_stress_multiplier=difficulty_stress_multiplier,
+    )
+    pressure_burden, pressure_reasons = _stress_pressure_burden(
+        bundle,
+        state,
+        top,
+        difficulty_stress_multiplier=difficulty_stress_multiplier,
+    )
     avg = sum(value for _, value in top) / len(top)
-    if avg >= 75:
-        stress_shift = 4
-    elif avg >= 62:
-        stress_shift = 3
-    elif avg >= 50:
-        stress_shift = 2
-    elif avg >= 38:
-        stress_shift = 1
-    elif avg <= 18:
+    net = recovery_capacity - pressure_burden
+    if net >= 16:
+        stress_shift = -5
+    elif net >= 12:
+        stress_shift = -4
+    elif net >= 8:
         stress_shift = -3
-    elif avg <= 28:
+    elif net >= 4:
         stress_shift = -2
-    else:
+    elif net >= 1:
         stress_shift = -1
-    if state.player.selected_focus_action_id in {"recovery_month", "social_maintenance"}:
-        stress_shift -= 2
+    elif net <= -7:
+        stress_shift = 4
+    elif net <= -4:
+        stress_shift = 3
+    elif net <= -2:
+        stress_shift = 2
+    elif net < 0:
+        stress_shift = 1
+    else:
+        stress_shift = 0
+
     if state.player.selected_focus_action_id in {"overtime", "promotion_hunt"}:
-        stress_shift += 1
-        if avg >= 45:
-            stress_shift += 1
-        elif avg >= 32:
+        if avg >= 42:
+            stress_shift = max(stress_shift, 2)
+        elif avg >= 30:
             stress_shift = max(stress_shift, 1)
-    if difficulty_stress_multiplier < 1.0:
-        ease_bias = max(1, int(round((1.0 - difficulty_stress_multiplier) * 10)))
-        if stress_shift > 0:
-            stress_shift = max(0, stress_shift - ease_bias)
-        elif stress_shift < 0:
-            stress_shift -= ease_bias
-    elif difficulty_stress_multiplier > 1.0:
-        pressure_bias = max(1, int(round((difficulty_stress_multiplier - 1.0) * 10)))
-        if stress_shift > 0:
-            stress_shift += pressure_bias
-        elif stress_shift < 0:
-            stress_shift = min(-1, stress_shift + pressure_bias)
+
     if (
         stress_shift == 0
-        and difficulty_stress_multiplier <= 1.0
         and state.player.selected_focus_action_id in {"recovery_month", "social_maintenance"}
-        and avg >= 30
+        and difficulty_stress_multiplier <= 1.0
     ):
         stress_shift = -1
 
@@ -394,7 +579,13 @@ def _apply_pressure_dynamics(state: GameState, *, difficulty_stress_multiplier: 
         trend = f"easing ({stress_shift} stress)"
     else:
         trend = "stable (+0 stress)"
-    return labels, trend
+    balance_line = (
+        "Recovery balance: "
+        f"{recovery_capacity} capacity vs {pressure_burden} pressure "
+        f"({', '.join(recovery_reasons[:2]) or 'limited recovery'} vs "
+        f"{', '.join(pressure_reasons[:2]) or 'light pressure'})."
+    )
+    return labels, trend, balance_line
 
 
 def _apply_recovery_routes(state: GameState, bundle: ContentBundle) -> None:
@@ -1008,7 +1199,8 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     state.player.monthly_surplus = end_net - start_net
     _update_momentum_and_drag(state)
     _apply_system_signatures(bundle, state)
-    pressure_top, pressure_trend = _apply_pressure_dynamics(
+    pressure_top, pressure_trend, recovery_balance = _apply_pressure_dynamics(
+        bundle,
         state,
         difficulty_stress_multiplier=difficulty.stress_multiplier,
     )
@@ -1053,6 +1245,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
         f"Credit tier: {credit_tier_label(state.player.credit_score)}",
         f"Situation family: {dominant_pressure_family(state)}",
         "Pressure map: " + ", ".join(pressure_top),
+        recovery_balance,
         f"Pressure trend: {pressure_trend}",
         f"Stress {stress_start}->{state.player.stress} ({state.player.stress - stress_start:+d})",
         "Stress drivers: " + (", ".join(stress_parts) if stress_parts else "steady"),
