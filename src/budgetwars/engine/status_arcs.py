@@ -28,6 +28,12 @@ _EVENT_START_RULES = {
         "severity": 2,
         "note": "Transport instability has already started costing real work.",
     },
+    "beater_total_failure": {
+        "arc_id": "transport_unstable",
+        "duration_months": 4,
+        "severity": 3,
+        "note": "Transport failure is now the shape of the month, not a side problem.",
+    },
     "collections_warning": {
         "arc_id": "credit_squeeze",
         "duration_months": 4,
@@ -39,6 +45,12 @@ _EVENT_START_RULES = {
         "duration_months": 3,
         "severity": 2,
         "note": "Your file is under review and weak cleanup will keep shrinking options.",
+    },
+    "debt_fee_stack": {
+        "arc_id": "credit_squeeze",
+        "duration_months": 3,
+        "severity": 3,
+        "note": "Fee stacking turned credit pressure into direct monthly punishment.",
     },
     "overtime_exam_collision": {
         "arc_id": "education_slipping",
@@ -101,6 +113,20 @@ _CHOICE_RULES = {
         "action": "resolve",
         "arc_id": "transport_unstable",
     },
+    ("beater_total_failure", "emergency_patch_transport"): {
+        "action": "refresh",
+        "arc_id": "transport_unstable",
+        "duration_months": 2,
+        "severity_delta": 0,
+        "note": "You kept the commute alive, but transport is still shaping the run.",
+    },
+    ("beater_total_failure", "miss_shift_block"): {
+        "action": "refresh",
+        "arc_id": "transport_unstable",
+        "duration_months": 3,
+        "severity_delta": 1,
+        "note": "Missed shifts turned transport instability into a direct work scar.",
+    },
     ("credit_limit_review", "tighten_up"): {
         "action": "refresh",
         "arc_id": "credit_squeeze",
@@ -158,6 +184,17 @@ _CHOICE_RULES = {
         "action": "resolve",
         "arc_id": "education_slipping",
     },
+    ("lease_enforcement_notice", "pay_to_hold_lease"): {
+        "action": "refresh",
+        "arc_id": "lease_pressure",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "You held the lease, but housing pressure is still active.",
+    },
+    ("lease_enforcement_notice", "plan_fast_downgrade"): {
+        "action": "resolve",
+        "arc_id": "lease_pressure",
+    },
     ("overtime_attrition_warning", "rebalance_workload"): {
         "action": "refresh",
         "arc_id": "burnout_risk",
@@ -171,6 +208,20 @@ _CHOICE_RULES = {
         "duration_months": 2,
         "severity_delta": 1,
         "note": "Forcing hours is turning burnout risk into the shape of the run.",
+    },
+    ("burnout_month", "take_real_recovery"): {
+        "action": "refresh",
+        "arc_id": "burnout_risk",
+        "duration_months": 1,
+        "severity_delta": -2,
+        "note": "You took the hit up front and finally gave recovery room to work.",
+    },
+    ("burnout_month", "mask_and_push"): {
+        "action": "refresh",
+        "arc_id": "burnout_risk",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "You pushed through the crash and deepened the burnout scar.",
     },
     ("promotion_window", "push_for_scope"): {
         "action": "refresh",
@@ -313,58 +364,60 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
     multiplier = 1.0
     transport_arc = get_active_status_arc(state, "transport_unstable")
     if transport_arc is not None:
-        severity_bonus = 0.1 * transport_arc.severity
+        severity_bonus = 0.14 * transport_arc.severity
         if event_id == "missed_shift_after_breakdown":
-            multiplier *= 1.15 + severity_bonus
+            multiplier *= 1.35 + severity_bonus
         elif event_id == "beater_cascade_choice":
-            multiplier *= 1.1 + severity_bonus
+            multiplier *= 1.22 + severity_bonus
         elif event_id == "beater_total_failure":
-            multiplier *= 1.08 + severity_bonus
+            multiplier *= 1.6 + severity_bonus
         elif event_id == "used_car_window":
-            multiplier *= 1.02 + (0.06 * transport_arc.severity)
+            multiplier *= 1.12 + (0.09 * transport_arc.severity)
     credit_arc = get_active_status_arc(state, "credit_squeeze")
     if credit_arc is not None:
-        severity_bonus = 0.08 * credit_arc.severity
+        severity_bonus = 0.12 * credit_arc.severity
         if event_id == "collections_warning":
-            multiplier *= 1.12 + severity_bonus
+            multiplier *= 1.22 + severity_bonus
         elif event_id == "credit_limit_review":
-            multiplier *= 1.15 + severity_bonus
+            multiplier *= 1.28 + severity_bonus
         elif event_id == "credit_rebuild_window":
-            multiplier *= 1.02 + (0.05 * credit_arc.severity)
+            multiplier *= 1.12 + (0.07 * credit_arc.severity)
         elif event_id == "refinance_window":
-            multiplier *= 1.03 + (0.04 * credit_arc.severity)
+            multiplier *= 1.14 + (0.06 * credit_arc.severity)
+        elif event_id == "debt_fee_stack":
+            multiplier *= 1.22 + (0.09 * credit_arc.severity)
     education_arc = get_active_status_arc(state, "education_slipping")
     if education_arc is not None:
-        severity_bonus = 0.08 * education_arc.severity
+        severity_bonus = 0.11 * education_arc.severity
         if event_id == "exam_probation_hearing":
-            multiplier *= 1.16 + severity_bonus
+            multiplier *= 1.28 + severity_bonus
         elif event_id == "academic_funding_review":
-            multiplier *= 1.14 + severity_bonus
+            multiplier *= 1.24 + severity_bonus
         elif event_id == "overtime_exam_collision":
-            multiplier *= 1.08 + (0.06 * education_arc.severity)
+            multiplier *= 1.14 + (0.08 * education_arc.severity)
     lease_arc = get_active_status_arc(state, "lease_pressure")
     if lease_arc is not None:
-        severity_bonus = 0.08 * lease_arc.severity
+        severity_bonus = 0.11 * lease_arc.severity
         if event_id == "lease_default_warning":
-            multiplier *= 1.12 + severity_bonus
+            multiplier *= 1.24 + severity_bonus
         elif event_id == "lease_enforcement_notice":
-            multiplier *= 1.16 + severity_bonus
+            multiplier *= 1.32 + severity_bonus
         elif event_id == "rent_increase":
-            multiplier *= 1.06 + (0.05 * lease_arc.severity)
+            multiplier *= 1.14 + (0.08 * lease_arc.severity)
     burnout_arc = get_active_status_arc(state, "burnout_risk")
     if burnout_arc is not None:
-        severity_bonus = 0.08 * burnout_arc.severity
+        severity_bonus = 0.11 * burnout_arc.severity
         if event_id == "burnout_month":
-            multiplier *= 1.14 + severity_bonus
+            multiplier *= 1.3 + severity_bonus
         elif event_id == "overtime_attrition_warning":
-            multiplier *= 1.1 + (0.06 * burnout_arc.severity)
+            multiplier *= 1.18 + (0.08 * burnout_arc.severity)
     promotion_arc = get_active_status_arc(state, "promotion_window_open")
     if promotion_arc is not None:
-        severity_bonus = 0.06 * promotion_arc.severity
+        severity_bonus = 0.08 * promotion_arc.severity
         if event_id == "promotion_window":
-            multiplier *= 1.1 + severity_bonus
+            multiplier *= 1.18 + severity_bonus
             if state.pending_promotion_branch_track_id == state.player.career.track_id:
-                multiplier *= 1.12
+                multiplier *= 1.18
         elif event_id in {
             "retail_leadership_offer",
             "sales_territory_offer",
@@ -376,5 +429,5 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             "trades_crew_lead_offer",
             "retail_crisis_lead_backfill_offer",
         }:
-            multiplier *= 1.06 + severity_bonus
+            multiplier *= 1.14 + severity_bonus
     return multiplier

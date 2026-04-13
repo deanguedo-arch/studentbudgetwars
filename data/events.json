@@ -400,11 +400,67 @@
     "minimum_stress": 72,
     "minimum_debt": null,
     "maximum_life_satisfaction": null,
-    "immediate_effects": {
-      "energy": -10,
-      "stress": 5,
-      "life_satisfaction": -6
-    },
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_real_recovery",
+        "label": "Take real recovery",
+        "description": "Absorb the short-term career hit and actually let your body recover.",
+        "stat_effects": {
+          "cash": -160,
+          "energy": -6,
+          "stress": 2,
+          "life_satisfaction": -4,
+          "social_stability": 1
+        },
+        "modifier": {
+          "id": "burnout_reset_lane",
+          "label": "Recovery Reset",
+          "duration_months": 2,
+          "stat_effects": {
+            "stress": -1,
+            "energy": 1
+          },
+          "income_multiplier": 0.94,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": -1,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "mask_and_push",
+        "label": "Mask it and push",
+        "description": "Protect the short-term lane and let the crash leak into future months instead.",
+        "stat_effects": {
+          "cash": 120,
+          "energy": -12,
+          "stress": 7,
+          "life_satisfaction": -6,
+          "promotion_progress": 1
+        },
+        "modifier": {
+          "id": "burnout_masking",
+          "label": "Masked Burnout",
+          "duration_months": 2,
+          "stat_effects": {
+            "stress": 2,
+            "energy": -2
+          },
+          "income_multiplier": 1.02,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 1,
+          "education_progress_delta": -1,
+          "transport_switch_discount": 0
+        }
+      }
+    ],
     "modifier": {
       "id": "burnout_aftershock",
       "label": "Burnout Aftershock",

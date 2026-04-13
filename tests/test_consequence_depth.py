@@ -85,6 +85,28 @@ def test_phase_status_arc_transport_changes_followup_event_pressure(bundle, cont
     assert event_weight(bundle, unstable.state, missed_shift) > event_weight(bundle, clean.state, missed_shift)
 
 
+def test_phase_status_arc_severe_transport_arc_sharply_raises_failure_weight(bundle, controller_factory):
+    clean = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    unstable = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    for controller in (clean, unstable):
+        controller.state.current_month = 10
+        controller.state.player.transport.option_id = "beater_car"
+        controller.state.player.transport.reliability_score = 34
+        controller.state.player.monthly_surplus = -120
+
+    beater_total_failure = next(event for event in bundle.events if event.id == "beater_total_failure")
+    start_status_arc(
+        bundle,
+        unstable.state,
+        "transport_unstable",
+        source_event_id="beater_breakdown",
+        duration_months=3,
+        severity=3,
+    )
+
+    assert event_weight(bundle, unstable.state, beater_total_failure) >= event_weight(bundle, clean.state, beater_total_failure) * 2
+
+
 def test_education_reentry_has_friction(controller_factory):
     controller = controller_factory(opening_path_id="full_time_work")
     state = controller.state

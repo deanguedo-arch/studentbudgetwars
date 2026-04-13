@@ -11,6 +11,7 @@
       "temporary_transport_stability"
     ],
     "followup_event_ids": [
+      "beater_total_failure",
       "missed_shift_after_breakdown",
       "used_car_window"
     ],
@@ -32,6 +33,7 @@
       "refinance_relief"
     ],
     "followup_event_ids": [
+      "debt_fee_stack",
       "credit_limit_review",
       "credit_rebuild_window",
       "refinance_window"
