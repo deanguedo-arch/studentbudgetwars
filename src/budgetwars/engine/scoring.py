@@ -5,6 +5,7 @@ from budgetwars.models import ContentBundle, FinalScoreSummary, GameState, LiveS
 from .effects import net_worth
 from .housing import can_switch_housing
 from .lookups import get_career_track, get_housing_option, get_wealth_strategy
+from .status_arcs import get_active_status_arc
 from .transport import can_switch_transport
 
 
@@ -256,6 +257,18 @@ def _recovery_execution_adjustment(state: GameState) -> float:
     return max(-3.5, min(3.5, adjustment))
 
 
+def _status_arc_pressure_adjustment(state: GameState) -> float:
+    adjustment = 0.0
+    for arc in state.active_status_arcs:
+        if arc.arc_id == "credit_squeeze":
+            adjustment -= 0.6 + (0.5 * arc.severity)
+        elif arc.arc_id == "transport_unstable":
+            adjustment -= 0.4 + (0.35 * arc.severity)
+        elif arc.arc_id == "education_slipping":
+            adjustment -= 0.45 + (0.4 * arc.severity)
+    return max(-4.5, min(0.0, adjustment))
+
+
 def _breakdown_label(key: str) -> str:
     labels = {
         "net_worth": "asset growth",
@@ -381,6 +394,7 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
     branch_adjustment = _branch_quality_adjustment(state)
     access_adjustment = _access_earned_adjustment(bundle, state)
     recovery_adjustment = _recovery_execution_adjustment(state)
+    status_arc_adjustment = _status_arc_pressure_adjustment(state)
     final_score = round(
         _clamp_score(
             weighted_score
@@ -388,6 +402,7 @@ def calculate_final_score(bundle: ContentBundle, state: GameState) -> FinalScore
             + branch_adjustment
             + access_adjustment
             + recovery_adjustment
+            + status_arc_adjustment
             - _consequence_pressure_penalty(state)
         ),
         2,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from budgetwars.engine.careers import can_enter_career, current_income, maybe_promote
-from budgetwars.engine.events import resolve_event
+from budgetwars.engine.events import resolve_event, resolve_event_choice
 from budgetwars.engine.month_resolution import resolve_month
 from budgetwars.engine.scoring import calculate_final_score
 from budgetwars.engine.housing import monthly_housing_cost
@@ -68,6 +68,28 @@ def test_phase_status_arc_transport_trigger_events_start_and_refresh_arc(bundle,
     assert state.active_status_arcs[0].source_event_id == "beater_breakdown"
     assert state.active_status_arcs[0].remaining_months > first_months
     assert state.active_status_arcs[0].severity >= 2
+
+
+def test_phase_status_arc_credit_starts_from_warning_and_refinance_can_clear_it(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    state = controller.state
+    state.player.debt = 9600
+    state.player.credit_score = 575
+
+    warning = next(item for item in bundle.events if item.id == "collections_warning")
+    refinance = next(item for item in bundle.events if item.id == "refinance_window")
+
+    resolve_event(bundle, state, warning)
+
+    assert any(arc.arc_id == "credit_squeeze" for arc in state.active_status_arcs)
+
+    resolve_event_choice(bundle, state, "collections_warning", "stabilize_now")
+    state.player.credit_score = 720
+
+    resolve_event(bundle, state, refinance)
+    resolve_event_choice(bundle, state, "refinance_window", "refinance_now")
+
+    assert not any(arc.arc_id == "credit_squeeze" for arc in state.active_status_arcs)
 
 
 def test_career_tracks_produce_distinct_monthly_income(bundle, controller_factory):

@@ -7,6 +7,7 @@ import random
 from .budgeting import pay_named_cost
 from .effects import append_log
 from .lookups import get_city, get_transport_option
+from .status_arcs import get_active_status_arc
 
 
 def monthly_transport_cost(bundle: ContentBundle, state: GameState, *, modifier_delta: int = 0) -> int:
@@ -24,11 +25,17 @@ def monthly_transport_cost(bundle: ContentBundle, state: GameState, *, modifier_
 def can_switch_transport(bundle: ContentBundle, state: GameState, transport_id: str) -> tuple[bool, str]:
     transport = get_transport_option(bundle, transport_id)
     player = state.player
+    credit_squeeze = get_active_status_arc(state, "credit_squeeze")
     if transport.id == state.player.transport_id:
         return False, "You already use that transport setup."
     if player.credit_score < transport.minimum_credit_score:
         return False, f"Your credit score ({player.credit_score}) is too low to finance this option."
     if transport.id in {"financed_car", "reliable_used_car", "luxury_financed_car"}:
+        if credit_squeeze is not None:
+            if credit_squeeze.severity >= 3:
+                return False, "Credit squeeze is still shutting financing doors."
+            if credit_squeeze.severity >= 2 and player.credit_score < 720:
+                return False, "Credit squeeze is still tightening financing approval."
         if player.credit_missed_obligation_streak >= 2 and player.credit_score < 760:
             return False, "Recent missed obligations are still blocking financing approval."
         if player.credit_utilization_pressure >= 74 and player.credit_score < 760:

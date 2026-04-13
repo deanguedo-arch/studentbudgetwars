@@ -5,6 +5,7 @@ from random import Random
 from budgetwars.engine.careers import current_income, promotion_blockers
 from budgetwars.engine.events import eligible_events, event_severity_multiplier, event_weight, resolve_event
 from budgetwars.engine.month_resolution import resolve_month
+from budgetwars.engine.scoring import calculate_final_score
 from budgetwars.engine.status_arcs import start_status_arc
 from budgetwars.engine.housing import can_switch_housing
 from budgetwars.engine.transport import can_switch_transport
@@ -785,6 +786,37 @@ def test_phase4_weak_vs_strong_credit_contrast_scenario(bundle, controller_facto
     assert "refinance_window" not in weak_ids
     assert "refinance_window" in strong_ids
     assert weak_severity > strong_severity
+
+
+def test_phase_status_arc_credit_tightens_financing_door_and_score(bundle, controller_factory):
+    clean = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    squeezed = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    for controller in (clean, squeezed):
+        controller.state.player.credit_score = 690
+        controller.state.player.debt = 7000
+        controller.state.player.monthly_surplus = 220
+        controller.state.player.cash = 1800
+        controller.state.player.savings = 1200
+        controller.state.player.transport.option_id = "transit"
+
+    clean_allowed, _ = can_switch_transport(bundle, clean.state, "financed_car")
+    start_status_arc(
+        bundle,
+        squeezed.state,
+        "credit_squeeze",
+        source_event_id="collections_warning",
+        duration_months=4,
+        severity=2,
+    )
+    squeezed_allowed, squeeze_reason = can_switch_transport(bundle, squeezed.state, "financed_car")
+
+    clean_score = calculate_final_score(bundle, clean.state).final_score
+    squeezed_score = calculate_final_score(bundle, squeezed.state).final_score
+
+    assert clean_allowed
+    assert not squeezed_allowed
+    assert "credit" in squeeze_reason.lower() or "financing" in squeeze_reason.lower()
+    assert squeezed_score < clean_score
 
 
 def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):

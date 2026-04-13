@@ -28,10 +28,50 @@ _EVENT_START_RULES = {
         "severity": 2,
         "note": "Transport instability has already started costing real work.",
     },
+    "collections_warning": {
+        "arc_id": "credit_squeeze",
+        "duration_months": 4,
+        "severity": 2,
+        "note": "Credit pressure is now shaping future doors and penalties.",
+    },
+    "credit_limit_review": {
+        "arc_id": "credit_squeeze",
+        "duration_months": 3,
+        "severity": 2,
+        "note": "Your file is under review and weak cleanup will keep shrinking options.",
+    },
 }
 
-_CHOICE_RESOLVE_RULES = {
-    ("beater_cascade_choice", "eat_the_upgrade_hit"): "transport_unstable",
+_CHOICE_RULES = {
+    ("beater_cascade_choice", "eat_the_upgrade_hit"): {
+        "action": "resolve",
+        "arc_id": "transport_unstable",
+    },
+    ("credit_limit_review", "tighten_up"): {
+        "action": "refresh",
+        "arc_id": "credit_squeeze",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "You are containing the squeeze, but it is not gone yet.",
+    },
+    ("credit_limit_review", "coast"): {
+        "action": "refresh",
+        "arc_id": "credit_squeeze",
+        "duration_months": 2,
+        "severity_delta": 1,
+        "note": "Credit pressure is worsening because you chose breathing room over cleanup.",
+    },
+    ("credit_rebuild_window", "open_the_secured_line"): {
+        "action": "refresh",
+        "arc_id": "credit_squeeze",
+        "duration_months": 1,
+        "severity_delta": -1,
+        "note": "The rebuild lane is starting to soften the squeeze.",
+    },
+    ("refinance_window", "refinance_now"): {
+        "action": "resolve",
+        "arc_id": "credit_squeeze",
+    },
 }
 
 
@@ -137,10 +177,21 @@ def apply_event_status_arc(bundle: ContentBundle, state: GameState, event_id: st
 
 
 def apply_choice_status_arc_resolution(state: GameState, event_id: str, choice_id: str) -> bool:
-    arc_id = _CHOICE_RESOLVE_RULES.get((event_id, choice_id))
-    if arc_id is None:
+    rule = _CHOICE_RULES.get((event_id, choice_id))
+    if rule is None:
         return False
-    resolve_status_arc(state, arc_id)
+    if rule["action"] == "resolve":
+        resolve_status_arc(state, rule["arc_id"])
+        return True
+    if rule["action"] == "refresh":
+        refresh_status_arc(
+            state,
+            rule["arc_id"],
+            duration_months=rule.get("duration_months", 0),
+            severity_delta=rule.get("severity_delta", 0),
+            note=rule.get("note"),
+        )
+        return True
     return True
 
 
@@ -157,4 +208,15 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.08 + severity_bonus
         elif event_id == "used_car_window":
             multiplier *= 1.02 + (0.06 * transport_arc.severity)
+    credit_arc = get_active_status_arc(state, "credit_squeeze")
+    if credit_arc is not None:
+        severity_bonus = 0.08 * credit_arc.severity
+        if event_id == "collections_warning":
+            multiplier *= 1.12 + severity_bonus
+        elif event_id == "credit_limit_review":
+            multiplier *= 1.15 + severity_bonus
+        elif event_id == "credit_rebuild_window":
+            multiplier *= 1.02 + (0.05 * credit_arc.severity)
+        elif event_id == "refinance_window":
+            multiplier *= 1.03 + (0.04 * credit_arc.severity)
     return multiplier
