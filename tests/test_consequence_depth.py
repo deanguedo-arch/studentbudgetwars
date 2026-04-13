@@ -11,6 +11,14 @@ from budgetwars.engine.wealth import apply_wealth_allocations, apply_wealth_retu
 from budgetwars.models import ActiveMonthlyModifier
 
 
+def _top_weighted_event_ids(bundle, state, *, limit: int = 6) -> list[str]:
+    scored = sorted(
+        ((event_weight(bundle, state, event), event.id) for event in eligible_events(bundle, state)),
+        reverse=True,
+    )
+    return [event_id for _weight, event_id in scored[:limit]]
+
+
 def test_career_switch_applies_friction(controller_factory):
     controller = controller_factory(opening_path_id="full_time_work")
     state = controller.state
@@ -1009,3 +1017,181 @@ def test_selected_branch_changes_income_profile(bundle, controller_factory):
     mgmt_income = current_income(bundle, mgmt.state, 1.0)
     sales_income = current_income(bundle, sales.state, 1.0)
     assert mgmt_income != sales_income
+
+
+def test_phase1_contrast_builds_have_distinct_top_event_profiles(bundle, controller_factory):
+    stable = controller_factory(
+        opening_path_id="stay_home_stack_cash",
+        city_id="hometown_low_cost",
+        savings_band_id="solid",
+        family_support_level_id="high",
+    )
+    stable.state.current_month = 14
+    stable.state.player.housing.option_id = "parents"
+    stable.state.player.transport.option_id = "transit"
+    stable.state.player.transport.reliability_score = 86
+    stable.state.player.credit_score = 748
+    stable.state.player.debt = 1400
+    stable.state.player.monthly_surplus = 340
+    stable.state.player.selected_focus_action_id = "recovery_month"
+
+    renter = controller_factory(
+        opening_path_id="move_out_immediately",
+        city_id="mid_size_city",
+        savings_band_id="none",
+        family_support_level_id="low",
+        difficulty_id="hard",
+    )
+    renter.state.current_month = 14
+    renter.state.player.housing.option_id = "solo_rental"
+    renter.state.player.housing.housing_stability = 40
+    renter.state.player.transport.option_id = "financed_car"
+    renter.state.player.credit_score = 548
+    renter.state.player.debt = 13200
+    renter.state.player.cash = 120
+    renter.state.player.savings = 0
+    renter.state.player.monthly_surplus = -260
+    renter.state.player.selected_focus_action_id = "overtime"
+
+    fragile = controller_factory(
+        opening_path_id="move_out_immediately",
+        city_id="mid_size_city",
+        savings_band_id="none",
+    )
+    fragile.state.current_month = 11
+    fragile.state.player.housing.option_id = "roommates"
+    fragile.state.player.transport.option_id = "beater_car"
+    fragile.state.player.transport.reliability_score = 34
+    fragile.state.player.transport.breakdown_pressure = 2
+    fragile.state.player.credit_score = 598
+    fragile.state.player.debt = 8600
+    fragile.state.player.cash = 220
+    fragile.state.player.savings = 0
+    fragile.state.player.monthly_surplus = -110
+    fragile.state.player.selected_focus_action_id = "side_gig"
+
+    school = controller_factory(
+        opening_path_id="college_university",
+        city_id="mid_size_city",
+        savings_band_id="none",
+    )
+    school.state.current_month = 9
+    school.state.player.education.program_id = "full_time_university"
+    school.state.player.education.is_active = True
+    school.state.player.education.intensity_level = "intensive"
+    school.state.player.selected_focus_action_id = "overtime"
+    school.state.player.stress = 70
+    school.state.player.energy = 40
+    school.state.player.credit_score = 628
+    school.state.player.debt = 5200
+    school.state.player.monthly_surplus = -110
+    school.state.player.housing.option_id = "student_residence"
+    school.state.player.transport.option_id = "transit"
+
+    stable_top = _top_weighted_event_ids(bundle, stable.state)
+    renter_top = _top_weighted_event_ids(bundle, renter.state)
+    fragile_top = _top_weighted_event_ids(bundle, fragile.state)
+    school_top = _top_weighted_event_ids(bundle, school.state)
+
+    assert "family_stability_surge" in stable_top
+    assert "lease_default_warning" in renter_top
+    assert "beater_total_failure" in fragile_top
+    assert "exam_probation_hearing" in school_top
+
+    assert len(set(stable_top) & set(renter_top)) <= 2
+    assert len(set(stable_top) & set(fragile_top)) <= 2
+    assert len(set(renter_top) & set(school_top)) <= 3
+
+
+def test_phase1_contrast_builds_show_weighted_pressure_divergence(bundle, controller_factory):
+    stable = controller_factory(
+        opening_path_id="stay_home_stack_cash",
+        city_id="hometown_low_cost",
+        savings_band_id="solid",
+        family_support_level_id="high",
+    )
+    stable.state.current_month = 14
+    stable.state.player.housing.option_id = "parents"
+    stable.state.player.transport.option_id = "transit"
+    stable.state.player.credit_score = 748
+    stable.state.player.debt = 1400
+    stable.state.player.monthly_surplus = 340
+    stable.state.player.selected_focus_action_id = "recovery_month"
+
+    renter = controller_factory(
+        opening_path_id="move_out_immediately",
+        city_id="mid_size_city",
+        savings_band_id="none",
+        family_support_level_id="low",
+        difficulty_id="hard",
+    )
+    renter.state.current_month = 14
+    renter.state.player.housing.option_id = "solo_rental"
+    renter.state.player.housing.housing_stability = 40
+    renter.state.player.credit_score = 548
+    renter.state.player.debt = 13200
+    renter.state.player.cash = 120
+    renter.state.player.savings = 0
+    renter.state.player.monthly_surplus = -260
+    renter.state.player.selected_focus_action_id = "overtime"
+
+    fragile = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city", savings_band_id="none")
+    fragile.state.current_month = 11
+    fragile.state.player.transport.option_id = "beater_car"
+    fragile.state.player.transport.reliability_score = 34
+    fragile.state.player.transport.breakdown_pressure = 2
+    fragile.state.player.credit_score = 598
+    fragile.state.player.debt = 8600
+    fragile.state.player.monthly_surplus = -110
+
+    school = controller_factory(opening_path_id="college_university", city_id="mid_size_city", savings_band_id="none")
+    school.state.current_month = 9
+    school.state.player.education.program_id = "full_time_university"
+    school.state.player.education.is_active = True
+    school.state.player.education.intensity_level = "intensive"
+    school.state.player.selected_focus_action_id = "overtime"
+    school.state.player.stress = 70
+    school.state.player.energy = 40
+
+    lease_default = next(event for event in bundle.events if event.id == "lease_default_warning")
+    beater_fail = next(event for event in bundle.events if event.id == "beater_total_failure")
+    exam_probation = next(event for event in bundle.events if event.id == "exam_probation_hearing")
+
+    assert event_weight(bundle, renter.state, lease_default) >= event_weight(bundle, stable.state, lease_default) * 3
+    assert event_weight(bundle, fragile.state, beater_fail) >= event_weight(bundle, stable.state, beater_fail) * 3
+    assert event_weight(bundle, school.state, exam_probation) >= event_weight(bundle, stable.state, exam_probation) * 3
+
+
+def test_lease_default_warning_choice_and_chain_behavior(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    controller.state.current_month = 14
+    controller.state.player.housing.option_id = "solo_rental"
+    controller.state.player.housing.housing_stability = 38
+    controller.state.player.credit_score = 546
+    controller.state.player.debt = 12800
+    controller.state.player.monthly_surplus = -240
+    event = next(item for item in bundle.events if item.id == "lease_default_warning")
+
+    resolve_event(bundle, controller.state, event)
+    controller.resolve_event_choice("borrow_to_cover_shortfall")
+
+    assert any(pending.event_id == "lease_enforcement_notice" for pending in controller.state.pending_events)
+    assert any(modifier.id == "borrowed_rent_patch" for modifier in controller.state.active_modifiers)
+
+
+def test_exam_probation_hearing_choice_and_chain_behavior(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="college_university", city_id="mid_size_city")
+    controller.state.current_month = 10
+    controller.state.player.education.program_id = "full_time_university"
+    controller.state.player.education.is_active = True
+    controller.state.player.education.intensity_level = "intensive"
+    controller.state.player.selected_focus_action_id = "overtime"
+    controller.state.player.stress = 72
+    controller.state.player.energy = 38
+    event = next(item for item in bundle.events if item.id == "exam_probation_hearing")
+
+    resolve_event(bundle, controller.state, event)
+    controller.resolve_event_choice("cut_hours_and_recover_standing")
+
+    assert any(pending.event_id == "academic_funding_review" for pending in controller.state.pending_events)
+    assert any(modifier.id == "course_load_rebalance" for modifier in controller.state.active_modifiers)

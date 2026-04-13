@@ -7,7 +7,10 @@
       },
       "event_weights": {
         "credit_limit_review": 1.2,
-        "burnout_month": 1.15
+        "burnout_month": 1.15,
+        "lease_default_warning": 1.25,
+        "debt_fee_stack": 1.2,
+        "overtime_attrition_warning": 1.15
       },
       "recovery_modifiers": {
         "cash_shock": -0.1
@@ -18,7 +21,8 @@
         "debt_trap": -0.1
       },
       "event_weights": {
-        "credit_limit_review": 0.9
+        "credit_limit_review": 0.9,
+        "family_stability_surge": 1.05
       },
       "recovery_modifiers": {
         "cash_shock": 0.1
@@ -41,7 +45,10 @@
       },
       "event_weights": {
         "burnout_month": 0.8,
-        "social_isolation_slide": 0.8
+        "social_isolation_slide": 0.8,
+        "family_stability_surge": 1.15,
+        "family_support_bridge": 1.2,
+        "overtime_attrition_warning": 0.7
       },
       "recovery_modifiers": {
         "stress_recovery": 0.2
@@ -57,7 +64,8 @@
       "event_weights": {
         "credit_limit_review": 0.9,
         "cash_drag_regret": 1.25,
-        "market_correction_shock": 0.85
+        "market_correction_shock": 0.85,
+        "emergency_fund_redeployment": 1.35
       }
     },
     "steady_builder": {
@@ -66,7 +74,8 @@
       },
       "event_weights": {
         "cash_drag_regret": 0.4,
-        "market_correction_shock": 0.95
+        "market_correction_shock": 0.95,
+        "emergency_fund_redeployment": 1.15
       }
     },
     "debt_crusher": {
@@ -99,7 +108,10 @@
       },
       "event_weights": {
         "family_emergency": 1.2,
-        "rent_increase": 0.2
+        "rent_increase": 0.2,
+        "family_stability_surge": 1.8,
+        "family_support_bridge": 1.3,
+        "lease_default_warning": 0.05
       }
     },
     "student_residence": {
@@ -108,7 +120,9 @@
       },
       "event_weights": {
         "scholarship_relief": 1.2,
-        "roommate_conflict": 0.75
+        "roommate_conflict": 0.75,
+        "exam_probation_hearing": 1.35,
+        "academic_funding_review": 1.25
       }
     },
     "roommates": {
@@ -127,10 +141,13 @@
       },
       "event_weights": {
         "rent_increase": 1.35,
-        "roommate_conflict": 0.1
+        "roommate_conflict": 0.1,
+        "lease_default_warning": 1.7,
+        "lease_enforcement_notice": 1.45
       },
       "event_severity": {
-        "rent_increase": 1.15
+        "rent_increase": 1.15,
+        "lease_enforcement_notice": 1.2
       }
     }
   },
@@ -156,7 +173,9 @@
       },
       "event_weights": {
         "transit_hike": 1.25,
-        "used_car_window": 0.3
+        "used_car_window": 0.3,
+        "beater_total_failure": 0.2,
+        "route_reliability_bonus": 0.75
       },
       "blockers": [
         "car_repair",
@@ -188,10 +207,12 @@
         "beater_breakdown": 1.6,
         "beater_cascade_choice": 1.5,
         "missed_shift_after_breakdown": 1.35,
-        "used_car_window": 1.2
+        "used_car_window": 1.2,
+        "beater_total_failure": 1.8
       },
       "event_severity": {
-        "car_repair": 1.2
+        "car_repair": 1.2,
+        "beater_total_failure": 1.25
       },
       "unlocks": [
         "used_car_window"
@@ -214,7 +235,8 @@
       },
       "event_weights": {
         "car_repair": 1.1,
-        "used_car_window": 0.8
+        "used_car_window": 0.8,
+        "route_reliability_bonus": 1.35
       }
     },
     "scooter_moped": {
@@ -244,7 +266,8 @@
         "education_drag": -0.2
       },
       "event_weights": {
-        "scholarship_relief": 0.15
+        "scholarship_relief": 0.15,
+        "exam_probation_hearing": 0.25
       }
     },
     "part_time_college": {
@@ -254,7 +277,9 @@
       },
       "event_weights": {
         "scholarship_relief": 1.2,
-        "overtime_exam_collision": 1.15
+        "overtime_exam_collision": 1.15,
+        "exam_probation_hearing": 1.3,
+        "academic_funding_review": 1.2
       }
     },
     "full_time_university": {
@@ -264,7 +289,9 @@
       },
       "event_weights": {
         "scholarship_relief": 1.35,
-        "overtime_exam_collision": 1.25
+        "overtime_exam_collision": 1.25,
+        "exam_probation_hearing": 1.75,
+        "academic_funding_review": 1.5
       }
     },
     "apprenticeship": {
@@ -301,7 +328,9 @@
       "event_weights": {
         "burnout_month": 1.3,
         "promotion_window": 1.1,
-        "overtime_exam_collision": 1.2
+        "overtime_exam_collision": 1.2,
+        "exam_probation_hearing": 1.6,
+        "overtime_attrition_warning": 1.35
       },
       "event_severity": {
         "burnout_month": 1.15
@@ -345,7 +374,9 @@
       },
       "event_weights": {
         "burnout_month": 0.65,
-        "social_isolation_slide": 0.8
+        "social_isolation_slide": 0.8,
+        "family_stability_surge": 1.3,
+        "overtime_attrition_warning": 0.65
       }
     },
     "social_maintenance": {
@@ -450,10 +481,15 @@
         "credit_limit_review": 1.6,
         "collections_warning": 1.45,
         "prime_refi_bridge": 0.2,
-        "refinance_window": 0.25
+        "refinance_window": 0.25,
+        "lease_default_warning": 1.4,
+        "lease_enforcement_notice": 1.45,
+        "debt_fee_stack": 1.4
       },
       "event_severity": {
-        "credit_limit_review": 1.2
+        "credit_limit_review": 1.2,
+        "lease_enforcement_notice": 1.2,
+        "debt_fee_stack": 1.15
       }
     },
     "fair": {
@@ -464,7 +500,9 @@
         "credit_limit_review": 1.15,
         "collections_warning": 1.15,
         "prime_refi_bridge": 0.45,
-        "refinance_window": 0.75
+        "refinance_window": 0.75,
+        "lease_default_warning": 1.1,
+        "debt_fee_stack": 1.1
       }
     },
     "strong": {
@@ -487,7 +525,10 @@
         "credit_limit_review": 0.3,
         "collections_warning": 0.35,
         "prime_refi_bridge": 1.45,
-        "refinance_window": 1.5
+        "refinance_window": 1.5,
+        "family_stability_surge": 1.2,
+        "lease_default_warning": 0.25,
+        "debt_fee_stack": 0.3
       },
       "event_severity": {
         "credit_limit_review": 0.8

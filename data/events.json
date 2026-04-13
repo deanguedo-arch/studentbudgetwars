@@ -3568,5 +3568,450 @@
       }
     ],
     "log_entry": "Defensive wealth posture forced an upside-versus-resilience call."
+  },
+  {
+    "id": "family_stability_surge",
+    "name": "Family Stability Surge",
+    "description": "Strong support and a clean month opened a chance to turn stability into durable momentum.",
+    "weight": 4,
+    "min_month": 8,
+    "eligible_housing_ids": [
+      "parents"
+    ],
+    "minimum_family_support": 62,
+    "minimum_credit_score": 700,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_family_buffer",
+        "label": "Bank the buffer",
+        "description": "Keep pressure low and convert this month into a safer runway.",
+        "stat_effects": {
+          "cash": 150,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "press_family_backing",
+        "label": "Press for upside",
+        "description": "Use the stable base to push harder this month.",
+        "stat_effects": {
+          "cash": 240,
+          "stress": 1,
+          "promotion_progress": 2
+        }
+      }
+    ],
+    "log_entry": "Support-heavy stability opened a meaningful strategic fork."
+  },
+  {
+    "id": "emergency_fund_redeployment",
+    "name": "Emergency Fund Redeployment",
+    "description": "Your cash cushion is oversized for current risk. You can redeploy for upside or keep maximum resilience.",
+    "weight": 3,
+    "min_month": 10,
+    "eligible_wealth_strategy_ids": [
+      "cushion_first",
+      "steady_builder"
+    ],
+    "minimum_credit_score": 700,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "deploy_a_slice",
+        "label": "Deploy a slice",
+        "description": "Move some buffer into progress and accept a little volatility.",
+        "stat_effects": {
+          "cash": -180,
+          "stress": 1,
+          "promotion_progress": 2,
+          "life_satisfaction": 1
+        }
+      },
+      {
+        "id": "keep_full_buffer",
+        "label": "Keep full buffer",
+        "description": "Preserve safety and steady pacing.",
+        "stat_effects": {
+          "stress": -1,
+          "social_stability": 1,
+          "credit_score": 1
+        }
+      }
+    ],
+    "log_entry": "A strong cushion forced a deliberate upside-versus-resilience call."
+  },
+  {
+    "id": "lease_default_warning",
+    "name": "Lease Default Warning",
+    "description": "Your rent lane slipped into official warning status. You can patch the month with expensive debt or absorb immediate housing damage.",
+    "weight": 6,
+    "min_month": 10,
+    "eligible_housing_ids": [
+      "solo_rental"
+    ],
+    "minimum_debt": 8000,
+    "maximum_credit_score": 620,
+    "immediate_effects": {},
+    "modifier": {
+      "id": "rent_shortfall_flag",
+      "label": "Rent Shortfall Flag",
+      "duration_months": 2,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 70,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 0,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": 0,
+      "transport_switch_discount": 0
+    },
+    "choices": [
+      {
+        "id": "borrow_to_cover_shortfall",
+        "label": "Borrow to cover",
+        "description": "Keep the lease alive now, but carry pricier debt next month.",
+        "stat_effects": {
+          "cash": 260,
+          "debt": 320,
+          "stress": 2,
+          "credit_score": -6
+        },
+        "modifier": {
+          "id": "borrowed_rent_patch",
+          "label": "Borrowed Rent Patch",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": 1
+          },
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 60,
+          "living_cost_delta": 30,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "accept_housing_hit",
+        "label": "Accept the hit",
+        "description": "Avoid new debt and absorb immediate housing instability.",
+        "stat_effects": {
+          "cash": -160,
+          "stress": 3,
+          "life_satisfaction": -2,
+          "social_stability": -2
+        }
+      }
+    ],
+    "chained_event_id": "lease_enforcement_notice",
+    "chained_delay_months": 1,
+    "log_entry": "Lease pressure moved from warning to a hard decision."
+  },
+  {
+    "id": "lease_enforcement_notice",
+    "name": "Lease Enforcement Notice",
+    "description": "The warning escalated into enforcement pressure. Preserve housing now or cut costs immediately to survive.",
+    "weight": 5,
+    "min_month": 11,
+    "eligible_housing_ids": [
+      "solo_rental"
+    ],
+    "eligible_modifier_ids": [
+      "rent_shortfall_flag"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "pay_to_hold_lease",
+        "label": "Pay to hold lease",
+        "description": "Protect housing continuity with a painful short-term payment.",
+        "stat_effects": {
+          "cash": -320,
+          "stress": 2,
+          "credit_score": 2
+        }
+      },
+      {
+        "id": "plan_fast_downgrade",
+        "label": "Plan downgrade",
+        "description": "Protect cash flow and accept a near-term quality drop.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": 1,
+          "life_satisfaction": -2,
+          "social_stability": -1
+        }
+      }
+    ],
+    "log_entry": "Lease enforcement pressure forced a second-order survival tradeoff."
+  },
+  {
+    "id": "debt_fee_stack",
+    "name": "Debt Fee Stack",
+    "description": "Small misses stacked into penalties that now tax every month.",
+    "weight": 5,
+    "min_month": 9,
+    "minimum_debt": 9000,
+    "maximum_credit_score": 610,
+    "immediate_effects": {
+      "cash": -180,
+      "debt": 140,
+      "stress": 2,
+      "credit_score": -5
+    },
+    "log_entry": "Fee stacking converted fragile debt into direct monthly drag."
+  },
+  {
+    "id": "beater_total_failure",
+    "name": "Beater Total Failure",
+    "description": "The vehicle failed outright during a high-pressure stretch. You can emergency-patch transport or absorb immediate work disruption.",
+    "weight": 6,
+    "min_month": 8,
+    "eligible_transport_ids": [
+      "beater_car"
+    ],
+    "maximum_transport_reliability": 45,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "emergency_patch_transport",
+        "label": "Emergency patch",
+        "description": "Keep moving this month at a harsh cash/debt cost.",
+        "stat_effects": {
+          "cash": -260,
+          "debt": 180,
+          "stress": 2,
+          "credit_score": -3
+        }
+      },
+      {
+        "id": "miss_shift_block",
+        "label": "Absorb missed shifts",
+        "description": "Avoid new debt and eat immediate income loss.",
+        "stat_effects": {
+          "cash": -220,
+          "stress": 3,
+          "energy": -2
+        }
+      }
+    ],
+    "chained_event_id": "missed_shift_after_breakdown",
+    "chained_delay_months": 1,
+    "log_entry": "Transport fragility escalated into a hard disruption decision."
+  },
+  {
+    "id": "route_reliability_bonus",
+    "name": "Route Reliability Bonus",
+    "description": "Strong transport consistency opened a short premium route window.",
+    "weight": 3,
+    "min_month": 9,
+    "minimum_credit_score": 660,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_bonus_route",
+        "label": "Take bonus route",
+        "description": "Convert reliability into immediate upside.",
+        "stat_effects": {
+          "cash": 180,
+          "stress": 1,
+          "promotion_progress": 2
+        }
+      },
+      {
+        "id": "protect_reliability_baseline",
+        "label": "Protect baseline",
+        "description": "Keep pressure low and bank clean consistency.",
+        "stat_effects": {
+          "cash": 90,
+          "stress": -1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Reliable transport created a clean upside window."
+  },
+  {
+    "id": "exam_probation_hearing",
+    "name": "Exam Probation Hearing",
+    "description": "Work-school overload triggered an academic probation hearing. You can cut hours to recover standing or gamble on pushing through.",
+    "weight": 6,
+    "min_month": 8,
+    "eligible_education_ids": [
+      "full_time_university",
+      "part_time_college"
+    ],
+    "minimum_stress": 62,
+    "immediate_effects": {},
+    "modifier": {
+      "id": "probation_review_flag",
+      "label": "Probation Review Flag",
+      "duration_months": 2,
+      "stat_effects": {},
+      "income_multiplier": 1.0,
+      "housing_cost_delta": 0,
+      "living_cost_delta": 0,
+      "transport_cost_delta": 0,
+      "education_cost_delta": 90,
+      "promotion_progress_delta": 0,
+      "education_progress_delta": -1,
+      "transport_switch_discount": 0
+    },
+    "choices": [
+      {
+        "id": "cut_hours_and_recover_standing",
+        "label": "Cut hours, recover",
+        "description": "Protect your academic lane by reducing work pressure now.",
+        "stat_effects": {
+          "cash": -180,
+          "stress": -2,
+          "education_progress": 3,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "course_load_rebalance",
+          "label": "Course Load Rebalance",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": -1
+          },
+          "income_multiplier": 0.97,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 1,
+          "transport_switch_discount": 0
+        }
+      },
+      {
+        "id": "push_through_probation",
+        "label": "Push through",
+        "description": "Hold income and accept higher odds of a funding setback.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": 3,
+          "education_progress": -2,
+          "energy": -2
+        }
+      }
+    ],
+    "chained_event_id": "academic_funding_review",
+    "chained_delay_months": 1,
+    "log_entry": "Work-school overload became an academic fork with real consequences."
+  },
+  {
+    "id": "academic_funding_review",
+    "name": "Academic Funding Review",
+    "description": "The probation review triggered a funding audit. Stabilize your standing now or absorb a major cost spike.",
+    "weight": 5,
+    "min_month": 9,
+    "eligible_education_ids": [
+      "full_time_university",
+      "part_time_college"
+    ],
+    "eligible_modifier_ids": [
+      "probation_review_flag"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "accept_study_contract",
+        "label": "Accept study contract",
+        "description": "Preserve aid and accept short-term pressure.",
+        "stat_effects": {
+          "cash": -120,
+          "stress": 2,
+          "education_progress": 2
+        }
+      },
+      {
+        "id": "take_cost_hit",
+        "label": "Take cost hit",
+        "description": "Keep your schedule but absorb immediate financial drag.",
+        "stat_effects": {
+          "cash": -260,
+          "debt": 180,
+          "stress": 1,
+          "credit_score": -4
+        }
+      }
+    ],
+    "log_entry": "Academic funding pressure became a hard budget-versus-standing decision."
+  },
+  {
+    "id": "overtime_attrition_warning",
+    "name": "Overtime Attrition Warning",
+    "description": "Sustained overtime is draining performance and raising attrition risk around you.",
+    "weight": 5,
+    "min_month": 8,
+    "minimum_stress": 68,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "keep_forcing_hours",
+        "label": "Keep forcing hours",
+        "description": "Protect immediate cash and promotion pace at a heavier wellbeing cost.",
+        "stat_effects": {
+          "cash": 140,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "rebalance_workload",
+        "label": "Rebalance workload",
+        "description": "Stabilize the month and sacrifice some short-term upside.",
+        "stat_effects": {
+          "cash": -120,
+          "stress": -2,
+          "social_stability": 1
+        }
+      }
+    ],
+    "chained_event_id": "burnout_month",
+    "chained_delay_months": 1,
+    "log_entry": "Overtime pressure triggered a direct attrition warning."
+  },
+  {
+    "id": "family_support_bridge",
+    "name": "Family Support Bridge",
+    "description": "A support bridge opened for one month because your relationships are still strong.",
+    "weight": 3,
+    "min_month": 8,
+    "minimum_family_support": 65,
+    "maximum_credit_score": 690,
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "take_bridge_support",
+        "label": "Take support bridge",
+        "description": "Use the bridge to stabilize immediate pressure.",
+        "stat_effects": {
+          "cash": 220,
+          "stress": -2,
+          "social_stability": 1
+        }
+      },
+      {
+        "id": "decline_and_hold_line",
+        "label": "Decline bridge",
+        "description": "Preserve independence and absorb the full month pressure.",
+        "stat_effects": {
+          "stress": 1,
+          "life_satisfaction": -1,
+          "credit_score": 1
+        }
+      }
+    ],
+    "log_entry": "Strong support created a temporary recovery bridge."
   }
 ]

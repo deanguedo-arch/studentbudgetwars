@@ -28,6 +28,13 @@ SEVERITY_EVENT_IDS = {
     "collections_warning",
     "security_deposit_shock",
     "financed_car_insurance_spike",
+    "lease_default_warning",
+    "lease_enforcement_notice",
+    "beater_total_failure",
+    "exam_probation_hearing",
+    "academic_funding_review",
+    "overtime_attrition_warning",
+    "debt_fee_stack",
 }
 
 
@@ -293,6 +300,65 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
             return False
         if player.credit_score < 740:
             return False
+    if event.id == "family_stability_surge":
+        if player.monthly_surplus < 140:
+            return False
+        if player.housing.missed_payment_streak > 0:
+            return False
+    if event.id == "emergency_fund_redeployment":
+        if (player.cash + player.savings + player.high_interest_savings) < 1600:
+            return False
+        if player.monthly_surplus < 120:
+            return False
+    if event.id == "lease_default_warning":
+        if player.monthly_surplus > -120:
+            return False
+        if (player.cash + player.savings) > 650:
+            return False
+    if event.id == "lease_enforcement_notice":
+        if player.housing.option_id != "solo_rental":
+            return False
+        if player.monthly_surplus > -80:
+            return False
+    if event.id == "debt_fee_stack":
+        if player.monthly_surplus > -40:
+            return False
+    if event.id == "beater_total_failure":
+        if player.transport.option_id != "beater_car":
+            return False
+        if player.transport.reliability_score > 42:
+            return False
+        if player.monthly_surplus > 90:
+            return False
+    if event.id == "route_reliability_bonus":
+        if player.transport.reliability_score < 72:
+            return False
+        if player.monthly_surplus < 0:
+            return False
+    if event.id == "exam_probation_hearing":
+        if not player.education.is_active:
+            return False
+        if player.education.program_id not in {"full_time_university", "part_time_college"}:
+            return False
+        if player.selected_focus_action_id not in {"overtime", "study_push", "promotion_hunt"}:
+            return False
+        if player.stress < 62 and player.energy > 45:
+            return False
+    if event.id == "academic_funding_review":
+        if not player.education.is_active:
+            return False
+        if player.education.program_id not in {"full_time_university", "part_time_college"}:
+            return False
+    if event.id == "overtime_attrition_warning":
+        if player.selected_focus_action_id not in {"overtime", "promotion_hunt"}:
+            return False
+        if player.stress < 68:
+            return False
+    if event.id == "family_support_bridge":
+        if (player.cash + player.savings) > 1300:
+            return False
+        if player.monthly_surplus > 60:
+            return False
     if event.id == "market_margin_call":
         if player.monthly_surplus > -40:
             return False
@@ -476,6 +542,39 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         if state.player.cash + state.player.savings >= 2400:
             weight *= 1.25
         if state.player.monthly_surplus >= 280:
+            weight *= 1.2
+    if event.id == "family_stability_surge":
+        if state.player.housing.option_id == "parents":
+            weight *= 1.25
+        if state.player.family_support >= 75:
+            weight *= 1.2
+        if state.player.monthly_surplus >= 220:
+            weight *= 1.2
+    if event.id == "lease_default_warning":
+        if state.player.housing.option_id == "solo_rental":
+            weight *= 1.35
+        if state.player.monthly_surplus <= -180:
+            weight *= 1.3
+        if state.player.credit_score < 580:
+            weight *= 1.25
+    if event.id == "beater_total_failure":
+        if state.player.transport.option_id == "beater_car":
+            weight *= 1.35
+        if state.player.transport.reliability_score <= 38:
+            weight *= 1.3
+        if state.player.monthly_surplus < -50:
+            weight *= 1.2
+    if event.id == "exam_probation_hearing":
+        if state.player.selected_focus_action_id in {"overtime", "study_push"}:
+            weight *= 1.25
+        if state.player.stress >= 70:
+            weight *= 1.2
+        if state.player.energy <= 42:
+            weight *= 1.2
+    if event.id == "overtime_attrition_warning":
+        if state.player.selected_focus_action_id == "overtime":
+            weight *= 1.3
+        if state.player.stress >= 74:
             weight *= 1.2
 
     weight *= _matrix_weight_multiplier(bundle, state, event)
