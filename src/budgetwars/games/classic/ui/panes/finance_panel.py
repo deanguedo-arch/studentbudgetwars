@@ -171,33 +171,6 @@ class FinancePanel(tk.Frame):
                 wraplength=320,
             ).pack(fill="x", anchor="w", pady=(1, 0))
 
-        if getattr(summary, "active_status_arcs", None):
-            arcs_card = tk.Frame(body, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
-            arcs_card.pack(fill="x", pady=(PAD_S, 0))
-            tk.Label(arcs_card, text="Active Arcs", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
-            for arc in summary.active_status_arcs[: (1 if compact else 2)]:
-                tk.Label(
-                    arcs_card,
-                    text=f"{arc.name} | S{arc.severity} | {arc.months_remaining} mo",
-                    bg=BG_ELEVATED,
-                    fg=COLOR_WARNING if arc.tone == "negative" else TEXT_PRIMARY,
-                    font=FONT_SMALL,
-                    anchor="w",
-                    justify="left",
-                    wraplength=320,
-                ).pack(fill="x", padx=PAD_S, pady=(2, 0))
-                if arc.resolution_hint:
-                    tk.Label(
-                        arcs_card,
-                        text=arc.resolution_hint,
-                        bg=BG_ELEVATED,
-                        fg=TEXT_SECONDARY,
-                        font=FONT_TINY,
-                        anchor="w",
-                        justify="left",
-                        wraplength=320,
-                    ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
-
         rank_card = tk.Frame(body, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
         rank_card.pack(fill="x", pady=(PAD_S, 0))
         tk.Label(rank_card, text="NEXT RANK", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))

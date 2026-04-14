@@ -962,8 +962,8 @@ def test_finance_panel_renders_active_status_arc_section(controller_factory):
             return texts
 
         texts = _all_label_texts(panel)
-        assert "Active Arcs" in texts
-        assert any("Credit Squeeze" in text for text in texts)
+        assert "Active Arcs" not in texts
+        assert "Risk: Credit Squeeze" in texts
     finally:
         root.destroy()
 
@@ -1073,9 +1073,10 @@ def test_phase_ui_outlook_panel_trims_duplicate_sections_and_centers_play(contro
             duration_months=3,
             severity=2,
         )
+        forecast = build_monthly_forecast(controller.state, controller.bundle)
         panel = OutlookPanel(root, resolve_callback=lambda: None)
         panel.render_forecast(
-            build_monthly_forecast(controller.state, controller.bundle),
+            forecast,
             compact=False,
             show_resolve_button=False,
         )
@@ -1090,8 +1091,49 @@ def test_phase_ui_outlook_panel_trims_duplicate_sections_and_centers_play(contro
 
         texts = _all_label_texts(panel)
         assert "THIS MONTH'S PLAY" in texts
+        assert "COMMIT THE MONTH" not in texts
+        assert texts.count(forecast.monthly_focus) == 1
         assert "SITUATION FAMILY" not in texts
         assert "Last month" not in texts
+    finally:
+        root.destroy()
+
+
+def test_status_bar_trims_primary_score_category_bars_from_top_band(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory()
+        status_bar = StatusBar(root)
+        snapshot = controller.live_score_snapshot()
+        delta = build_score_delta_summary(snapshot, snapshot)
+        status_bar.render(
+            controller.state,
+            controller.bundle,
+            snapshot,
+            delta,
+            credit_score=controller.state.player.credit_score,
+            credit_delta=0,
+        )
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(status_bar)
+        assert "Net Worth" not in texts
+        assert "Career" not in texts
+        assert "Wellness" not in texts
+        assert any(text.startswith("Flow ") for text in texts)
     finally:
         root.destroy()
 

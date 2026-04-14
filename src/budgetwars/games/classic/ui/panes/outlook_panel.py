@@ -97,17 +97,17 @@ class OutlookPanel(tk.Frame):
 
         hero_arc = forecast.active_status_arcs[0] if getattr(forecast, "active_status_arcs", None) else None
         if hero_arc is not None:
-            hero = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=COLOR_WARNING if hero_arc.tone == "negative" else ACCENT_FOCUS, highlightthickness=2)
+            hero = tk.Frame(
+                self._content,
+                bg=BG_ELEVATED,
+                highlightbackground=COLOR_WARNING if hero_arc.tone == "negative" else ACCENT_FOCUS,
+                highlightthickness=2,
+            )
             hero.pack(fill="x", pady=(0, PAD_S))
             self._widgets.append(hero)
-            tk.Label(
-                hero,
-                text="ACTIVE ARC",
-                bg=BG_ELEVATED,
-                fg=TEXT_MUTED,
-                font=FONT_TINY,
-                anchor="w",
-            ).pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+            tk.Label(hero, text="ACTIVE ARC", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(
+                fill="x", padx=PAD_S, pady=(PAD_S, 0)
+            )
             tk.Label(
                 hero,
                 text=f"{hero_arc.name} | S{hero_arc.severity} | {hero_arc.months_remaining} mo",
@@ -140,43 +140,12 @@ class OutlookPanel(tk.Frame):
                     wraplength=420,
                 ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
 
-        grid = tk.Frame(self._content, bg=BG_CARD)
-        grid.pack(fill="x")
-        self._widgets.append(grid)
-        grid.grid_columnconfigure(0, weight=1)
-        grid.grid_columnconfigure(1, weight=1)
-
-        for col, (title, value, accent) in enumerate(
-            (
-                ("Main Threat", forecast.main_threat, COLOR_NEGATIVE),
-                ("Best Opportunity", forecast.best_opportunity, COLOR_POSITIVE),
-            )
-        ):
-            card = tk.Frame(grid, bg=BG_ELEVATED, highlightbackground=accent, highlightthickness=2)
-            card.grid(row=0, column=col, sticky="nsew", padx=3, pady=3)
-            tk.Label(card, text=title.upper(), bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
-            tk.Label(
-                card,
-                text=value,
-                bg=BG_ELEVATED,
-                fg=TEXT_PRIMARY,
-                font=FONT_SMALL if not self._large else ("Trebuchet MS", 11),
-                anchor="w",
-                justify="left",
-                wraplength=180 if compact else 200,
-            ).pack(fill="x", padx=PAD_S, pady=(2, PAD_S))
-
         play_card = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=ACCENT_FOCUS, highlightthickness=3)
-        play_card.pack(fill="x", pady=(PAD_S, 0))
+        play_card.pack(fill="x", pady=(PAD_S if hero_arc is not None else 0, 0))
         self._widgets.append(play_card)
-        tk.Label(
-            play_card,
-            text="THIS MONTH'S PLAY",
-            bg=BG_ELEVATED,
-            fg=TEXT_MUTED,
-            font=FONT_TINY,
-            anchor="w",
-        ).pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+        tk.Label(play_card, text="THIS MONTH'S PLAY", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(
+            fill="x", padx=PAD_S, pady=(PAD_S, 0)
+        )
         tk.Label(
             play_card,
             text=forecast.chosen_focus,
@@ -206,22 +175,18 @@ class OutlookPanel(tk.Frame):
             anchor="w",
             justify="left",
             wraplength=420,
-        ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
-
-        resolve_frame = tk.Frame(self._content, bg=BG_ELEVATED, highlightbackground=ACCENT_FOCUS, highlightthickness=2)
-        resolve_frame.pack(fill="x", pady=(PAD_S, 0))
-        self._widgets.append(resolve_frame)
+        ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S // 2))
         tk.Label(
-            resolve_frame,
-            text="COMMIT THE MONTH",
+            play_card,
+            text="COMMIT",
             bg=BG_ELEVATED,
             fg=TEXT_HEADING,
             font=FONT_TINY,
             anchor="w",
             justify="left",
-        ).pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+        ).pack(fill="x", padx=PAD_S, pady=(0, 0))
         tk.Label(
-            resolve_frame,
+            play_card,
             text="Lock the play once the threat, edge, and swing make sense.",
             bg=BG_ELEVATED,
             fg=TEXT_SECONDARY,
@@ -232,7 +197,7 @@ class OutlookPanel(tk.Frame):
         ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S // 2))
         if show_resolve_button:
             resolve_btn = tk.Button(
-                resolve_frame,
+                play_card,
                 text="Resolve Month",
                 command=self._resolve_callback,
                 bg="#60451f",
@@ -251,7 +216,7 @@ class OutlookPanel(tk.Frame):
             resolve_btn.pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
         else:
             tk.Label(
-                resolve_frame,
+                play_card,
                 text="Use the bottom Resolve Month control to lock the turn.",
                 bg=BG_ELEVATED,
                 fg=TEXT_PRIMARY,
@@ -261,25 +226,48 @@ class OutlookPanel(tk.Frame):
                 wraplength=420,
             ).pack(fill="x", padx=PAD_S, pady=(0, PAD_S))
 
-        focus = tk.Label(
-            self._content,
-            text=forecast.monthly_focus,
-            bg=BG_CARD,
-            fg=ACCENT_FOCUS,
-            font=FONT_SMALL if not self._large else ("Segoe UI", 11, "bold"),
-            anchor="w",
-            justify="left",
-            wraplength=420,
-        )
-        focus.pack(fill="x", pady=(PAD_S, 0))
-        self._widgets.append(focus)
+        grid = tk.Frame(self._content, bg=BG_CARD)
+        grid.pack(fill="x", pady=(PAD_S, 0))
+        self._widgets.append(grid)
+        grid.grid_columnconfigure(0, weight=1)
+        grid.grid_columnconfigure(1, weight=1)
+        for col, (title, value, accent) in enumerate(
+            (
+                ("Main Threat", forecast.main_threat, COLOR_NEGATIVE),
+                ("Best Opportunity", forecast.best_opportunity, COLOR_POSITIVE),
+            )
+        ):
+            card = tk.Frame(grid, bg=BG_ELEVATED, highlightbackground=accent, highlightthickness=2)
+            card.grid(row=0, column=col, sticky="nsew", padx=3, pady=3)
+            tk.Label(card, text=title.upper(), bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(
+                fill="x", padx=PAD_S, pady=(PAD_S, 0)
+            )
+            tk.Label(
+                card,
+                text=value,
+                bg=BG_ELEVATED,
+                fg=TEXT_PRIMARY,
+                font=FONT_SMALL if not self._large else ("Trebuchet MS", 11),
+                anchor="w",
+                justify="left",
+                wraplength=180 if compact else 200,
+            ).pack(fill="x", padx=PAD_S, pady=(2, PAD_S))
 
         if forecast.driver_notes:
             notes_header = tk.Label(self._content, text="Why the turn matters", bg=BG_CARD, fg=TEXT_HEADING, font=FONT_SMALL, anchor="w")
             notes_header.pack(fill="x", pady=(PAD_S, 0))
             self._widgets.append(notes_header)
-            for note in forecast.driver_notes[: (2 if compact else 2)]:
-                note_lbl = tk.Label(self._content, text=note, bg=BG_CARD, fg=TEXT_SECONDARY, font=FONT_SMALL, anchor="w", justify="left", wraplength=420)
+            for note in forecast.driver_notes[:2]:
+                note_lbl = tk.Label(
+                    self._content,
+                    text=note,
+                    bg=BG_CARD,
+                    fg=TEXT_SECONDARY,
+                    font=FONT_SMALL,
+                    anchor="w",
+                    justify="left",
+                    wraplength=420,
+                )
                 note_lbl.pack(fill="x", anchor="w", pady=1)
                 self._widgets.append(note_lbl)
 
