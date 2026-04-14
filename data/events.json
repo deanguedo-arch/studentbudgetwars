@@ -2128,7 +2128,7 @@
         "description": "Cover the credit penalty in cash and keep the housing lane open.",
         "stat_effects": {
           "cash": -450,
-          "stress": 2,
+          "stress": -1,
           "social_stability": -1
         }
       },
@@ -2137,9 +2137,26 @@
         "label": "Delay the move",
         "description": "Protect cash now and accept another month of limitation.",
         "stat_effects": {
-          "stress": 1,
+          "stress": -2,
+          "energy": 1,
           "life_satisfaction": -2,
           "social_stability": -1
+        },
+        "modifier": {
+          "id": "move_delay_breathing_room",
+          "label": "Move Delay Breathing Room",
+          "duration_months": 2,
+          "stat_effects": {
+            "stress": -1
+          },
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": -40,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
         }
       }
     ],
@@ -4047,8 +4064,25 @@
         "description": "Protect housing continuity with a painful short-term payment.",
         "stat_effects": {
           "cash": -320,
-          "stress": 2,
+          "stress": -3,
+          "energy": 1,
           "credit_score": 2
+        },
+        "modifier": {
+          "id": "lease_hold_bridge",
+          "label": "Lease Hold Bridge",
+          "duration_months": 2,
+          "stat_effects": {
+            "stress": -1
+          },
+          "income_multiplier": 1.0,
+          "housing_cost_delta": -40,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
         }
       },
       {
@@ -4056,10 +4090,27 @@
         "label": "Plan downgrade",
         "description": "Protect cash flow and accept a near-term quality drop.",
         "stat_effects": {
-          "cash": 120,
-          "stress": 1,
+          "cash": 160,
+          "stress": -2,
+          "energy": 1,
           "life_satisfaction": -2,
           "social_stability": -1
+        },
+        "modifier": {
+          "id": "downgrade_runway",
+          "label": "Downgrade Runway",
+          "duration_months": 3,
+          "stat_effects": {
+            "stress": -1
+          },
+          "income_multiplier": 1.0,
+          "housing_cost_delta": -120,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
         }
       }
     ],

@@ -236,3 +236,66 @@ def test_branch_protective_choices_create_real_stabilizer_lanes(
     push_score = build_live_score_snapshot(quiet_bundle, push.state).projected_score
 
     assert protect_score >= push_score + 1.0
+
+
+def test_lease_survival_choices_lower_pressure_and_create_distinct_futures(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    hold = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    downgrade = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller in (hold, downgrade):
+        state = controller.state
+        state.current_month = 12
+        state.player.housing.option_id = "solo_rental"
+        state.player.housing.housing_stability = 34
+        state.player.credit_score = 610
+        state.player.cash = 140
+        state.player.savings = 0
+        state.player.monthly_surplus = -220
+        state.player.stress = 74
+        state.player.energy = 40
+
+    event = next(item for item in bundle.events if item.id == "lease_enforcement_notice")
+
+    resolve_event(bundle, hold.state, event)
+    hold_before_stress = hold.state.player.stress
+    resolve_event_choice(bundle, hold.state, "lease_enforcement_notice", "pay_to_hold_lease")
+
+    resolve_event(bundle, downgrade.state, event)
+    downgrade_before_stress = downgrade.state.player.stress
+    resolve_event_choice(bundle, downgrade.state, "lease_enforcement_notice", "plan_fast_downgrade")
+
+    assert hold.state.player.stress <= hold_before_stress
+    assert downgrade.state.player.stress <= downgrade_before_stress
+    assert any(arc.arc_id == "lease_pressure" for arc in hold.state.active_status_arcs)
+    assert not any(arc.arc_id == "lease_pressure" for arc in downgrade.state.active_status_arcs)
+
+    resolve_month(quiet_bundle, hold.state, Random(42))
+    resolve_month(quiet_bundle, downgrade.state, Random(42))
+
+    hold_score = build_live_score_snapshot(quiet_bundle, hold.state).projected_score
+    downgrade_score = build_live_score_snapshot(quiet_bundle, downgrade.state).projected_score
+
+    assert downgrade_score >= hold_score + 1.0
+
+
+def test_delay_the_move_no_longer_adds_extra_stress(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    state = controller.state
+    state.current_month = 11
+    state.player.housing.option_id = "roommates"
+    state.player.credit_score = 590
+    state.player.debt = 4200
+    state.player.stress = 63
+    state.player.energy = 44
+
+    event = next(item for item in bundle.events if item.id == "security_deposit_shock")
+
+    resolve_event(bundle, state, event)
+    before_stress = state.player.stress
+
+    resolve_event_choice(bundle, state, "security_deposit_shock", "delay_the_move")
+
+    assert state.player.stress <= before_stress
