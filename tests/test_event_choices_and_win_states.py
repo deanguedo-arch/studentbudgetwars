@@ -547,6 +547,177 @@ def test_weaker_branch_offer_choices_open_distinct_late_followup_event_pools(
     assert expected_event_a not in second_ids
 
 
+@pytest.mark.parametrize(
+    ("track_id", "branch_id", "event_id", "choice_id", "expected_tag"),
+    [
+        ("delivery_gig", "delivery_route_grind_track", "delivery_route_crush_week", "stack_the_route", "delivery_route_overdrive_lane"),
+        ("delivery_gig", "delivery_route_grind_track", "delivery_route_crush_week", "protect_the_vehicle", "delivery_vehicle_buffer_lane"),
+        (
+            "delivery_gig",
+            "delivery_independent_operator_track",
+            "delivery_operator_contract_bid",
+            "keep_operator_flexible",
+            "delivery_flex_buffer_lane",
+        ),
+        ("trades_apprenticeship", "trades_field_crew_track", "trades_field_crew_weather_crunch", "push_the_crew_day", "trades_field_push_lane"),
+        ("trades_apprenticeship", "trades_field_crew_track", "trades_field_crew_weather_crunch", "protect_the_pace", "trades_field_recovery_lane"),
+        (
+            "trades_apprenticeship",
+            "trades_estimator_supervisor_track",
+            "trades_scope_change_order_wave",
+            "own_the_change_orders",
+            "trades_scope_surge_lane",
+        ),
+        (
+            "trades_apprenticeship",
+            "trades_estimator_supervisor_track",
+            "trades_scope_change_order_wave",
+            "stabilize_the_scope",
+            "trades_scope_anchor_lane",
+        ),
+        (
+            "healthcare_support",
+            "healthcare_floor_care_track",
+            "healthcare_floor_care_double_shift",
+            "cover_the_floor_gap",
+            "healthcare_floor_gap_lane",
+        ),
+        (
+            "healthcare_support",
+            "healthcare_floor_care_track",
+            "healthcare_floor_care_double_shift",
+            "protect_shift_recovery",
+            "healthcare_floor_recovery_lane",
+        ),
+        (
+            "healthcare_support",
+            "healthcare_scheduling_coordination_track",
+            "healthcare_schedule_gap_cascade",
+            "triage_the_gap_board",
+            "healthcare_schedule_triage_lane",
+        ),
+        (
+            "healthcare_support",
+            "healthcare_scheduling_coordination_track",
+            "healthcare_schedule_gap_cascade",
+            "protect_team_stability",
+            "healthcare_schedule_stability_lane",
+        ),
+    ],
+)
+def test_delivery_trades_healthcare_branch_choices_set_persistent_tags(
+    bundle, controller_factory, track_id, branch_id, event_id, choice_id, expected_tag
+) -> None:
+    controller = controller_factory(opening_path_id="full_time_work")
+    _seed_branch_offer_state(controller, track_id=track_id, branch_id=branch_id)
+
+    offer = next(item for item in bundle.events if item.id == event_id)
+    resolve_event(bundle, controller.state, offer)
+    controller.resolve_event_choice(choice_id)
+
+    assert expected_tag in controller.state.player.persistent_tags
+
+
+@pytest.mark.parametrize(
+    (
+        "track_id",
+        "branch_id",
+        "event_id",
+        "choice_a",
+        "choice_b",
+        "expected_event_a",
+        "expected_event_b",
+    ),
+    [
+        (
+            "delivery_gig",
+            "delivery_route_grind_track",
+            "delivery_route_crush_week",
+            "stack_the_route",
+            "protect_the_vehicle",
+            "delivery_route_overdrive_cycle",
+            "delivery_vehicle_buffer_dividend",
+        ),
+        (
+            "delivery_gig",
+            "delivery_independent_operator_track",
+            "delivery_operator_contract_bid",
+            "bid_for_scope",
+            "keep_operator_flexible",
+            "delivery_surge_scope_backlash",
+            "delivery_flexible_operator_dividend",
+        ),
+        (
+            "trades_apprenticeship",
+            "trades_field_crew_track",
+            "trades_field_crew_weather_crunch",
+            "push_the_crew_day",
+            "protect_the_pace",
+            "trades_field_pushback_cycle",
+            "trades_field_recovery_dividend",
+        ),
+        (
+            "trades_apprenticeship",
+            "trades_estimator_supervisor_track",
+            "trades_scope_change_order_wave",
+            "own_the_change_orders",
+            "stabilize_the_scope",
+            "trades_scope_overrun_cycle",
+            "trades_scope_anchor_dividend",
+        ),
+        (
+            "healthcare_support",
+            "healthcare_floor_care_track",
+            "healthcare_floor_care_double_shift",
+            "cover_the_floor_gap",
+            "protect_shift_recovery",
+            "healthcare_floor_gap_aftershock",
+            "healthcare_floor_recovery_dividend",
+        ),
+        (
+            "healthcare_support",
+            "healthcare_scheduling_coordination_track",
+            "healthcare_schedule_gap_cascade",
+            "triage_the_gap_board",
+            "protect_team_stability",
+            "healthcare_schedule_exception_cycle",
+            "healthcare_schedule_stability_dividend",
+        ),
+    ],
+)
+def test_delivery_trades_healthcare_branch_choices_open_distinct_late_followups(
+    bundle,
+    controller_factory,
+    track_id,
+    branch_id,
+    event_id,
+    choice_a,
+    choice_b,
+    expected_event_a,
+    expected_event_b,
+) -> None:
+    first = controller_factory(opening_path_id="full_time_work")
+    second = controller_factory(opening_path_id="full_time_work")
+    _seed_branch_offer_state(first, track_id=track_id, branch_id=branch_id, month=32)
+    _seed_branch_offer_state(second, track_id=track_id, branch_id=branch_id, month=32)
+
+    offer = next(item for item in bundle.events if item.id == event_id)
+    resolve_event(bundle, first.state, offer)
+    first.resolve_event_choice(choice_a)
+    first.state.active_modifiers = []
+    first_ids = {event.id for event in eligible_events(bundle, first.state)}
+
+    resolve_event(bundle, second.state, offer)
+    second.resolve_event_choice(choice_b)
+    second.state.active_modifiers = []
+    second_ids = {event.id for event in eligible_events(bundle, second.state)}
+
+    assert expected_event_a in first_ids
+    assert expected_event_b not in first_ids
+    assert expected_event_b in second_ids
+    assert expected_event_a not in second_ids
+
+
 def test_healthcare_lane_commitment_choice_alters_future_event_pool(bundle, controller_factory) -> None:
     command = controller_factory(opening_path_id="full_time_work")
     command.state.current_month = 24

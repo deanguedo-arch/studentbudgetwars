@@ -4844,7 +4844,8 @@
           "promotion_progress": 2,
           "stress": 2,
           "energy": -2
-        }
+        },
+        "persistent_tag": "delivery_route_overdrive_lane"
       },
       {
         "id": "protect_the_vehicle",
@@ -4855,10 +4856,92 @@
           "stress": -1,
           "promotion_progress": 1,
           "social_stability": 1
-        }
+        },
+        "persistent_tag": "delivery_vehicle_buffer_lane"
       }
     ],
     "log_entry": "Route-grind delivery work turned into a volume-versus-wear decision."
+  },
+  {
+    "id": "delivery_route_overdrive_cycle",
+    "name": "Route Overdrive Cycle",
+    "description": "Stacking the route is paying, but the wear is compounding. Keep pushing or protect the base before reliability falls apart.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_branch_ids": [
+      "delivery_route_grind_track"
+    ],
+    "eligible_persistent_tags": [
+      "delivery_route_overdrive_lane"
+    ],
+    "choices": [
+      {
+        "id": "keep_route_overdrive",
+        "label": "Keep pushing",
+        "description": "Ride the dense route for another upside month.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "trim_route_load",
+        "label": "Trim the load",
+        "description": "Protect the run and give back some short-term upside.",
+        "stat_effects": {
+          "cash": 90,
+          "stress": -2,
+          "energy": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Overdrive-first route delivery created a recurring wear fork."
+  },
+  {
+    "id": "delivery_vehicle_buffer_dividend",
+    "name": "Vehicle Buffer Dividend",
+    "description": "Protecting the route and the vehicle is compounding into fewer breakdowns and cleaner weeks. Bank that edge or spend it for a measured push.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_branch_ids": [
+      "delivery_route_grind_track"
+    ],
+    "eligible_persistent_tags": [
+      "delivery_vehicle_buffer_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_vehicle_buffer",
+        "label": "Bank the buffer",
+        "description": "Use the cleaner route to lower pressure and keep steady progress.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": -2,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "spend_vehicle_buffer",
+        "label": "Spend the buffer",
+        "description": "Use the cleaner base for a controlled extra push.",
+        "stat_effects": {
+          "cash": 190,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Buffer-first route delivery created a steadier recurring dividend."
   },
   {
     "id": "delivery_stack_rebalance_window",
@@ -4933,10 +5016,51 @@
           "promotion_progress": 1,
           "stress": -1,
           "life_satisfaction": 1
-        }
+        },
+        "persistent_tag": "delivery_flex_buffer_lane"
       }
     ],
     "log_entry": "Independent-operator delivery created a scope-versus-flexibility decision."
+  },
+  {
+    "id": "delivery_flexible_operator_dividend",
+    "name": "Flexible Operator Dividend",
+    "description": "Keeping your operator setup lighter is paying off in fewer ugly recoveries and cleaner optionality. Bank it or spend it for a targeted contract push.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "delivery_gig"
+    ],
+    "eligible_branch_ids": [
+      "delivery_independent_operator_track"
+    ],
+    "eligible_persistent_tags": [
+      "delivery_flex_buffer_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_operator_flex",
+        "label": "Bank flexibility",
+        "description": "Convert the lighter setup into a cleaner recurring month.",
+        "stat_effects": {
+          "cash": 140,
+          "stress": -2,
+          "life_satisfaction": 1,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "spend_operator_flex",
+        "label": "Spend flexibility",
+        "description": "Use the recovery room to stretch for a better bid without fully overcommitting.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Flexible-operator delivery created a recurring optionality dividend."
   },
   {
     "id": "delivery_margin_discipline_compound",
@@ -5035,7 +5159,8 @@
           "promotion_progress": 2,
           "stress": 3,
           "energy": -2
-        }
+        },
+        "persistent_tag": "trades_field_push_lane"
       },
       {
         "id": "protect_the_pace",
@@ -5046,10 +5171,92 @@
           "promotion_progress": 1,
           "stress": -1,
           "life_satisfaction": 1
-        }
+        },
+        "persistent_tag": "trades_field_recovery_lane"
       }
     ],
     "log_entry": "Field-crew trades play turned into a grind-versus-recovery decision."
+  },
+  {
+    "id": "trades_field_pushback_cycle",
+    "name": "Field Pushback Cycle",
+    "description": "Pushing the crew day is paying in the short term, but the field strain is compounding. Keep forcing pace or stabilize before the lane buckles.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_branch_ids": [
+      "trades_field_crew_track"
+    ],
+    "eligible_persistent_tags": [
+      "trades_field_push_lane"
+    ],
+    "choices": [
+      {
+        "id": "push_another_field_day",
+        "label": "Push again",
+        "description": "Keep pace high and take the physical cost.",
+        "stat_effects": {
+          "cash": 230,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "reset_field_recovery",
+        "label": "Reset recovery",
+        "description": "Protect the body and accept a smaller month.",
+        "stat_effects": {
+          "cash": 90,
+          "stress": -2,
+          "energy": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Push-first field-crew trades created a recurring recovery fork."
+  },
+  {
+    "id": "trades_field_recovery_dividend",
+    "name": "Field Recovery Dividend",
+    "description": "Protecting the pace is compounding into fewer breakdowns and a steadier field reputation. Bank it or spend it for a controlled push.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_branch_ids": [
+      "trades_field_crew_track"
+    ],
+    "eligible_persistent_tags": [
+      "trades_field_recovery_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_field_recovery",
+        "label": "Bank the recovery",
+        "description": "Use the steadier field lane to lower strain and keep momentum clean.",
+        "stat_effects": {
+          "cash": 140,
+          "stress": -2,
+          "life_satisfaction": 1,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "cash_field_recovery",
+        "label": "Cash the recovery",
+        "description": "Spend the steadier footing on a moderate push.",
+        "stat_effects": {
+          "cash": 200,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Recovery-first field-crew trades created a steadier recurring dividend."
   },
   {
     "id": "trades_precision_quote_window",
@@ -5110,7 +5317,8 @@
           "promotion_progress": 2,
           "stress": 3,
           "social_stability": -1
-        }
+        },
+        "persistent_tag": "trades_scope_surge_lane"
       },
       {
         "id": "stabilize_the_scope",
@@ -5121,10 +5329,92 @@
           "promotion_progress": 1,
           "stress": -1,
           "life_satisfaction": 1
-        }
+        },
+        "persistent_tag": "trades_scope_anchor_lane"
       }
     ],
     "log_entry": "Estimator-supervisor trades play created a scope-versus-stability decision."
+  },
+  {
+    "id": "trades_scope_overrun_cycle",
+    "name": "Scope Overrun Cycle",
+    "description": "Owning the change orders is paying, but the coordination drag is snowballing. Keep pressing the scope lane or reset before it turns into churn.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_branch_ids": [
+      "trades_estimator_supervisor_track"
+    ],
+    "eligible_persistent_tags": [
+      "trades_scope_surge_lane"
+    ],
+    "choices": [
+      {
+        "id": "press_scope_overrun",
+        "label": "Press the scope",
+        "description": "Keep the change-order lane hot and take the strain.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 3,
+          "social_stability": -1
+        }
+      },
+      {
+        "id": "reset_scope_bandwidth",
+        "label": "Reset bandwidth",
+        "description": "Protect recoverability and accept a smaller win.",
+        "stat_effects": {
+          "cash": 100,
+          "stress": -2,
+          "life_satisfaction": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Scope-first supervisor trades created a recurring overrun fork."
+  },
+  {
+    "id": "trades_scope_anchor_dividend",
+    "name": "Scope Anchor Dividend",
+    "description": "Stabilizing the scope is paying off in cleaner schedules and calmer clients. Bank the steadier lane or spend it for a measured push.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "trades_apprenticeship"
+    ],
+    "eligible_branch_ids": [
+      "trades_estimator_supervisor_track"
+    ],
+    "eligible_persistent_tags": [
+      "trades_scope_anchor_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_scope_anchor",
+        "label": "Bank the anchor",
+        "description": "Use the cleaner scope lane to lower strain and keep progression reliable.",
+        "stat_effects": {
+          "cash": 140,
+          "stress": -2,
+          "life_satisfaction": 1,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "cash_scope_anchor",
+        "label": "Cash the anchor",
+        "description": "Spend the steadier scope on a moderate advancement push.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Anchor-first supervisor trades created a recurring stability dividend."
   },
   {
     "id": "healthcare_floor_care_double_shift",
@@ -5148,7 +5438,8 @@
           "promotion_progress": 2,
           "stress": 3,
           "energy": -2
-        }
+        },
+        "persistent_tag": "healthcare_floor_gap_lane"
       },
       {
         "id": "protect_shift_recovery",
@@ -5159,10 +5450,92 @@
           "promotion_progress": 1,
           "stress": -1,
           "life_satisfaction": 1
-        }
+        },
+        "persistent_tag": "healthcare_floor_recovery_lane"
       }
     ],
     "log_entry": "Floor-care healthcare play became a load-versus-recovery fork."
+  },
+  {
+    "id": "healthcare_floor_gap_aftershock",
+    "name": "Floor Gap Aftershock",
+    "description": "Covering the gap kept the unit alive, but the recovery debt is still sitting on you. Push through another shortfall or protect the lane before burnout hardens.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_branch_ids": [
+      "healthcare_floor_care_track"
+    ],
+    "eligible_persistent_tags": [
+      "healthcare_floor_gap_lane"
+    ],
+    "choices": [
+      {
+        "id": "absorb_another_gap",
+        "label": "Absorb another gap",
+        "description": "Keep the unit covered and take the body cost.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_floor_recovery_now",
+        "label": "Protect recovery",
+        "description": "Trade some visible upside for a more survivable lane.",
+        "stat_effects": {
+          "cash": 90,
+          "stress": -2,
+          "energy": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Gap-covering floor care created a recurring aftershock fork."
+  },
+  {
+    "id": "healthcare_floor_recovery_dividend",
+    "name": "Floor Recovery Dividend",
+    "description": "Protecting shift recovery is paying off in steadier coverage and fewer ugly collapses. Bank that dividend or spend it for a measured push.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_branch_ids": [
+      "healthcare_floor_care_track"
+    ],
+    "eligible_persistent_tags": [
+      "healthcare_floor_recovery_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_floor_recovery_dividend",
+        "label": "Bank the recovery",
+        "description": "Use the steadier lane to keep pressure down and progression clean.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": -2,
+          "life_satisfaction": 1,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "spend_floor_recovery_dividend",
+        "label": "Spend the dividend",
+        "description": "Use the recovery buffer for a controlled extra push.",
+        "stat_effects": {
+          "cash": 190,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Recovery-first floor care created a steadier recurring dividend."
   },
   {
     "id": "healthcare_technical_device_window",
@@ -5224,7 +5597,8 @@
           "promotion_progress": 2,
           "stress": 3,
           "energy": -1
-        }
+        },
+        "persistent_tag": "healthcare_schedule_triage_lane"
       },
       {
         "id": "protect_team_stability",
@@ -5235,10 +5609,92 @@
           "promotion_progress": 1,
           "stress": -1,
           "social_stability": 2
-        }
+        },
+        "persistent_tag": "healthcare_schedule_stability_lane"
       }
     ],
     "log_entry": "Scheduling healthcare play created a pressure-versus-stability choice."
+  },
+  {
+    "id": "healthcare_schedule_exception_cycle",
+    "name": "Schedule Exception Cycle",
+    "description": "Triage-first scheduling is keeping the board moving, but the exception churn is building. Keep pressing or reset the lane before it starts owning the month.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_branch_ids": [
+      "healthcare_scheduling_coordination_track"
+    ],
+    "eligible_persistent_tags": [
+      "healthcare_schedule_triage_lane"
+    ],
+    "choices": [
+      {
+        "id": "hold_schedule_triage",
+        "label": "Hold triage",
+        "description": "Keep the board moving and eat the ongoing strain.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -1
+        }
+      },
+      {
+        "id": "reset_schedule_bandwidth",
+        "label": "Reset bandwidth",
+        "description": "Protect the lane and accept a smaller short-term month.",
+        "stat_effects": {
+          "cash": 100,
+          "stress": -2,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Triage-first scheduling created a recurring exception fork."
+  },
+  {
+    "id": "healthcare_schedule_stability_dividend",
+    "name": "Schedule Stability Dividend",
+    "description": "Protecting team stability is compounding into calmer boards and cleaner handoffs. Bank the steadier lane or spend it for a measured push.",
+    "weight": 4,
+    "min_month": 22,
+    "eligible_career_ids": [
+      "healthcare_support"
+    ],
+    "eligible_branch_ids": [
+      "healthcare_scheduling_coordination_track"
+    ],
+    "eligible_persistent_tags": [
+      "healthcare_schedule_stability_lane"
+    ],
+    "choices": [
+      {
+        "id": "bank_schedule_stability",
+        "label": "Bank stability",
+        "description": "Use the calmer board to lower pressure and keep progression reliable.",
+        "stat_effects": {
+          "cash": 130,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "spend_schedule_stability",
+        "label": "Spend stability",
+        "description": "Use the cleaner board for a controlled productivity push.",
+        "stat_effects": {
+          "cash": 190,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Stability-first scheduling created a recurring dividend."
   },
   {
     "id": "sales_volume_sprint_window",
