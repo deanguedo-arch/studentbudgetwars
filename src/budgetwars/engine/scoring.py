@@ -172,6 +172,7 @@ def _wealth_signature_score_adjustment(bundle: ContentBundle, state: GameState) 
     liquid = player.cash + player.savings + player.high_interest_savings
     invested = player.index_fund + player.aggressive_growth_fund
     strategy_id = player.wealth_strategy_id
+    active_modifier_ids = {modifier.id for modifier in state.active_modifiers}
     credit_arc = next((arc for arc in state.active_status_arcs if arc.arc_id == "credit_squeeze"), None)
     lease_arc = next((arc for arc in state.active_status_arcs if arc.arc_id == "lease_pressure"), None)
     transport_arc = next((arc for arc in state.active_status_arcs if arc.arc_id == "transport_unstable"), None)
@@ -200,6 +201,8 @@ def _wealth_signature_score_adjustment(bundle: ContentBundle, state: GameState) 
             adjustment -= 0.9
         if credit_arc is not None and lease_arc is None and player.monthly_surplus >= 0:
             adjustment += 0.5
+        if "steady_compound_cadence" in active_modifier_ids and player.monthly_surplus >= 0:
+            adjustment += 0.7
     elif strategy_id == "market_chaser":
         if invested >= 5000 and player.monthly_surplus >= 0 and player.credit_score >= 680:
             adjustment += 2.0

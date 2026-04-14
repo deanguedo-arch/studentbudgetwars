@@ -872,6 +872,85 @@ def test_market_chaser_liquidation_hurts_more_than_cushion_first(bundle, control
     assert chaser.state.player.life_satisfaction <= cushion.state.player.life_satisfaction
 
 
+def test_market_margin_cut_risk_now_reduces_credit_pressure_vs_hold_line_next_month(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    cut = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    hold = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller in (cut, hold):
+        state = controller.state
+        state.current_month = 18
+        state.current_market_regime_id = "correction"
+        state.player.wealth_strategy_id = "market_chaser"
+        state.player.cash = 100
+        state.player.savings = 80
+        state.player.index_fund = 3500
+        state.player.aggressive_growth_fund = 2000
+        state.player.debt = 9800
+        state.player.credit_score = 575
+        state.player.credit_utilization_pressure = 84
+        state.player.monthly_surplus = -120
+        start_status_arc(
+            bundle,
+            state,
+            "credit_squeeze",
+            source_event_id="credit_limit_review",
+            duration_months=4,
+            severity=3,
+        )
+
+    margin_call = next(item for item in bundle.events if item.id == "market_margin_call")
+
+    resolve_event(bundle, cut.state, margin_call)
+    resolve_event_choice(bundle, cut.state, "market_margin_call", "cut_risk_now")
+
+    resolve_event(bundle, hold.state, margin_call)
+    resolve_event_choice(bundle, hold.state, "market_margin_call", "hold_the_line")
+
+    resolve_month(quiet_bundle, cut.state, cut.rng)
+    resolve_month(quiet_bundle, hold.state, hold.rng)
+
+    assert cut.state.player.credit_utilization_pressure <= hold.state.player.credit_utilization_pressure - 4
+    assert calculate_final_score(bundle, cut.state).final_score > calculate_final_score(bundle, hold.state).final_score
+
+
+def test_steady_compound_automation_creates_clearer_next_month_advantage_than_flexibility(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    automated = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    flexible = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+
+    for controller in (automated, flexible):
+        state = controller.state
+        state.current_month = 16
+        state.current_market_regime_id = "strong"
+        state.player.wealth_strategy_id = "steady_builder"
+        state.player.cash = 2200
+        state.player.savings = 1800
+        state.player.high_interest_savings = 1200
+        state.player.credit_score = 710
+        state.player.monthly_surplus = 260
+        state.player.debt = 3200
+
+    compound = next(item for item in bundle.events if item.id == "steady_compound_window")
+
+    resolve_event(bundle, automated.state, compound)
+    resolve_event_choice(bundle, automated.state, "steady_compound_window", "automate_compound")
+
+    resolve_event(bundle, flexible.state, compound)
+    resolve_event_choice(bundle, flexible.state, "steady_compound_window", "keep_flexibility")
+
+    resolve_month(quiet_bundle, automated.state, automated.rng)
+    resolve_month(quiet_bundle, flexible.state, flexible.rng)
+
+    automated_invested = automated.state.player.index_fund + automated.state.player.aggressive_growth_fund
+    flexible_invested = flexible.state.player.index_fund + flexible.state.player.aggressive_growth_fund
+
+    assert automated_invested >= flexible_invested + 220
+    assert calculate_final_score(bundle, automated.state).final_score >= calculate_final_score(bundle, flexible.state).final_score + 0.5
+
+
 def test_phase4_cushion_first_softens_lease_pressure_faster_than_market_chaser(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})

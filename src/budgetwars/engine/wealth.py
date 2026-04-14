@@ -11,6 +11,7 @@ from .status_arcs import get_active_status_arc, refresh_status_arc
 
 def apply_wealth_allocations(bundle: ContentBundle, state: GameState) -> dict[str, int]:
     strategy = get_wealth_strategy(bundle, state.player.wealth_strategy_id)
+    active_modifier_ids = {modifier.id for modifier in state.active_modifiers}
     # Respect global emergency fund floor
     floor = max(strategy.emergency_cash_floor, bundle.config.emergency_fund_floor)
     available = max(0, state.player.cash - floor)
@@ -28,6 +29,13 @@ def apply_wealth_allocations(bundle: ContentBundle, state: GameState) -> dict[st
     growth_amount = min(state.player.cash, int(round(available * strategy.growth_invest_rate)))
     state.player.cash -= growth_amount
     state.player.aggressive_growth_fund += growth_amount
+
+    if strategy.id == "steady_builder" and "steady_compound_cadence" in active_modifier_ids and state.player.cash > 0:
+        cadence_index_amount = min(state.player.cash, max(50, int(round(available * 0.06))))
+        state.player.cash -= cadence_index_amount
+        state.player.index_fund += cadence_index_amount
+        index_amount += cadence_index_amount
+        append_log(state, f"Compound cadence auto-routed an extra ${cadence_index_amount} into index investing.")
 
     extra_debt = min(state.player.cash, int(round(available * strategy.extra_debt_payment_rate)))
     state.player.cash -= extra_debt

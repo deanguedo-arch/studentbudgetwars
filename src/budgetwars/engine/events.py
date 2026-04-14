@@ -711,6 +711,13 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
             weight *= 1.25
         if state.player.monthly_surplus >= 280:
             weight *= 1.2
+        if (
+            state.player.wealth_strategy_id == "cushion_first"
+            and state.current_market_regime_id == "strong"
+            and (state.player.cash + state.player.savings + state.player.high_interest_savings) >= 4200
+            and state.player.credit_score >= 680
+        ):
+            weight *= 1.45
     if event.id == "market_panic_window":
         if state.player.index_fund + state.player.aggressive_growth_fund >= 5000:
             weight *= 1.3
@@ -878,6 +885,14 @@ def _apply_structural_choice_followthrough(state: GameState, event_id: str, choi
         player.education.standing = min(100, player.education.standing + 4)
         player.education.education_momentum = min(100, player.education.education_momentum + 6)
         append_log(state, "The probation recovery plan restored academic footing and momentum.")
+    elif (event_id, choice_id) == ("market_margin_call", "cut_risk_now"):
+        player.credit_utilization_pressure = max(0, player.credit_utilization_pressure - 8)
+        player.credit_rebuild_streak = max(player.credit_rebuild_streak, 1)
+        derisked_growth = min(180, player.aggressive_growth_fund)
+        if derisked_growth > 0:
+            player.aggressive_growth_fund -= derisked_growth
+            player.high_interest_savings += derisked_growth
+        append_log(state, "Cutting risk rebuilt liquidity instead of leaving the credit squeeze untouched.")
 
     clamp_player_state(state)
 

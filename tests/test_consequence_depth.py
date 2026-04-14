@@ -1250,6 +1250,30 @@ def test_phase5_market_chaser_forced_liquidation_has_extra_asset_loss(bundle, co
     assert chaser_remaining < cushion_remaining
 
 
+def test_phase5_cushion_first_strong_market_surfaces_cash_drag_regret_in_top_five(bundle, controller_factory):
+    controller = controller_factory(
+        opening_path_id="stay_home_stack_cash",
+        city_id="hometown_low_cost",
+        family_support_level_id="high",
+        savings_band_id="solid",
+    )
+    state = controller.state
+    state.current_month = 16
+    state.current_market_regime_id = "strong"
+    state.player.wealth_strategy_id = "cushion_first"
+    state.player.cash = 2200
+    state.player.savings = 1800
+    state.player.high_interest_savings = 1200
+    state.player.credit_score = 710
+    state.player.monthly_surplus = 260
+    state.player.debt = 3200
+    state.player.transport.reliability_score = 82
+
+    top_ids = _top_weighted_event_ids(bundle, state, limit=5)
+
+    assert "cash_drag_regret" in top_ids
+
+
 def test_phase4_cushion_first_has_reserve_deployment_window_under_lease_pressure(bundle, controller_factory):
     cushion = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
     chaser = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
