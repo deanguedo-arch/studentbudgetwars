@@ -5,7 +5,7 @@ from random import Random
 import pytest
 
 from budgetwars.engine.careers import current_income, promotion_blockers
-from budgetwars.engine.events import eligible_events, event_severity_multiplier, event_weight, resolve_event
+from budgetwars.engine.events import eligible_events, event_severity_multiplier, event_weight, resolve_event, resolve_event_choice
 from budgetwars.engine.month_resolution import resolve_month
 from budgetwars.engine.scoring import calculate_final_score
 from budgetwars.engine.status_arcs import start_status_arc
@@ -2107,3 +2107,33 @@ def test_exam_probation_hearing_choice_and_chain_behavior(bundle, controller_fac
 
     assert any(pending.event_id == "academic_funding_review" for pending in controller.state.pending_events)
     assert any(modifier.id == "course_load_rebalance" for modifier in controller.state.active_modifiers)
+
+
+def test_final_truth_rebalancing_workload_cuts_followup_burnout_pressure(bundle, controller_factory):
+    stabilize = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+    push = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+
+    for controller in (stabilize, push):
+        controller.state.current_month = 18
+        controller.state.player.selected_focus_action_id = "overtime"
+        controller.state.player.stress = 74
+        controller.state.player.energy = 36
+        controller.state.player.cash = 450
+        controller.state.player.monthly_surplus = 120
+
+    attrition = next(item for item in bundle.events if item.id == "overtime_attrition_warning")
+    burnout = next(item for item in bundle.events if item.id == "burnout_month")
+
+    resolve_event(bundle, stabilize.state, attrition)
+    resolve_event_choice(bundle, stabilize.state, "overtime_attrition_warning", "rebalance_workload")
+
+    resolve_event(bundle, push.state, attrition)
+    resolve_event_choice(bundle, push.state, "overtime_attrition_warning", "keep_forcing_hours")
+
+    stabilize_top = _top_weighted_event_ids(bundle, stabilize.state)
+    push_top = _top_weighted_event_ids(bundle, push.state)
+
+    assert "burnout_month" not in stabilize_top
+    assert "burnout_month" in push_top
+    assert event_weight(bundle, push.state, burnout) > event_weight(bundle, stabilize.state, burnout)
+    assert calculate_final_score(bundle, stabilize.state).final_score > calculate_final_score(bundle, push.state).final_score

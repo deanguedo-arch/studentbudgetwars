@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from budgetwars.engine.events import eligible_events, event_weight
+from budgetwars.engine.events import eligible_events, event_weight, resolve_event, resolve_event_choice
+from budgetwars.engine.month_resolution import resolve_month
+from budgetwars.engine.scoring import calculate_final_score
+from budgetwars.engine.status_arcs import start_status_arc
 from budgetwars.games.classic.ui.main_window import build_pressure_summary
 
 
@@ -185,3 +188,86 @@ def test_finish_pass_credit_recovery_score_gap_beats_fragile_balance(bundle, con
     assert renter_summary.projected_score < strong_summary.projected_score
     assert weak_summary.projected_score < strong_summary.projected_score
     assert renter_summary.biggest_risk != strong_summary.biggest_risk or renter_summary.blocked_doors != strong_summary.blocked_doors
+
+
+def test_finish_pass_recovery_choice_changes_next_month_pressure_and_score(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    recovery = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+    masking = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+
+    for controller in (recovery, masking):
+        state = controller.state
+        state.current_month = 18
+        state.player.selected_focus_action_id = "overtime"
+        state.player.stress = 84
+        state.player.energy = 22
+        state.player.cash = 480
+        state.player.monthly_surplus = 90
+
+    burnout = next(event for event in bundle.events if event.id == "burnout_month")
+
+    resolve_event(bundle, recovery.state, burnout)
+    resolve_event_choice(bundle, recovery.state, "burnout_month", "take_real_recovery")
+
+    resolve_event(bundle, masking.state, burnout)
+    resolve_event_choice(bundle, masking.state, "burnout_month", "mask_and_push")
+
+    resolve_month(quiet_bundle, recovery.state, recovery.rng)
+    resolve_month(quiet_bundle, masking.state, masking.rng)
+
+    recovery_summary = build_pressure_summary(recovery.state, bundle)
+    masking_summary = build_pressure_summary(masking.state, bundle)
+    recovery_burnout = next((arc for arc in recovery.state.active_status_arcs if arc.arc_id == "burnout_risk"), None)
+    masking_burnout = next((arc for arc in masking.state.active_status_arcs if arc.arc_id == "burnout_risk"), None)
+
+    assert recovery.state.player.stress <= masking.state.player.stress - 8
+    assert recovery.state.player.energy >= masking.state.player.energy + 8
+    assert recovery_burnout is not None
+    assert masking_burnout is not None
+    assert recovery_burnout.severity < masking_burnout.severity
+    assert recovery_summary.projected_score > masking_summary.projected_score
+
+
+def test_finish_pass_wealth_identity_changes_pressure_and_rescue_shape(bundle, controller_factory):
+    cushion = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    chaser = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller in (cushion, chaser):
+        state = controller.state
+        state.current_month = 20
+        state.current_market_regime_id = "correction"
+        state.player.housing.option_id = "solo_rental"
+        state.player.housing.housing_stability = 38
+        state.player.credit_score = 660
+        state.player.debt = 9200
+        state.player.monthly_surplus = -120
+        state.player.cash = 400
+        start_status_arc(
+            bundle,
+            state,
+            "lease_pressure",
+            source_event_id="lease_default_warning",
+            duration_months=3,
+            severity=2,
+        )
+
+    cushion.state.player.wealth_strategy_id = "cushion_first"
+    cushion.state.player.high_interest_savings = 1800
+    cushion.state.player.index_fund = 400
+    cushion.state.player.aggressive_growth_fund = 0
+
+    chaser.state.player.wealth_strategy_id = "market_chaser"
+    chaser.state.player.high_interest_savings = 150
+    chaser.state.player.index_fund = 900
+    chaser.state.player.aggressive_growth_fund = 1150
+
+    cushion_summary = build_pressure_summary(cushion.state, bundle)
+    chaser_summary = build_pressure_summary(chaser.state, bundle)
+    reserve_window = next(event for event in bundle.events if event.id == "reserve_deployment_window")
+    margin_call = next(event for event in bundle.events if event.id == "market_margin_call")
+
+    assert event_weight(bundle, cushion.state, reserve_window) > event_weight(bundle, chaser.state, reserve_window)
+    assert event_weight(bundle, chaser.state, margin_call) > event_weight(bundle, cushion.state, margin_call)
+    assert cushion_summary.projected_score > chaser_summary.projected_score

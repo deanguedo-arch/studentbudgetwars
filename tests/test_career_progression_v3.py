@@ -307,6 +307,32 @@ def test_late_career_role_band_improves_live_score_signal(bundle, controller_fac
     assert banded_snapshot.projected_score > flat_snapshot.projected_score
 
 
+@pytest.mark.parametrize("track_id", ALL_CAREER_IDS)
+def test_final_truth_post_cap_role_bands_split_income_and_score(bundle, controller_factory, track_id):
+    stretch = controller_factory(opening_path_id="full_time_work")
+    stable = controller_factory(opening_path_id="full_time_work")
+    _seed_track_state(bundle, stretch, track_id, max_tier=True)
+    _seed_track_state(bundle, stable, track_id, max_tier=True)
+    track = get_career_track(bundle, track_id)
+
+    stretch.state.current_month = 30
+    stable.state.current_month = 30
+    stretch.state.player.persistent_tags = ["scope_push_lane"]
+    stable.state.player.persistent_tags = ["consistency_lane"]
+    stretch.state.player.career.promotion_progress = track.tiers[-1].promotion_target
+    stable.state.player.career.promotion_progress = track.tiers[-1].promotion_target
+
+    maybe_promote(bundle, stretch.state)
+    maybe_promote(bundle, stable.state)
+
+    stretch_income = current_income(bundle, stretch.state, 1.0)
+    stable_income = current_income(bundle, stable.state, 1.0)
+
+    assert stretch.state.player.career.role_band_id == "stretch_scope_band"
+    assert stable.state.player.career.role_band_id == "stability_anchor_band"
+    assert stretch_income > stable_income
+
+
 @pytest.mark.parametrize(
     ("track_id", "branch_id", "tag", "expected_event_id"),
     [

@@ -1443,6 +1443,59 @@ def test_phase5_score_reflects_wealth_signature_alignment(bundle, controller_fac
     assert crusher_score > chaser_score
 
 
+def test_final_truth_stable_metro_recovery_beats_arc_stacked_pressure(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    stable = controller_factory(opening_path_id="move_out_immediately", city_id="high_opportunity_metro")
+    stacked = controller_factory(opening_path_id="move_out_immediately", city_id="high_opportunity_metro")
+
+    for controller in (stable, stacked):
+        player = controller.state.player
+        player.selected_focus_action_id = "recovery_month"
+        player.stress = 62
+        player.energy = 58
+        player.housing.housing_stability = 64
+        player.transport.reliability_score = 76
+        player.debt = 4800
+        player.credit_score = 684
+        player.social_stability = 58
+        player.family_support = 42
+        player.cash = 650
+        player.savings = 320
+        player.monthly_surplus = 110
+
+    start_status_arc(
+        bundle,
+        stacked.state,
+        "lease_pressure",
+        source_event_id="lease_default_warning",
+        duration_months=3,
+        severity=3,
+    )
+    start_status_arc(
+        bundle,
+        stacked.state,
+        "burnout_risk",
+        source_event_id="overtime_attrition_warning",
+        duration_months=3,
+        severity=3,
+    )
+
+    stable_start = stable.state.player.stress
+    stacked_start = stacked.state.player.stress
+
+    resolve_month(quiet_bundle, stable.state, stable.rng)
+    resolve_month(quiet_bundle, stacked.state, stacked.rng)
+
+    stable_drop = stable_start - stable.state.player.stress
+    stacked_drop = stacked_start - stacked.state.player.stress
+
+    assert stable_drop >= 4
+    assert stable_drop > stacked_drop
+    assert calculate_final_score(bundle, stable.state).final_score > calculate_final_score(bundle, stacked.state).final_score
+
+
 def test_phase7_similar_money_fragility_and_branch_quality_split_scores(bundle, controller_factory):
     strong = controller_factory(opening_path_id="full_time_work")
     fragile = controller_factory(opening_path_id="full_time_work")
