@@ -4688,11 +4688,11 @@
             "stress": -1,
             "energy": 1
           },
-          "income_multiplier": 0.97,
+          "income_multiplier": 1.0,
           "housing_cost_delta": 0,
           "living_cost_delta": 0,
           "transport_cost_delta": 0,
-          "education_cost_delta": 0,
+          "education_cost_delta": -40,
           "promotion_progress_delta": 0,
           "education_progress_delta": 1,
           "transport_switch_discount": 0

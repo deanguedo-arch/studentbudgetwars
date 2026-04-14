@@ -4,7 +4,7 @@ from random import Random
 
 from budgetwars.models import ContentBundle, EventChoice, EventDefinition, GameState, PendingEvent
 
-from .effects import append_log, apply_stat_effects, create_modifier
+from .effects import append_log, apply_stat_effects, clamp_player_state, create_modifier
 from .lookups import get_city, get_housing_option, get_transport_option
 from .status_arcs import (
     apply_choice_status_arc_resolution,
@@ -804,6 +804,7 @@ def resolve_event_choice(
         state.player.persistent_tags.append(choice.persistent_tag)
         append_log(state, f"Career commitment set: {choice.persistent_tag.replace('_', ' ')}")
     apply_choice_status_arc_resolution(state, event.id, choice.id)
+    _apply_structural_choice_followthrough(state, event.id, choice.id)
     if event.chained_event_id:
         state.pending_events.append(
             PendingEvent(
@@ -819,6 +820,32 @@ def resolve_event_choice(
     if choice.description:
         append_log(state, choice.description)
     return choice
+
+
+def _apply_structural_choice_followthrough(state: GameState, event_id: str, choice_id: str) -> None:
+    player = state.player
+
+    if (event_id, choice_id) == ("credit_limit_review", "tighten_up"):
+        player.credit_utilization_pressure = max(0, player.credit_utilization_pressure - 8)
+        player.credit_rebuild_streak = max(player.credit_rebuild_streak, 1)
+        append_log(state, "Credit cleanup reduced utilization pressure and put your rebuild back on track.")
+    elif (event_id, choice_id) == ("refinance_window", "refinance_now"):
+        player.credit_utilization_pressure = max(0, player.credit_utilization_pressure - 10)
+        player.credit_rebuild_streak = max(player.credit_rebuild_streak, 1)
+        append_log(state, "Refinancing opened real breathing room in the credit file.")
+    elif (event_id, choice_id) == ("reserve_deployment_window", "spend_buffer_now"):
+        player.housing.missed_payment_streak = max(0, player.housing.missed_payment_streak - 1)
+        player.housing.housing_stability = min(100, player.housing.housing_stability + 5)
+        append_log(state, "Reserve deployment stabilized the lease lane instead of only buying time.")
+    elif (event_id, choice_id) == ("burnout_month", "take_real_recovery"):
+        state.burnout_streak = 0
+        append_log(state, "Real recovery broke the burnout streak before it could compound again.")
+    elif (event_id, choice_id) == ("exam_probation_hearing", "cut_hours_and_recover_standing"):
+        player.education.standing = min(100, player.education.standing + 4)
+        player.education.education_momentum = min(100, player.education.education_momentum + 6)
+        append_log(state, "The probation recovery plan restored academic footing and momentum.")
+
+    clamp_player_state(state)
 
 
 def _tick_pending_events(bundle: ContentBundle, state: GameState) -> list[EventDefinition]:

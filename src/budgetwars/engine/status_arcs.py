@@ -137,7 +137,7 @@ _CHOICE_RULES = {
         "action": "refresh",
         "arc_id": "credit_squeeze",
         "duration_months": 1,
-        "severity_delta": -1,
+        "severity_delta": -2,
         "note": "You are containing the squeeze, but it is not gone yet.",
     },
     ("credit_limit_review", "coast"): {
@@ -204,7 +204,7 @@ _CHOICE_RULES = {
         "action": "refresh",
         "arc_id": "education_slipping",
         "duration_months": 1,
-        "severity_delta": -1,
+        "severity_delta": -2,
         "note": "Recovery work is slowing the slide, but the lane is still fragile.",
     },
     ("exam_probation_hearing", "push_through_probation"): {

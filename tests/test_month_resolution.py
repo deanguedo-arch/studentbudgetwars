@@ -115,6 +115,84 @@ def test_phase_status_arc_education_starts_from_school_collision_and_protect_gra
     assert arc.severity == 1
 
 
+def test_credit_tighten_up_creates_better_rebuild_footing_than_coast(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    tightening = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    coasting = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+
+    for controller in (tightening, coasting):
+        state = controller.state
+        state.player.debt = 9600
+        state.player.credit_score = 575
+        state.player.credit_utilization_pressure = 86
+        start_status_arc(
+            bundle,
+            state,
+            "credit_squeeze",
+            source_event_id="credit_limit_review",
+            duration_months=4,
+            severity=3,
+        )
+
+    review = next(item for item in bundle.events if item.id == "credit_limit_review")
+
+    resolve_event(bundle, tightening.state, review)
+    resolve_event_choice(bundle, tightening.state, "credit_limit_review", "tighten_up")
+
+    resolve_event(bundle, coasting.state, review)
+    resolve_event_choice(bundle, coasting.state, "credit_limit_review", "coast")
+
+    resolve_month(quiet_bundle, tightening.state, tightening.rng)
+    resolve_month(quiet_bundle, coasting.state, coasting.rng)
+
+    assert tightening.state.player.credit_rebuild_streak > coasting.state.player.credit_rebuild_streak
+    assert tightening.state.player.credit_utilization_pressure <= coasting.state.player.credit_utilization_pressure - 4
+
+
+def test_education_recovery_choice_outperforms_pushthrough_on_next_quiet_month(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+
+    recovery = controller_factory(opening_path_id="college_university", city_id="mid_size_city")
+    push = controller_factory(opening_path_id="college_university", city_id="mid_size_city")
+
+    for controller in (recovery, push):
+        state = controller.state
+        state.player.education.program_id = "full_time_university"
+        state.player.education.is_active = True
+        state.player.education.intensity_level = "intensive"
+        state.player.selected_focus_action_id = "overtime"
+        state.player.stress = 72
+        state.player.energy = 38
+        start_status_arc(
+            bundle,
+            state,
+            "education_slipping",
+            source_event_id="exam_probation_hearing",
+            duration_months=3,
+            severity=3,
+        )
+
+    probation = next(item for item in bundle.events if item.id == "exam_probation_hearing")
+
+    resolve_event(bundle, recovery.state, probation)
+    resolve_event_choice(bundle, recovery.state, "exam_probation_hearing", "cut_hours_and_recover_standing")
+
+    resolve_event(bundle, push.state, probation)
+    resolve_event_choice(bundle, push.state, "exam_probation_hearing", "push_through_probation")
+
+    resolve_month(quiet_bundle, recovery.state, recovery.rng)
+    resolve_month(quiet_bundle, push.state, push.rng)
+
+    recovery_score = calculate_final_score(bundle, recovery.state).final_score
+    push_score = calculate_final_score(bundle, push.state).final_score
+
+    assert recovery.state.player.education.standing > push.state.player.education.standing
+    assert recovery_score > push_score
+
+
 def test_phase_status_arc_education_drag_hurts_standing_in_quiet_month(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
