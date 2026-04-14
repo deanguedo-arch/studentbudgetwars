@@ -423,7 +423,7 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
         elif event_id == "beater_total_failure":
             multiplier *= 1.6 + severity_bonus
         elif event_id == "used_car_window":
-            multiplier *= 1.12 + (0.09 * transport_arc.severity)
+            multiplier *= 2.35 + (0.28 * transport_arc.severity)
     credit_arc = get_active_status_arc(state, "credit_squeeze")
     if credit_arc is not None:
         severity_bonus = 0.12 * credit_arc.severity
@@ -447,7 +447,7 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
         if event_id == "exam_probation_hearing":
             multiplier *= 1.28 + severity_bonus
         elif event_id == "academic_funding_review":
-            multiplier *= 1.24 + severity_bonus
+            multiplier *= 1.58 + (0.18 * education_arc.severity)
         elif event_id == "overtime_exam_collision":
             multiplier *= 1.14 + (0.08 * education_arc.severity)
     lease_arc = get_active_status_arc(state, "lease_pressure")
@@ -456,11 +456,11 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
         if event_id == "lease_default_warning":
             multiplier *= 1.24 + severity_bonus
         elif event_id == "lease_enforcement_notice":
-            multiplier *= 1.32 + severity_bonus
+            multiplier *= 1.72 + (0.18 * lease_arc.severity)
         elif event_id == "rent_increase":
             multiplier *= 1.14 + (0.08 * lease_arc.severity)
         elif event_id == "reserve_deployment_window" and state.player.wealth_strategy_id in {"cushion_first", "steady_builder"}:
-            multiplier *= 1.26 + (0.1 * lease_arc.severity)
+            multiplier *= 1.34 + (0.14 * lease_arc.severity)
     burnout_arc = get_active_status_arc(state, "burnout_risk")
     if burnout_arc is not None:
         severity_bonus = 0.11 * burnout_arc.severity
@@ -475,6 +475,8 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             multiplier *= 1.18 + severity_bonus
             if state.pending_promotion_branch_track_id == state.player.career.track_id:
                 multiplier *= 1.18
+        elif event_id == "office_advancement_charter":
+            multiplier *= 1.75 + (0.22 * promotion_arc.severity)
         elif event_id in {
             "retail_leadership_offer",
             "sales_territory_offer",
@@ -482,9 +484,10 @@ def status_arc_event_weight_multiplier(state: GameState, event_id: str) -> float
             "equipment_specialist_offer",
             "warehouse_foreman_offer",
             "healthcare_shift_lead_offer",
+            "delivery_operator_contract_bid",
             "clienteling_key_account_offer",
             "trades_crew_lead_offer",
             "retail_crisis_lead_backfill_offer",
         }:
-            multiplier *= 1.14 + severity_bonus
+            multiplier *= 1.2 + (0.1 * promotion_arc.severity)
     return multiplier

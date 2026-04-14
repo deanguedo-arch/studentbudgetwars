@@ -6,7 +6,12 @@ from budgetwars.models import ContentBundle, EventChoice, EventDefinition, GameS
 
 from .effects import append_log, apply_stat_effects, create_modifier
 from .lookups import get_city, get_housing_option, get_transport_option
-from .status_arcs import apply_choice_status_arc_resolution, apply_event_status_arc, status_arc_event_weight_multiplier
+from .status_arcs import (
+    apply_choice_status_arc_resolution,
+    apply_event_status_arc,
+    get_active_status_arc,
+    status_arc_event_weight_multiplier,
+)
 
 FAMILY_TO_MATRIX_KEY = {
     "Credit pressure": "credit_squeeze",
@@ -314,7 +319,16 @@ def _event_is_eligible(bundle: ContentBundle, state: GameState, event: EventDefi
     if event.eligible_opening_path_ids and player.opening_path_id not in event.eligible_opening_path_ids:
         return False
     if event.eligible_modifier_ids and not set(event.eligible_modifier_ids).issubset(active_modifier_ids):
-        return False
+        if event.id == "academic_funding_review":
+            education_arc = get_active_status_arc(state, "education_slipping")
+            if education_arc is None or education_arc.severity < 2:
+                return False
+        elif event.id == "lease_enforcement_notice":
+            lease_arc = get_active_status_arc(state, "lease_pressure")
+            if lease_arc is None or lease_arc.severity < 2:
+                return False
+        else:
+            return False
     if event.eligible_persistent_tags and not set(event.eligible_persistent_tags).issubset(set(player.persistent_tags)):
         return False
     if event.eligible_wealth_strategy_ids and player.wealth_strategy_id not in event.eligible_wealth_strategy_ids:
@@ -486,6 +500,7 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
     transport = get_transport_option(bundle, state.player.transport_id)
     city = get_city(bundle, state.player.current_city_id)
     difficulty = next(item for item in bundle.difficulties if item.id == state.difficulty_id)
+    transport_arc = get_active_status_arc(state, "transport_unstable")
 
     if event.id == "roommate_conflict":
         weight *= max(0.05, housing.roommate_event_weight)
@@ -499,7 +514,9 @@ def event_weight(bundle: ContentBundle, state: GameState, event: EventDefinition
         weight *= max(0.05, transport.repair_event_weight * 1.15)
     if event.id == "missed_shift_after_breakdown":
         weight *= max(0.05, transport.repair_event_weight * 0.8)
-    if event.id == "used_car_window" and transport.access_level >= 3:
+    if event.id == "used_car_window" and transport.access_level >= 3 and (
+        transport_arc is None or transport_arc.severity < 2
+    ):
         weight *= 0.2
     if event.id == "used_car_window" and state.player.credit_score >= 700:
         weight *= 0.45

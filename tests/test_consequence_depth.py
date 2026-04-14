@@ -107,6 +107,29 @@ def test_phase_status_arc_severe_transport_arc_sharply_raises_failure_weight(bun
     assert event_weight(bundle, unstable.state, beater_total_failure) >= event_weight(bundle, clean.state, beater_total_failure) * 2
 
 
+def test_phase_status_arc_severe_transport_surfaces_rescue_window_alongside_failure(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    state = controller.state
+    state.current_month = 18
+    state.player.transport.option_id = "beater_car"
+    state.player.transport.reliability_score = 28
+    state.player.monthly_surplus = -140
+
+    start_status_arc(
+        bundle,
+        state,
+        "transport_unstable",
+        source_event_id="beater_total_failure",
+        duration_months=4,
+        severity=3,
+    )
+
+    top_ids = _top_weighted_event_ids(bundle, state)
+
+    assert "beater_total_failure" in top_ids
+    assert "used_car_window" in top_ids
+
+
 def test_education_reentry_has_friction(controller_factory):
     controller = controller_factory(opening_path_id="full_time_work")
     state = controller.state
@@ -864,6 +887,31 @@ def test_phase_status_arc_education_raises_probation_followup_pressure(bundle, c
     assert event_weight(bundle, slipping.state, probation) > event_weight(bundle, clean.state, probation)
 
 
+def test_phase_status_arc_severe_education_surfaces_funding_review_pressure(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="college_university", city_id="mid_size_city")
+    state = controller.state
+    state.current_month = 16
+    state.player.education.program_id = "full_time_university"
+    state.player.education.is_active = True
+    state.player.education.intensity_level = "intensive"
+    state.player.stress = 74
+    state.player.energy = 36
+
+    start_status_arc(
+        bundle,
+        state,
+        "education_slipping",
+        source_event_id="exam_probation_hearing",
+        duration_months=3,
+        severity=3,
+    )
+
+    top_ids = _top_weighted_event_ids(bundle, state)
+
+    assert "exam_probation_hearing" in top_ids
+    assert "academic_funding_review" in top_ids
+
+
 def test_phase_status_arc_lease_raises_followup_pressure_and_score_penalty(bundle, controller_factory):
     stable = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
     pressured = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
@@ -899,6 +947,30 @@ def test_phase_status_arc_lease_raises_followup_pressure_and_score_penalty(bundl
 
     assert event_weight(bundle, pressured.state, enforcement) > event_weight(bundle, stable.state, enforcement)
     assert pressured_score < stable_score
+
+
+def test_phase_status_arc_severe_lease_pushes_cushion_first_reserve_window_near_top(bundle, controller_factory):
+    controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+    state = controller.state
+    state.current_month = 18
+    state.player.housing.option_id = "solo_rental"
+    state.player.housing.housing_stability = 34
+    state.player.monthly_surplus = -180
+    state.player.wealth_strategy_id = "cushion_first"
+
+    start_status_arc(
+        bundle,
+        state,
+        "lease_pressure",
+        source_event_id="lease_enforcement_notice",
+        duration_months=4,
+        severity=3,
+    )
+
+    top_ids = _top_weighted_event_ids(bundle, state, limit=4)
+
+    assert "lease_enforcement_notice" in top_ids
+    assert "reserve_deployment_window" in top_ids
 
 
 def test_phase_status_arc_burnout_raises_followup_pressure_and_score_penalty(bundle, controller_factory):
@@ -966,6 +1038,38 @@ def test_phase_status_arc_promotion_raises_future_opportunity_weight_and_score(b
 
     assert event_weight(bundle, open_window.state, promotion) > event_weight(bundle, flat.state, promotion)
     assert open_score > flat_score
+
+
+def test_phase_status_arc_promotion_boosts_office_advancement_charter(bundle, controller_factory):
+    closed = controller_factory(opening_path_id="full_time_work")
+    opened = controller_factory(opening_path_id="full_time_work")
+
+    for controller in (closed, opened):
+        controller.state.current_month = 24
+        controller.state.player.career.track_id = "office_admin"
+        controller.state.player.career.branch_id = "office_operations_track"
+        controller.state.player.career.tier_index = 3
+        controller.state.player.social_stability = 66
+        controller.state.player.energy = 68
+        controller.state.player.stress = 42
+
+    office_charter = next(event for event in bundle.events if event.id == "office_advancement_charter")
+
+    start_status_arc(
+        bundle,
+        opened.state,
+        "promotion_window_open",
+        source_event_id="promotion_window",
+        duration_months=2,
+        severity=2,
+    )
+
+    closed_weight = event_weight(bundle, closed.state, office_charter)
+    opened_weight = event_weight(bundle, opened.state, office_charter)
+    open_top = _top_weighted_event_ids(bundle, opened.state, limit=6)
+
+    assert opened_weight > closed_weight
+    assert "office_advancement_charter" in open_top
 
 
 def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):

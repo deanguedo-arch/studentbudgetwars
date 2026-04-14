@@ -119,6 +119,10 @@
     ],
     "followup_event_ids": [
       "promotion_window",
+      "office_advancement_charter",
+      "delivery_operator_contract_bid",
+      "trades_crew_lead_offer",
+      "healthcare_shift_lead_offer",
       "dispatch_lead_offer",
       "sales_territory_offer"
     ],
