@@ -252,6 +252,40 @@ def _branch_weight_multiplier(state: GameState, event: EventDefinition) -> float
             if event.id == "equipment_safety_recall" and (player.transport.reliability_score < 66 or player.stress >= 70):
                 multiplier *= 1.35
 
+    if player.career.track_id == "sales":
+        if branch_id == "sales_volume_closer_track":
+            if event.id == "sales_volume_sprint_window":
+                multiplier *= 1.35
+            if event.id == "sales_hunter_pressure_cycle" and "sales_hunter_lane" in player.persistent_tags:
+                multiplier *= 1.45
+        elif branch_id == "sales_account_manager_track":
+            if event.id == "sales_renewal_book_window":
+                multiplier *= 1.35
+            if event.id == "sales_book_compound_window" and "sales_book_builder_lane" in player.persistent_tags:
+                multiplier *= 1.7
+        elif branch_id == "sales_enterprise_strategy_track":
+            if event.id == "sales_enterprise_cycle_window":
+                multiplier *= 1.35
+            if event.id == "sales_strategic_scope_dividend" and "sales_strategic_scope_lane" in player.persistent_tags:
+                multiplier *= 1.7
+
+    if player.career.track_id == "degree_gated_professional":
+        if branch_id == "professional_technical_specialist_track":
+            if event.id == "professional_deep_work_breakthrough":
+                multiplier *= 1.35
+            if event.id == "professional_specialist_reputation_dividend" and "professional_specialist_lane" in player.persistent_tags:
+                multiplier *= 2.05
+        elif branch_id == "professional_client_lead_track":
+            if event.id == "professional_stakeholder_pitch_cycle":
+                multiplier *= 1.35
+            if event.id == "professional_scope_politics_wave" and "professional_scope_lane" in player.persistent_tags:
+                multiplier *= 1.65
+        elif branch_id == "professional_people_ops_track":
+            if event.id == "professional_team_systems_rollout":
+                multiplier *= 1.35
+            if event.id == "professional_ops_stability_dividend" and "professional_ops_anchor_lane" in player.persistent_tags:
+                multiplier *= 2.05
+
     return max(0.35, multiplier)
 
 

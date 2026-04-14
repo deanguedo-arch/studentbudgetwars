@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from random import Random
 
+import pytest
+
 from budgetwars.engine.careers import current_income, promotion_blockers
 from budgetwars.engine.events import eligible_events, event_severity_multiplier, event_weight, resolve_event
 from budgetwars.engine.month_resolution import resolve_month
@@ -1070,6 +1072,59 @@ def test_phase_status_arc_promotion_boosts_office_advancement_charter(bundle, co
 
     assert opened_weight > closed_weight
     assert "office_advancement_charter" in open_top
+
+
+@pytest.mark.parametrize(
+    ("track_id", "branch_id", "tag", "expected_event_id"),
+    [
+        ("sales", "sales_volume_closer_track", "sales_hunter_lane", "sales_hunter_pressure_cycle"),
+        ("sales", "sales_account_manager_track", "sales_book_builder_lane", "sales_book_compound_window"),
+        ("sales", "sales_enterprise_strategy_track", "sales_strategic_scope_lane", "sales_strategic_scope_dividend"),
+        (
+            "degree_gated_professional",
+            "professional_technical_specialist_track",
+            "professional_specialist_lane",
+            "professional_specialist_reputation_dividend",
+        ),
+        (
+            "degree_gated_professional",
+            "professional_client_lead_track",
+            "professional_scope_lane",
+            "professional_scope_politics_wave",
+        ),
+        (
+            "degree_gated_professional",
+            "professional_people_ops_track",
+            "professional_ops_anchor_lane",
+            "professional_ops_stability_dividend",
+        ),
+    ],
+)
+def test_sales_and_professional_tagged_lanes_surface_late_followups_in_top_band(
+    bundle,
+    controller_factory,
+    track_id,
+    branch_id,
+    tag,
+    expected_event_id,
+):
+    controller = controller_factory(opening_path_id="full_time_work", city_id="mid_size_city")
+    state = controller.state
+    state.current_month = 28
+    state.player.career.track_id = track_id
+    state.player.career.branch_id = branch_id
+    state.player.career.tier_index = 3
+    state.player.stress = 58
+    state.player.energy = 58
+    state.player.social_stability = 64
+    state.player.credit_score = 660
+    state.player.monthly_surplus = 90
+    state.player.transport.reliability_score = 72
+    state.player.persistent_tags = [tag]
+
+    top_ids = _top_weighted_event_ids(bundle, state, limit=7)
+
+    assert expected_event_id in top_ids
 
 
 def test_phase5_market_chaser_has_amplified_upside_and_downside_vs_steady_builder(bundle, controller_factory):
