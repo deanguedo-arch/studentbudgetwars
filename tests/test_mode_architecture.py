@@ -6,7 +6,7 @@ from pathlib import Path
 
 from budgetwars.core import GameSession, StartupOptions
 from budgetwars.games.classic import build_classic_session
-from budgetwars.games.classic.ui.main_window import build_setup_summary_lines
+from budgetwars.games.classic.ui.setup_dialog import build_setup_summary_lines
 from budgetwars.games.desktop import build_desktop_session
 from budgetwars.loaders import load_all_content
 from budgetwars.main import build_parser

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from budgetwars.games.classic.ui.main_window import build_setup_summary_lines
+from budgetwars.games.classic.ui.setup_dialog import build_setup_summary_lines
 
 
 def test_setup_summary_uses_run_picker_language(bundle) -> None:

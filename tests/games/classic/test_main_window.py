@@ -3,25 +3,21 @@ from __future__ import annotations
 import pytest
 
 from budgetwars.engine.status_arcs import start_status_arc
-from budgetwars.games.classic.ui.main_window import (
-    ActionsPanel,
-    ClassicSetupDialog,
-    MainWindow,
-    compute_setup_dialog_geometry,
-    build_build_snapshot,
-    build_learn_drawer,
-    build_monthly_forecast,
-    build_pressure_summary,
-    build_score_delta_summary,
+from budgetwars.games.classic.ui.build_snapshot import build_build_snapshot
+from budgetwars.games.classic.ui.choice_previews import (
     _budget_preview,
-    _career_preview,
     _career_branch_preview,
+    _career_preview,
     _focus_preview,
     _housing_preview,
     _transport_preview,
     _wealth_preview,
-    should_use_compact_layout,
 )
+from budgetwars.games.classic.ui.dialogs import ClassicSetupDialog
+from budgetwars.games.classic.ui.learn_drawer_builder import build_learn_drawer
+from budgetwars.games.classic.ui.main_window import MainWindow, should_use_compact_layout
+from budgetwars.games.classic.ui.monthly_forecast import build_monthly_forecast
+from budgetwars.games.classic.ui.panes import ActionsPanel
 from budgetwars.games.classic.ui.panes.life_panel import LifePanel
 from budgetwars.games.classic.ui.panes.finance_panel import FinancePanel
 from budgetwars.games.classic.ui.panes.outlook_panel import OutlookPanel
@@ -32,6 +28,8 @@ from budgetwars.games.classic.ui.panes.menu_bar import (
     configure_dark_combobox_style,
     configure_dark_menu_style,
 )
+from budgetwars.games.classic.ui.pressure_summary import build_pressure_summary, build_score_delta_summary
+from budgetwars.games.classic.ui.setup_dialog import compute_setup_dialog_geometry
 from budgetwars.models import LiveScoreSnapshot
 
 
@@ -586,7 +584,7 @@ def test_setup_group_selection_updates_button_and_summary(monkeypatch):
     dialog._refresh_summary = lambda: refresh_calls.append(True)
 
     monkeypatch.setattr(
-        "budgetwars.games.classic.ui.main_window.SelectionDialog",
+        "budgetwars.games.classic.ui.dialogs.SelectionDialog",
         lambda *args, **kwargs: FakeDialogResult("broke_but_ambitious"),
     )
 
