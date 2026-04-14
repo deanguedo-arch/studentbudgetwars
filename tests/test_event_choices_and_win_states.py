@@ -1,8 +1,36 @@
 from __future__ import annotations
 
+import pytest
+
 from budgetwars.engine.events import eligible_events, resolve_event
 from budgetwars.models import PendingEvent
 from budgetwars.models.content import EventChoice, EventDefinition, ModifierTemplate
+
+
+def _seed_branch_offer_state(
+    controller,
+    *,
+    track_id: str,
+    branch_id: str,
+    month: int = 24,
+    social_stability: int = 66,
+    transport_reliability: int = 76,
+    stress: int = 50,
+    energy: int = 62,
+    credit_score: int = 720,
+    debt: int = 4200,
+) -> None:
+    state = controller.state
+    state.current_month = month
+    state.player.career.track_id = track_id
+    state.player.career.tier_index = 3
+    state.player.career.branch_id = branch_id
+    state.player.social_stability = social_stability
+    state.player.transport.reliability_score = transport_reliability
+    state.player.stress = stress
+    state.player.energy = energy
+    state.player.credit_score = credit_score
+    state.player.debt = debt
 
 
 def test_bundle_loads_win_states_and_choice_events(bundle) -> None:
@@ -398,6 +426,125 @@ def test_office_lane_commitment_choice_alters_future_event_pool(bundle, controll
     assert "office_consistency_flywheel" not in execution_ids
     assert "office_consistency_flywheel" in consistency_ids
     assert "office_scope_overflow_wave" not in consistency_ids
+
+
+@pytest.mark.parametrize(
+    ("track_id", "branch_id", "event_id", "choice_id", "expected_tag"),
+    [
+        ("retail_service", "retail_sales_track", "sales_territory_offer", "go_full_commission", "retail_sales_commission_lane"),
+        ("retail_service", "retail_sales_track", "sales_territory_offer", "take_salary_plus_bonus", "retail_sales_book_builder_lane"),
+        ("warehouse_logistics", "warehouse_ops_track", "warehouse_foreman_offer", "take_foreman_role", "warehouse_foreman_command_lane"),
+        ("warehouse_logistics", "warehouse_ops_track", "warehouse_foreman_offer", "stay_floor_anchor", "warehouse_floor_anchor_lane"),
+        ("warehouse_logistics", "warehouse_equipment_track", "equipment_specialist_offer", "accept_specialist_rotation", "warehouse_equipment_specialist_lane"),
+        ("warehouse_logistics", "warehouse_equipment_track", "equipment_specialist_offer", "stay_current_floor", "warehouse_equipment_stability_lane"),
+        ("office_admin", "office_people_track", "office_team_retention_wave", "bank_morale", "office_people_culture_lane"),
+        ("office_admin", "office_people_track", "office_team_retention_wave", "push_output_window", "office_people_output_lane"),
+        ("office_admin", "office_compliance_track", "office_audit_window", "lock_controls", "office_compliance_control_lane"),
+        ("office_admin", "office_compliance_track", "office_audit_window", "optimize_controls", "office_compliance_efficiency_lane"),
+    ],
+)
+def test_branch_offer_choices_set_persistent_tags_for_weaker_branch_futures(
+    bundle, controller_factory, track_id, branch_id, event_id, choice_id, expected_tag
+) -> None:
+    controller = controller_factory(opening_path_id="full_time_work")
+    _seed_branch_offer_state(controller, track_id=track_id, branch_id=branch_id)
+
+    offer = next(item for item in bundle.events if item.id == event_id)
+    resolve_event(bundle, controller.state, offer)
+    controller.resolve_event_choice(choice_id)
+
+    assert expected_tag in controller.state.player.persistent_tags
+
+
+@pytest.mark.parametrize(
+    (
+        "track_id",
+        "branch_id",
+        "event_id",
+        "choice_a",
+        "choice_b",
+        "expected_event_a",
+        "expected_event_b",
+    ),
+    [
+        (
+            "retail_service",
+            "retail_sales_track",
+            "sales_territory_offer",
+            "go_full_commission",
+            "take_salary_plus_bonus",
+            "retail_sales_commission_cycle",
+            "retail_sales_book_dividend",
+        ),
+        (
+            "warehouse_logistics",
+            "warehouse_ops_track",
+            "warehouse_foreman_offer",
+            "take_foreman_role",
+            "stay_floor_anchor",
+            "warehouse_foreman_bottleneck_cycle",
+            "warehouse_floor_anchor_dividend",
+        ),
+        (
+            "warehouse_logistics",
+            "warehouse_equipment_track",
+            "equipment_specialist_offer",
+            "accept_specialist_rotation",
+            "stay_current_floor",
+            "equipment_specialist_backlog_cycle",
+            "equipment_reliability_dividend",
+        ),
+        (
+            "office_admin",
+            "office_people_track",
+            "office_team_retention_wave",
+            "push_output_window",
+            "bank_morale",
+            "office_people_output_backlash",
+            "office_people_culture_dividend",
+        ),
+        (
+            "office_admin",
+            "office_compliance_track",
+            "office_audit_window",
+            "optimize_controls",
+            "lock_controls",
+            "office_compliance_exception_cycle",
+            "office_compliance_control_dividend",
+        ),
+    ],
+)
+def test_weaker_branch_offer_choices_open_distinct_late_followup_event_pools(
+    bundle,
+    controller_factory,
+    track_id,
+    branch_id,
+    event_id,
+    choice_a,
+    choice_b,
+    expected_event_a,
+    expected_event_b,
+) -> None:
+    first = controller_factory(opening_path_id="full_time_work")
+    second = controller_factory(opening_path_id="full_time_work")
+    _seed_branch_offer_state(first, track_id=track_id, branch_id=branch_id, month=32)
+    _seed_branch_offer_state(second, track_id=track_id, branch_id=branch_id, month=32)
+
+    offer = next(item for item in bundle.events if item.id == event_id)
+    resolve_event(bundle, first.state, offer)
+    first.resolve_event_choice(choice_a)
+    first.state.active_modifiers = []
+    first_ids = {event.id for event in eligible_events(bundle, first.state)}
+
+    resolve_event(bundle, second.state, offer)
+    second.resolve_event_choice(choice_b)
+    second.state.active_modifiers = []
+    second_ids = {event.id for event in eligible_events(bundle, second.state)}
+
+    assert expected_event_a in first_ids
+    assert expected_event_b not in first_ids
+    assert expected_event_b in second_ids
+    assert expected_event_a not in second_ids
 
 
 def test_healthcare_lane_commitment_choice_alters_future_event_pool(bundle, controller_factory) -> None:

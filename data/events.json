@@ -430,7 +430,8 @@
           "promotion_progress_delta": -2,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "warehouse_foreman_command_lane"
       },
       {
         "id": "mask_and_push",
@@ -1842,7 +1843,8 @@
           "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "retail_sales_commission_lane"
       },
       {
         "id": "take_salary_plus_bonus",
@@ -1870,10 +1872,98 @@
           "promotion_progress_delta": 0,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "retail_sales_book_builder_lane"
       }
     ],
     "log_entry": "A stronger territory opened and forced a real upside-versus-stability call."
+  },
+  {
+    "id": "retail_sales_commission_cycle",
+    "name": "Commission Heat Cycle",
+    "description": "The higher-pressure territory is paying, but every strong week now expects another one. Push again or rebuild your buffer before the lane starts owning you.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_sales_track"
+    ],
+    "eligible_persistent_tags": [
+      "retail_sales_commission_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "ride_commission_heat",
+        "label": "Ride the heat",
+        "description": "Keep squeezing the territory for bigger upside and accept the mounting body cost.",
+        "stat_effects": {
+          "cash": 280,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -2,
+          "social_stability": -1
+        }
+      },
+      {
+        "id": "rebuild_sales_buffer",
+        "label": "Rebuild the book",
+        "description": "Give up peak upside this month to keep the lane recoverable.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": -2,
+          "energy": 1,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Commission-first retail sales became a recurring pressure fork."
+  },
+  {
+    "id": "retail_sales_book_dividend",
+    "name": "Book Stability Dividend",
+    "description": "The steadier salary-plus-bonus lane is compounding into cleaner renewals and warmer referrals. Bank it or spend it for a temporary push.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "retail_service"
+    ],
+    "eligible_branch_ids": [
+      "retail_sales_track"
+    ],
+    "eligible_persistent_tags": [
+      "retail_sales_book_builder_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_book_dividend",
+        "label": "Bank the renewals",
+        "description": "Turn the cleaner book into steady cash and lower volatility.",
+        "stat_effects": {
+          "cash": 170,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1,
+          "life_satisfaction": 1
+        }
+      },
+      {
+        "id": "spend_book_trust",
+        "label": "Spend the trust",
+        "description": "Use the stronger book to stretch for a bigger month without going full commission.",
+        "stat_effects": {
+          "cash": 240,
+          "promotion_progress": 2,
+          "stress": 1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Book-building retail sales created a recurring stability dividend."
   },
   {
     "id": "dispatch_lead_offer",
@@ -2044,7 +2134,8 @@
           "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "warehouse_equipment_specialist_lane"
       },
       {
         "id": "stay_current_floor",
@@ -2055,10 +2146,96 @@
           "stress": -1,
           "social_stability": 1,
           "promotion_progress": 1
-        }
+        },
+        "persistent_tag": "warehouse_equipment_stability_lane"
       }
     ],
     "log_entry": "Reliable equipment work created a real upside-versus-pressure decision."
+  },
+  {
+    "id": "equipment_specialist_backlog_cycle",
+    "name": "Specialist Backlog Cycle",
+    "description": "The specialist lane is paying, but every complex issue now routes back to you. Keep the premium lane hot or protect reliability before it slips.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_equipment_track"
+    ],
+    "eligible_persistent_tags": [
+      "warehouse_equipment_specialist_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "clear_specialist_backlog",
+        "label": "Clear the backlog",
+        "description": "Keep the specialist premium and absorb the pressure.",
+        "stat_effects": {
+          "cash": 240,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -2
+        }
+      },
+      {
+        "id": "protect_specialist_reliability",
+        "label": "Protect reliability",
+        "description": "Trade some upside for a cleaner specialist lane and better recovery.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": -2,
+          "energy": 1,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Specialist-first equipment work became a recurring backlog fork."
+  },
+  {
+    "id": "equipment_reliability_dividend",
+    "name": "Reliability Dividend",
+    "description": "Staying steadier in the equipment lane is paying off through cleaner maintenance windows and fewer ugly recoveries. Bank it or spend it for a controlled step up.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_equipment_track"
+    ],
+    "eligible_persistent_tags": [
+      "warehouse_equipment_stability_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_reliability_dividend",
+        "label": "Bank reliability",
+        "description": "Use the steadier lane to lower strain and keep advancement clean.",
+        "stat_effects": {
+          "cash": 150,
+          "stress": -2,
+          "energy": 1,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "convert_reliability_to_scope",
+        "label": "Convert to scope",
+        "description": "Spend that reliability cushion on a moderate push.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 1
+        }
+      }
+    ],
+    "log_entry": "Reliability-first equipment work created a steadier recurring dividend."
   },
   {
     "id": "equipment_safety_recall",
@@ -2541,7 +2718,8 @@
           "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
-        }
+        },
+        "persistent_tag": "warehouse_foreman_command_lane"
       },
       {
         "id": "stay_floor_anchor",
@@ -2552,10 +2730,97 @@
           "promotion_progress": 2,
           "stress": -1,
           "energy": 1
-        }
+        },
+        "persistent_tag": "warehouse_floor_anchor_lane"
       }
     ],
     "log_entry": "Warehouse ops offered a clear command-versus-stability decision."
+  },
+  {
+    "id": "warehouse_foreman_bottleneck_cycle",
+    "name": "Foreman Bottleneck Cycle",
+    "description": "Taking command turned you into the pressure valve for every ugly shift. Hold the bottleneck or offload some of it before the lane overheats.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_ops_track"
+    ],
+    "eligible_persistent_tags": [
+      "warehouse_foreman_command_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "hold_foreman_bottleneck",
+        "label": "Hold the bottleneck",
+        "description": "Keep being the fix-everything lead and take the fatigue hit.",
+        "stat_effects": {
+          "cash": 250,
+          "promotion_progress": 2,
+          "stress": 4,
+          "energy": -3
+        }
+      },
+      {
+        "id": "rebalance_floor_scope",
+        "label": "Rebalance scope",
+        "description": "Protect recoverability and accept a slower command lane.",
+        "stat_effects": {
+          "cash": 110,
+          "stress": -2,
+          "energy": 1,
+          "social_stability": 1,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Foreman-first warehouse ops became a recurring bottleneck fork."
+  },
+  {
+    "id": "warehouse_floor_anchor_dividend",
+    "name": "Floor Anchor Dividend",
+    "description": "Staying closer to the floor made your team steadier and your shifts easier to recover from. Bank the trust or cash it in for a controlled push.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "warehouse_logistics"
+    ],
+    "eligible_branch_ids": [
+      "warehouse_ops_track"
+    ],
+    "eligible_persistent_tags": [
+      "warehouse_floor_anchor_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_floor_anchor",
+        "label": "Bank the trust",
+        "description": "Use the steadier floor to lower pressure and keep progress reliable.",
+        "stat_effects": {
+          "cash": 150,
+          "stress": -2,
+          "energy": 1,
+          "social_stability": 2,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "cash_floor_reputation",
+        "label": "Cash the reputation",
+        "description": "Spend your steadier standing for a controlled productivity push.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Floor-anchor warehouse ops created a steadier recurring upside."
   },
   {
     "id": "warehouse_safety_crunch",
@@ -2705,7 +2970,8 @@
           "stress": -2,
           "social_stability": 3,
           "promotion_progress": 1
-        }
+        },
+        "persistent_tag": "office_people_culture_lane"
       },
       {
         "id": "push_output_window",
@@ -2715,10 +2981,97 @@
           "cash": 230,
           "stress": 2,
           "promotion_progress": 2
-        }
+        },
+        "persistent_tag": "office_people_output_lane"
       }
     ],
     "log_entry": "People coordination created a morale-versus-output fork."
+  },
+  {
+    "id": "office_people_output_backlash",
+    "name": "People Output Backlash",
+    "description": "You spent morale on output and the next cycle is wobblier. Push through the backlash or calm the lane before retention starts slipping.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_people_track"
+    ],
+    "eligible_persistent_tags": [
+      "office_people_output_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "push_through_backlash",
+        "label": "Push through",
+        "description": "Hold output high and take the morale cost.",
+        "stat_effects": {
+          "cash": 210,
+          "promotion_progress": 2,
+          "stress": 3,
+          "social_stability": -2
+        }
+      },
+      {
+        "id": "restore_team_buffer",
+        "label": "Restore the buffer",
+        "description": "Protect retention and accept a smaller short-term month.",
+        "stat_effects": {
+          "cash": 110,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1,
+          "life_satisfaction": 1
+        }
+      }
+    ],
+    "log_entry": "Output-first people coordination created a recurring backlash fork."
+  },
+  {
+    "id": "office_people_culture_dividend",
+    "name": "Culture Dividend",
+    "description": "Banking morale is compounding into cleaner handoffs and fewer fires. Keep the culture dividend or spend it for a temporary push.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_people_track"
+    ],
+    "eligible_persistent_tags": [
+      "office_people_culture_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_culture_dividend",
+        "label": "Bank the culture",
+        "description": "Use the steadier team to lower strain and keep clean advancement.",
+        "stat_effects": {
+          "cash": 140,
+          "stress": -2,
+          "social_stability": 2,
+          "promotion_progress": 1,
+          "life_satisfaction": 1
+        }
+      },
+      {
+        "id": "convert_culture_to_push",
+        "label": "Convert to push",
+        "description": "Spend the steadier culture buffer on a moderate productivity push.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 1,
+          "social_stability": 1
+        }
+      }
+    ],
+    "log_entry": "Culture-first people coordination created a recurring dividend."
   },
   {
     "id": "office_conflict_spillover",
@@ -2788,7 +3141,8 @@
           "stress": -1,
           "promotion_progress": 1,
           "credit_score": 3
-        }
+        },
+        "persistent_tag": "office_compliance_control_lane"
       },
       {
         "id": "optimize_controls",
@@ -2799,10 +3153,96 @@
           "promotion_progress": 2,
           "stress": 2,
           "energy": -1
-        }
+        },
+        "persistent_tag": "office_compliance_efficiency_lane"
       }
     ],
     "log_entry": "Compliance discipline opened a cleaner advancement lane."
+  },
+  {
+    "id": "office_compliance_exception_cycle",
+    "name": "Exception Cycle",
+    "description": "Pushing compliance for efficiency opened a noisier exception queue. Keep pressing the gains or reset the lane before controls slip.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_compliance_track"
+    ],
+    "eligible_persistent_tags": [
+      "office_compliance_efficiency_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "keep_pressing_efficiency",
+        "label": "Keep pressing",
+        "description": "Hold the efficiency lane and accept the exception burden.",
+        "stat_effects": {
+          "cash": 220,
+          "promotion_progress": 2,
+          "stress": 3,
+          "energy": -1
+        }
+      },
+      {
+        "id": "reset_control_bandwidth",
+        "label": "Reset bandwidth",
+        "description": "Protect recoverability and accept a smaller month.",
+        "stat_effects": {
+          "cash": 120,
+          "stress": -2,
+          "energy": 1,
+          "credit_score": 2,
+          "promotion_progress": 1
+        }
+      }
+    ],
+    "log_entry": "Efficiency-first compliance created a recurring exception fork."
+  },
+  {
+    "id": "office_compliance_control_dividend",
+    "name": "Control Dividend",
+    "description": "Locking the controls is paying off through cleaner audits and calmer months. Bank the control dividend or use it for a measured stretch.",
+    "weight": 4,
+    "min_month": 28,
+    "eligible_career_ids": [
+      "office_admin"
+    ],
+    "eligible_branch_ids": [
+      "office_compliance_track"
+    ],
+    "eligible_persistent_tags": [
+      "office_compliance_control_lane"
+    ],
+    "immediate_effects": {},
+    "choices": [
+      {
+        "id": "bank_control_dividend",
+        "label": "Bank the controls",
+        "description": "Use the steadier lane to keep pressure lower and advancement cleaner.",
+        "stat_effects": {
+          "cash": 150,
+          "stress": -2,
+          "credit_score": 3,
+          "promotion_progress": 1
+        }
+      },
+      {
+        "id": "spend_control_trust",
+        "label": "Spend the trust",
+        "description": "Use the cleaner controls for a measured efficiency push.",
+        "stat_effects": {
+          "cash": 230,
+          "promotion_progress": 2,
+          "stress": 1,
+          "credit_score": 1
+        }
+      }
+    ],
+    "log_entry": "Control-first compliance created a recurring dividend."
   },
   {
     "id": "office_compliance_backlog",
