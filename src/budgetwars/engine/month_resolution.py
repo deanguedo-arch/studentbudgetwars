@@ -1021,6 +1021,18 @@ def _apply_credit_drift(
     )
 
 
+def _apply_focus_life_floor(state: GameState, *, focus_id: str, life_start: int) -> None:
+    if focus_id not in {"recovery_month", "social_maintenance"}:
+        return
+    minimum_gain = 2 if focus_id == "recovery_month" else 1
+    target = life_start + minimum_gain
+    if state.player.life_satisfaction >= target:
+        return
+    boost = target - state.player.life_satisfaction
+    state.player.life_satisfaction += boost
+    append_log(state, f"Well-being focus converted into +{boost} life stability.")
+
+
 def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     if state.game_over_reason or state.current_month > state.total_months:
         return
@@ -1031,6 +1043,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
     start_net = net_worth(state)
     stress_start = state.player.stress
     energy_start = state.player.energy
+    life_start = state.player.life_satisfaction
     credit_start = state.player.credit_score
     stress_parts: list[str] = []
     energy_parts: list[str] = []
@@ -1228,6 +1241,7 @@ def resolve_month(bundle: ContentBundle, state: GameState, rng: Random) -> None:
         debt_paid=debt_paid,
         housing_shortfall=housing_payment.added_to_debt,
     )
+    _apply_focus_life_floor(state, focus_id=focus.id, life_start=life_start)
     clamp_player_state(state)
     state.month_driver_notes = _build_month_driver_notes(
         state,

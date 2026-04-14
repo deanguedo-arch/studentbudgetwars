@@ -31,9 +31,11 @@ class StatusBar(tk.Frame):
             "score": ("Georgia", 24, "bold"),
         }
         self._fonts = self._normal_fonts
+        top_row = tk.Frame(self, bg=BG_DARKEST, bd=0)
+        top_row.pack(side="top", fill="x")
 
         # ── Timeline section ──
-        time_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
+        time_frame = tk.Frame(top_row, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         time_frame.pack(side="left", fill="y", padx=(0, PAD_S), pady=2)
         tk.Label(time_frame, text="RUN", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._month_label = tk.Label(time_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["heading"], padx=PAD_M, pady=2)
@@ -44,7 +46,7 @@ class StatusBar(tk.Frame):
         self._progress_canvas.pack(side="left", padx=PAD_S, pady=6)
 
         # ── Money section ──
-        money_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
+        money_frame = tk.Frame(top_row, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         money_frame.pack(side="left", fill="y", padx=PAD_S, pady=2)
         tk.Label(money_frame, text="BANK", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._cash_label = tk.Label(money_frame, bg=BG_DARK, fg=COLOR_MONEY_POS, font=self._fonts["mono"], padx=PAD_S, pady=2)
@@ -57,7 +59,7 @@ class StatusBar(tk.Frame):
         self._cash_flow_label.pack(side="left")
 
         # ── Vitals section ──
-        vitals_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
+        vitals_frame = tk.Frame(top_row, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         vitals_frame.pack(side="left", fill="y", padx=PAD_S, pady=2)
         tk.Label(vitals_frame, text="PRESSURE", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._vitals_container = vitals_frame
@@ -96,9 +98,8 @@ class StatusBar(tk.Frame):
         self._category_canvases: dict[str, tk.Canvas] = {}
 
         # ── Score badge (right-aligned) ──
-        score_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1, width=250)
+        score_frame = tk.Frame(top_row, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
         score_frame.pack(side="right", fill="y", padx=(PAD_S, 0), pady=2)
-        score_frame.pack_propagate(False)
         self._score_frame = score_frame
         tk.Label(score_frame, text="RANK", bg=BG_DARK, fg=TEXT_SECONDARY, font=FONT_SMALL, padx=PAD_S, pady=2).pack(side="left")
         self._score_label = tk.Label(score_frame, bg=BG_DARK, fg=TEXT_HEADING, font=self._fonts["score"], padx=6, pady=1)
@@ -177,5 +178,4 @@ class StatusBar(tk.Frame):
         self._energy_val.configure(font=self._fonts["small"])
         self._life_val.configure(font=self._fonts["small"])
         self._score_label.configure(font=self._fonts["score"])
-        self._score_frame.configure(width=280 if enabled else 250)
         self._season_detail.configure(font=self._fonts["small"])

@@ -99,11 +99,22 @@ def apply_housing_effects(bundle: ContentBundle, state: GameState) -> HousingOpt
         and state.player.career.track_id in {"retail_service", "delivery_gig"}
         and state.player.education.program_id == "none"
     ):
-        state.player.family_support -= bundle.config.parent_drift_family_penalty
-        state.player.life_satisfaction -= bundle.config.parent_drift_satisfaction_penalty
-        state.player.social_stability -= bundle.config.parent_drift_social_penalty
+        family_penalty = bundle.config.parent_drift_family_penalty
+        satisfaction_penalty = bundle.config.parent_drift_satisfaction_penalty
+        social_penalty = bundle.config.parent_drift_social_penalty
+        focus_id = state.player.selected_focus_action_id
+        if focus_id in {"social_maintenance", "recovery_month"}:
+            family_penalty = max(0, family_penalty - 3)
+            satisfaction_penalty = max(0, satisfaction_penalty - 3)
+            social_penalty = max(0, social_penalty - 2)
+        state.player.family_support -= family_penalty
+        state.player.life_satisfaction -= satisfaction_penalty
+        state.player.social_stability -= social_penalty
         state.player.housing.housing_stability = max(0, state.player.housing.housing_stability - 2)
-        append_log(state, "Living at home saved money, but the sense of drifting hit harder this month.")
+        if focus_id in {"social_maintenance", "recovery_month"}:
+            append_log(state, "Social maintenance softened the drift-at-home strain this month.")
+        else:
+            append_log(state, "Living at home saved money, but the sense of drifting hit harder this month.")
     if housing.id == "roommates":
         if state.player.social_stability < 45:
             state.player.housing.housing_stability = max(0, state.player.housing.housing_stability - 2)

@@ -968,6 +968,39 @@ def test_finance_panel_renders_active_status_arc_section(controller_factory):
         root.destroy()
 
 
+def test_finance_panel_restores_month_money_lines(controller_factory):
+    import tkinter as tk
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        controller = controller_factory(opening_path_id="move_out_immediately", city_id="mid_size_city")
+        controller.state.player.monthly_income = 2140
+        controller.state.player.monthly_expenses = 1615
+        controller.state.player.monthly_surplus = 525
+        summary = build_pressure_summary(controller.state, controller.bundle)
+        panel = FinancePanel(root)
+        panel.render_summary(summary, compact=False)
+
+        def _all_label_texts(widget: tk.Widget) -> list[str]:
+            texts: list[str] = []
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Label):
+                    texts.append(child.cget("text"))
+                texts.extend(_all_label_texts(child))
+            return texts
+
+        texts = _all_label_texts(panel)
+        assert any(text.startswith("Income ") for text in texts)
+        assert any(text.startswith("Expenses ") for text in texts)
+        assert any(text.startswith("Monthly Swing ") for text in texts)
+    finally:
+        root.destroy()
+
+
 def test_phase_status_arc_pressure_summary_prefers_arc_diagnosis_and_trims_generic_signals(controller_factory):
     import tkinter as tk
 
@@ -1106,10 +1139,11 @@ def test_status_bar_trims_primary_score_category_bars_from_top_band(controller_f
         root = tk.Tk()
     except tk.TclError:
         pytest.skip("Tk is unavailable in this environment")
-    root.withdraw()
     try:
+        root.geometry("1400x180")
         controller = controller_factory()
         status_bar = StatusBar(root)
+        status_bar.pack(fill="x")
         snapshot = controller.live_score_snapshot()
         delta = build_score_delta_summary(snapshot, snapshot)
         status_bar.render(
@@ -1120,6 +1154,7 @@ def test_status_bar_trims_primary_score_category_bars_from_top_band(controller_f
             credit_score=controller.state.player.credit_score,
             credit_delta=0,
         )
+        root.update()
 
         def _all_label_texts(widget: tk.Widget) -> list[str]:
             texts: list[str] = []
@@ -1134,6 +1169,7 @@ def test_status_bar_trims_primary_score_category_bars_from_top_band(controller_f
         assert "Career" not in texts
         assert "Wellness" not in texts
         assert any(text.startswith("Flow ") for text in texts)
+        assert status_bar._score_frame.winfo_height() >= status_bar._score_label.winfo_reqheight()
     finally:
         root.destroy()
 

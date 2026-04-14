@@ -171,6 +171,38 @@ class FinancePanel(tk.Frame):
                 wraplength=320,
             ).pack(fill="x", anchor="w", pady=(1, 0))
 
+        month_money = getattr(summary, "secondary_metrics", [])[:3]
+        if month_money:
+            money_card = tk.Frame(body, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=1)
+            money_card.pack(fill="x", pady=(PAD_S, 0))
+            tk.Label(
+                money_card,
+                text="MONTH MONEY",
+                bg=BG_ELEVATED,
+                fg=TEXT_MUTED,
+                font=FONT_TINY,
+                anchor="w",
+            ).pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))
+            chips = tk.Frame(money_card, bg=BG_ELEVATED)
+            chips.pack(fill="x", padx=PAD_S, pady=(2, PAD_S))
+            for metric in month_money:
+                tone = getattr(metric, "tone", "neutral")
+                fg = TEXT_SECONDARY
+                if tone == "positive":
+                    fg = COLOR_POSITIVE
+                elif tone == "negative":
+                    fg = COLOR_NEGATIVE
+                tk.Label(
+                    chips,
+                    text=f"{metric.label} {metric.primary}",
+                    bg=BG_DARK,
+                    fg=fg,
+                    font=FONT_SMALL,
+                    anchor="w",
+                    padx=8,
+                    pady=4,
+                ).pack(side="left", padx=(0, PAD_S))
+
         rank_card = tk.Frame(body, bg=BG_ELEVATED, highlightbackground=BORDER, highlightthickness=2)
         rank_card.pack(fill="x", pady=(PAD_S, 0))
         tk.Label(rank_card, text="NEXT RANK", bg=BG_ELEVATED, fg=TEXT_MUTED, font=FONT_TINY, anchor="w").pack(fill="x", padx=PAD_S, pady=(PAD_S, 0))

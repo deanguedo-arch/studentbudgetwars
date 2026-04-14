@@ -353,6 +353,53 @@ def test_recovery_month_can_lower_stress_in_supportive_setup(bundle, controller_
     assert controller.state.player.stress < starting_stress
 
 
+def test_social_maintenance_can_hold_family_and_build_social_footing_through_parent_drift(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    player = controller.state.player
+    player.career.track_id = "retail_service"
+    player.education.program_id = "none"
+    player.education.is_active = False
+    player.selected_focus_action_id = "social_maintenance"
+    player.stress = 52
+    player.energy = 54
+    player.social_stability = 46
+    player.family_support = 42
+    player.housing.housing_stability = 64
+    starting_social = player.social_stability
+    starting_family = player.family_support
+    starting_life = player.life_satisfaction
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert player.social_stability >= starting_social + 2
+    assert player.family_support >= starting_family
+    assert player.life_satisfaction >= starting_life + 1
+
+
+def test_recovery_month_can_raise_life_through_parent_drift_lane(bundle, controller_factory):
+    quiet_bundle = bundle.model_copy(deep=True)
+    quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
+    controller = controller_factory(opening_path_id="stay_home_stack_cash", city_id="hometown_low_cost")
+    player = controller.state.player
+    player.career.track_id = "retail_service"
+    player.education.program_id = "none"
+    player.education.is_active = False
+    player.selected_focus_action_id = "recovery_month"
+    player.stress = 52
+    player.energy = 54
+    player.life_satisfaction = 50
+    player.social_stability = 46
+    player.family_support = 42
+    player.housing.housing_stability = 64
+    starting_life = player.life_satisfaction
+
+    resolve_month(quiet_bundle, controller.state, controller.rng)
+
+    assert player.life_satisfaction >= starting_life + 1
+
+
 def test_easy_mode_recovery_month_can_stabilize_stress(bundle, controller_factory):
     quiet_bundle = bundle.model_copy(deep=True)
     quiet_bundle.config = quiet_bundle.config.model_copy(update={"primary_event_chance": 0.0, "secondary_event_chance": 0.0})
