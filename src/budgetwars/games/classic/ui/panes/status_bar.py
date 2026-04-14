@@ -9,7 +9,7 @@ from ..theme import (
     COLOR_STRESS, COLOR_ENERGY, COLOR_LIFE, COLOR_MONEY_POS, COLOR_MONEY_NEG,
     FONT_HEADING, FONT_SUBHEADING, FONT_BODY, FONT_MONO, FONT_SMALL, FONT_SCORE,
     FONT_SCORE_TIER, PAD_S, PAD_M,
-    tier_color, money_str, stat_bar,
+    delta_str, money_color, tier_color, money_str, stat_bar,
 )
 
 _CATEGORY_COLORS = {
@@ -83,6 +83,8 @@ class StatusBar(tk.Frame):
         self._savings_label.pack(side="left")
         self._debt_label = tk.Label(money_frame, bg=BG_DARK, fg=COLOR_MONEY_NEG, font=self._fonts["mono"], padx=PAD_S, pady=2)
         self._debt_label.pack(side="left")
+        self._cash_flow_label = tk.Label(money_frame, bg=BG_DARK, fg=TEXT_SECONDARY, font=self._fonts["mono"], padx=PAD_S, pady=2)
+        self._cash_flow_label.pack(side="left")
 
         # ── Vitals section ──
         vitals_frame = tk.Frame(self, bg=BG_DARK, bd=1, relief="solid", highlightbackground=BORDER, highlightthickness=1)
@@ -173,6 +175,10 @@ class StatusBar(tk.Frame):
         self._savings_label.configure(text=f"Sav {money_str(player.savings)}", fg=COLOR_MONEY_POS)
         debt_color = COLOR_MONEY_NEG if player.debt > 0 else TEXT_SECONDARY
         self._debt_label.configure(text=f"Debt {money_str(player.debt)}", fg=debt_color)
+        self._cash_flow_label.configure(
+            text=f"Flow {delta_str(player.monthly_surplus)}",
+            fg=money_color(player.monthly_surplus),
+        )
 
         # Vitals
         self._stress_val.configure(text=f"{player.stress}/{state.max_stress}")
@@ -215,6 +221,7 @@ class StatusBar(tk.Frame):
         self._cash_label.configure(font=self._fonts["mono"])
         self._savings_label.configure(font=self._fonts["mono"])
         self._debt_label.configure(font=self._fonts["mono"])
+        self._cash_flow_label.configure(font=self._fonts["mono"])
         self._stress_val.configure(font=self._fonts["small"])
         self._energy_val.configure(font=self._fonts["small"])
         self._life_val.configure(font=self._fonts["small"])

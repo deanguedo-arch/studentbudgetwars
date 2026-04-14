@@ -407,26 +407,27 @@
         "label": "Take real recovery",
         "description": "Absorb the short-term career hit and actually let your body recover.",
         "stat_effects": {
-          "cash": -160,
-          "energy": -6,
-          "stress": 2,
-          "life_satisfaction": -4,
+          "cash": -220,
+          "energy": 6,
+          "stress": -6,
+          "life_satisfaction": 1,
           "social_stability": 1
         },
         "modifier": {
           "id": "burnout_reset_lane",
           "label": "Recovery Reset",
-          "duration_months": 2,
+          "duration_months": 3,
           "stat_effects": {
-            "stress": -1,
-            "energy": 1
+            "stress": -2,
+            "energy": 2,
+            "life_satisfaction": 1
           },
-          "income_multiplier": 0.94,
+          "income_multiplier": 0.93,
           "housing_cost_delta": 0,
           "living_cost_delta": 0,
           "transport_cost_delta": 0,
           "education_cost_delta": 0,
-          "promotion_progress_delta": -1,
+          "promotion_progress_delta": -2,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
         }
@@ -1120,11 +1121,11 @@
         "label": "Refinance now",
         "description": "Swap expensive debt terms for a cleaner monthly lane.",
         "stat_effects": {
-          "cash": 160,
-          "debt": -450,
-          "credit_score": 4,
-          "stress": 1,
-          "life_satisfaction": 1
+          "cash": 120,
+          "debt": -550,
+          "credit_score": 6,
+          "stress": -3,
+          "life_satisfaction": 2
         },
         "modifier": {
           "id": "refinance_relief",
@@ -1133,12 +1134,12 @@
           "stat_effects": {},
           "income_multiplier": 1.0,
           "housing_cost_delta": 0,
-          "living_cost_delta": -40,
+          "living_cost_delta": -55,
           "transport_cost_delta": 0,
           "education_cost_delta": 0,
           "promotion_progress_delta": 0,
           "education_progress_delta": 0,
-          "transport_switch_discount": 150
+          "transport_switch_discount": 200
         }
       },
       {
@@ -1409,11 +1410,31 @@
         "label": "Protect the team",
         "description": "You reset expectations, keep people from snapping, and give back some momentum.",
         "stat_effects": {
-          "stress": 2,
-          "energy": -1,
+          "stress": -2,
+          "energy": 1,
           "promotion_progress": -1,
-          "social_stability": 1
-        }
+          "social_stability": 2,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "retail_team_reset",
+          "label": "Team Reset Cadence",
+          "duration_months": 4,
+          "stat_effects": {
+            "stress": -1,
+            "energy": 1,
+            "social_stability": 1
+          },
+          "income_multiplier": 0.99,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "retail_team_protection_lane"
       }
     ],
     "log_entry": "Operations pressure landed in your lap."
@@ -1514,11 +1535,31 @@
         "label": "Run a safer shift",
         "description": "You protect your people and accept a smaller career push.",
         "stat_effects": {
-          "stress": 2,
-          "energy": -2,
+          "stress": -2,
+          "energy": 1,
           "promotion_progress": 0,
-          "social_stability": 1
-        }
+          "social_stability": 2,
+          "life_satisfaction": 1
+        },
+        "modifier": {
+          "id": "warehouse_safe_shift_rhythm",
+          "label": "Safe Shift Rhythm",
+          "duration_months": 4,
+          "stat_effects": {
+            "stress": -1,
+            "energy": 1,
+            "social_stability": 1
+          },
+          "income_multiplier": 1.0,
+          "housing_cost_delta": 0,
+          "living_cost_delta": 0,
+          "transport_cost_delta": 0,
+          "education_cost_delta": 0,
+          "promotion_progress_delta": 0,
+          "education_progress_delta": 0,
+          "transport_switch_discount": 0
+        },
+        "persistent_tag": "warehouse_safe_shift_lane"
       }
     ],
     "log_entry": "Operations stress hit the dock all at once."
@@ -1731,25 +1772,28 @@
         "label": "Stabilize the floor",
         "description": "Protect the team, bank credibility, and grow slower.",
         "stat_effects": {
-          "cash": 90,
-          "stress": 1,
-          "social_stability": 2,
+          "cash": 110,
+          "stress": -3,
+          "energy": 2,
+          "social_stability": 3,
           "promotion_progress": 2,
-          "life_satisfaction": 1
+          "life_satisfaction": 2
         },
         "modifier": {
           "id": "retail_rhythm",
           "label": "Retail Rhythm",
           "duration_months": 8,
           "stat_effects": {
-            "social_stability": 1
+            "social_stability": 1,
+            "stress": -1,
+            "energy": 1
           },
-          "income_multiplier": 1.02,
+          "income_multiplier": 1.03,
           "housing_cost_delta": 0,
           "living_cost_delta": 0,
           "transport_cost_delta": 0,
           "education_cost_delta": 0,
-          "promotion_progress_delta": 0,
+          "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
         },
@@ -2979,25 +3023,28 @@
         "label": "Protect continuity",
         "description": "Lock in care consistency and grow with less volatility.",
         "stat_effects": {
-          "cash": 140,
-          "stress": 1,
-          "social_stability": 2,
+          "cash": 150,
+          "stress": -3,
+          "energy": 2,
+          "social_stability": 3,
           "promotion_progress": 2,
-          "life_satisfaction": 1
+          "life_satisfaction": 2
         },
         "modifier": {
           "id": "care_continuity_rhythm",
           "label": "Care Continuity Rhythm",
           "duration_months": 8,
           "stat_effects": {
-            "social_stability": 1
+            "social_stability": 1,
+            "stress": -1,
+            "energy": 1
           },
-          "income_multiplier": 1.02,
+          "income_multiplier": 1.03,
           "housing_cost_delta": 0,
           "living_cost_delta": 0,
           "transport_cost_delta": 0,
           "education_cost_delta": 0,
-          "promotion_progress_delta": 0,
+          "promotion_progress_delta": 1,
           "education_progress_delta": 0,
           "transport_switch_discount": 0
         },
@@ -3804,9 +3851,10 @@
         "label": "Spend buffer now",
         "description": "Use real reserves to keep the housing lane from tightening further.",
         "stat_effects": {
-          "high_interest_savings": -260,
-          "stress": -2,
-          "credit_score": 1
+          "high_interest_savings": -300,
+          "stress": -4,
+          "energy": 1,
+          "credit_score": 2
         },
         "modifier": {
           "id": "lease_runway",
@@ -3814,7 +3862,7 @@
           "duration_months": 3,
           "stat_effects": {},
           "income_multiplier": 1.0,
-          "housing_cost_delta": -80,
+          "housing_cost_delta": -100,
           "living_cost_delta": 0,
           "transport_cost_delta": 0,
           "education_cost_delta": 0,
@@ -4135,9 +4183,10 @@
         "label": "Cut hours, recover",
         "description": "Protect your academic lane by reducing work pressure now.",
         "stat_effects": {
-          "cash": -180,
-          "stress": -2,
-          "education_progress": 3,
+          "cash": -220,
+          "stress": -4,
+          "energy": 2,
+          "education_progress": 4,
           "life_satisfaction": 1
         },
         "modifier": {
@@ -4145,7 +4194,8 @@
           "label": "Course Load Rebalance",
           "duration_months": 3,
           "stat_effects": {
-            "stress": -1
+            "stress": -1,
+            "energy": 1
           },
           "income_multiplier": 0.97,
           "housing_cost_delta": 0,
@@ -4237,8 +4287,9 @@
         "label": "Rebalance workload",
         "description": "Stabilize the month and sacrifice some short-term upside.",
         "stat_effects": {
-          "cash": -120,
-          "stress": -2,
+          "cash": -150,
+          "stress": -5,
+          "energy": 2,
           "social_stability": 1
         }
       }

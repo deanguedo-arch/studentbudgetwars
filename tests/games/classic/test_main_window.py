@@ -25,6 +25,7 @@ from budgetwars.games.classic.ui.main_window import (
 from budgetwars.games.classic.ui.panes.life_panel import LifePanel
 from budgetwars.games.classic.ui.panes.finance_panel import FinancePanel
 from budgetwars.games.classic.ui.panes.outlook_panel import OutlookPanel
+from budgetwars.games.classic.ui.panes.status_bar import StatusBar
 from budgetwars.games.classic.ui.panes.event_popup import preview_choice_detail
 from budgetwars.games.classic.ui.panes.menu_bar import (
     build_menu_bar,
@@ -508,6 +509,34 @@ def test_compact_layout_prefers_smaller_screens():
     assert should_use_compact_layout(1366, 768) is True
     assert should_use_compact_layout(1920, 1080) is False
     assert should_use_compact_layout(2560, 1440) is False
+
+
+def test_status_bar_surfaces_numeric_cash_flow(controller_factory):
+    import tkinter as tk
+
+    controller = controller_factory()
+    controller.state.player.monthly_surplus = 237
+    snapshot = controller.live_score_snapshot()
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk is unavailable in this environment")
+    root.withdraw()
+    try:
+        bar = StatusBar(root)
+        bar.render(
+            controller.state,
+            controller.bundle,
+            snapshot,
+            credit_score=controller.state.player.credit_score,
+            credit_delta=0,
+        )
+        assert hasattr(bar, "_cash_flow_label")
+        assert "Flow" in bar._cash_flow_label.cget("text")
+        assert "$237" in bar._cash_flow_label.cget("text")
+    finally:
+        root.destroy()
 
 
 def test_setup_group_selection_updates_button_and_summary(monkeypatch):
