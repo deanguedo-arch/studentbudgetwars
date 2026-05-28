@@ -10,3 +10,17 @@ dist/
 build/
 *.egg-info/
 saves/*.json
+
+# STAX generated local sidecar artifacts
+.stax/*
+!.stax/
+!.stax/status.json
+!.stax/next-codex-prompt.md
+!.stax/proof_strength.json
+!.stax/prompt-contract.json
+!.stax/proof-surfaces.json
+!.stax/proof-surfaces.candidate.json
+!.stax/proof-surfaces.review.md
+!.stax/reports/
+!.stax/reports/latest-proof-report.md
+!.stax/reports/latest-confidence-report.md

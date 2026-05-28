@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "stax-sidecar-status-v1",
+  "generatedAt": "2026-05-28T04:04:57.994Z",
+  "repo": "studentbudgetwars",
+  "repoPath": "/Users/deanguedo/Documents/GitHub/studentbudgetwars",
+  "branch": "main",
+  "commitSha": "34ad7072d984705a5dc505fe8e63f351e075afed",
+  "task": "Decide whether to keep the STAX sidecar attach in studentbudgetwars and record only scoped observer proof for the current local workstation.",
+  "verdict": "Reject",
+  "exitCode": 1,
+  "why": "Command evidence failed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+  "verified": [
+    "No working-tree diff is currently present.",
+    "Codex report contract includes Files changed, Commands run, What is verified, What is unverified, and Risks.",
+    "Command evidence classifier: strong_local_proof for /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q --ignore=tests/test_desktop_windowing.py -k not status_bar_trims_primary_score_category_bars_from_top_band.",
+    "Claim-to-proof: protocol_compliance claim is fully supported.",
+    "Command evidence provenance verified: cmd_2026-05-28T04_03_21_866Z_b55449e133db.",
+    "Command evidence freshness verified: cmd_2026-05-28T04_03_21_866Z_b55449e133db matches the current auditable worktree.",
+    "Command evidence provenance verified: cmd_2026-05-28T04_02_48_074Z_80131546b1e0.",
+    "Command evidence freshness verified: cmd_2026-05-28T04_02_48_074Z_80131546b1e0 matches the current auditable worktree.",
+    "Command evidence provenance verified: cmd_2026-05-28T04_02_33_594Z_8cc4d3b70006.",
+    "Command evidence freshness verified: cmd_2026-05-28T04_02_33_594Z_8cc4d3b70006 matches the current auditable worktree.",
+    "Command evidence provenance verified: cmd_2026-05-28T01_54_07_906Z_ba3ee91e844c.",
+    "Command evidence freshness verified: cmd_2026-05-28T01_54_07_906Z_ba3ee91e844c matches the current auditable worktree.",
+    "Command evidence provenance verified: cmd_2026-05-28T01_53_23_596Z_39d6b5ed630e.",
+    "Command evidence freshness verified: cmd_2026-05-28T01_53_23_596Z_39d6b5ed630e matches the current auditable worktree.",
+    "Command evidence provenance verified: cmd_2026-05-27T22_49_44_479Z_ec9227fc3b0e.",
+    "Command evidence freshness verified: cmd_2026-05-27T22_49_44_479Z_ec9227fc3b0e matches the current auditable worktree.",
+    "Earlier failed command evidence exists but is superseded by a later passing /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q --ignore=tests/test_desktop_windowing.py -k not status_bar_trims_primary_score_category_bars_from_top_band run.",
+    "Earlier failed command evidence exists but is superseded by a later passing /usr/bin/env PYTHONPATH=src python3 tools/validate_data.py run.",
+    "Protocol warning recorded as non-blocking: Current Codex turn capture does not contain the current STAX acknowledgement; report acknowledgement is present, so this may be capture lag."
+  ],
+  "weak": [
+    "STAX sidecar heartbeat is stale.",
+    "Codex turn capture is stale."
+  ],
+  "unverified": [
+    "Command evidence failed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+    "Command evidence failed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q exited 1.",
+    "Proof strength: Reject (0) - Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+    "Proof-strength reject: Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+    "Proof-strength reject: Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q exited 1."
+  ],
+  "risk": [
+    "Proof-strength blocker: Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+    "Proof-strength blocker: Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q exited 1."
+  ],
+  "oneNextAction": "Candidate proof surface for tests_passed: Run tools/validate_data.py through stax:collect in the target repo. Suggested command: tools/validate_data.py. This is candidate-only, so treat it as a provisional hint until approved.",
+  "codexPrompt": "STAX Sidecar rejected or held this task because proof is incomplete.\n\nDo exactly one cleanup pass:\nCandidate proof surface for tests_passed: Run tools/validate_data.py through stax:collect in the target repo. Suggested command: tools/validate_data.py. This is candidate-only, so treat it as a provisional hint until approved.\n\nAddress these proof gaps:\n- Command evidence failed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.\n- Command evidence failed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q exited 1.\n- Proof strength: Reject (0) - Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.\n- Proof-strength reject: Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.\n- Proof-strength reject: Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q exited 1.\n\nDo not broaden scope. Do not claim tests passed without local command evidence. Update .stax/codex-report.md, then stop.\nRisk to avoid: Proof-strength blocker: Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+  "proofStrength": {
+    "schemaVersion": "proof-strength-v1",
+    "claimType": "verification_run",
+    "claimText": "Decide whether to keep the STAX sidecar attach in studentbudgetwars and record only scoped observer proof for the current local workstation.\n\nSTAX acknowledgement: STAX_ACK turn_2026-05-28T04-04-18-336Z_b5ac d02f280b 35ccd7fe\n\nObjective:\nKeep the STAX sidecar attach files in studentbudgetwars and record scoped observer proof for the current local workstation.\n\nFiles changed:\n- `.gitignore`\n- `AGENTS.md`\n- `.stax/next-codex-prompt.md`\n- `.stax/prompt-contract.json`\n- `.stax/proof-surfaces.candidate.json`\n- `.stax/proof-surfaces.review.md`\n- `.stax/proof_strength.json`\n- `.stax/reports/latest-confidence-report.md`\n- `.stax/reports/latest-proof-report.md`\n- `.stax/status.json`\n- No repo source, tests, data, or game content files were changed.\n\nTests added:\n- None.\n\nCommands run:\n- `npm run stax:sidecar-upgrade -- --repo /Users/deanguedo/Documents/GitHub/studentbudgetwars --discover-surfaces`\n  - exitCode: 0\n  - result: sidecar protocol and proof-surface candidate refreshed.\n- `npm run stax:collect -- --repo /Users/deanguedo/Documents/GitHub/studentbudgetwars -- /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m compileall -q src tests tools`\n  - exitCode: 0\n  - evidence: `cmd_2026-05-28T04_02_33_594Z_8cc4d3b70006`\n- `npm run stax:collect -- --repo /Users/deanguedo/Documents/GitHub/studentbudgetwars -- /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python tools/validate_data.py`\n  - exitCode: 0\n  - evidence: `cmd_2026-05-28T04_02_48_074Z_80131546b1e0`\n  - output: Data validation passed for the After Grad V2 life-sim build.\n- `npm run stax:collect -- --repo /Users/deanguedo/Documents/GitHub/studentbudgetwars -- /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q --ignore=tests/test_desktop_windowing.py -k 'not status_bar_trims_primary_score_category_bars_from_top_band'`\n  - exitCode: 0\n  - evidence: `cmd_2026-05-28T04_03_21_866Z_b55449e133db`\n  - output: 377 passed, 1 deselected.\n- A misquoted rerun of the same narrowed pytest command produced `cmd_2026-05-28T04_03_00_415Z_b55449e133db`, exitCode 4. It is not accepted as proof and was immediately replaced by the correctly quoted passing rerun above.\n\nCommand output summary with exit codes:\n- Sidecar upgrade exited 0.\n- Python compileall exited 0.\n- Data validation exited 0.\n- The scoped non-window pytest command exited 0 with 377 passed and 1 deselected.\n- The full GUI/windowing suite is not claimed as passing.\n\nWhat is verified:\n- The STAX sidecar attach/update files are present for review and commit.\n- Python source/test/tool files compile under the local `.venv` interpreter.\n- Data validation passed through STAX-collected evidence.\n- Scoped non-window pytest proof passed through STAX-collected evidence.\n\nWhat is weak/provisional:\n- Candidate proof surfaces are not approved.\n- Desktop windowing proof remains environment-limited on this workstation.\n- Earlier failed full-suite/windowing evidence remains historical cleanup context and is not claimed as passing.\n\nWhat is unverified:\n- I do not claim full-suite pass.\n- I do not claim desktop windowing pass.\n- I do not claim gameplay balance correctness, packaging readiness, or release readiness.\n\nRisks:\n- Do not treat the narrowed test command as full-suite proof.\n- Do not treat candidate proof surfaces as approved local policy until they are explicitly approved.\n\nOne next action:\nRun the studentbudgetwars sidecar gate. If it remains cleanup-needed because full GUI/windowing proof is unavailable locally, commit only the sidecar attach files as observer setup and record the remaining proof gap honestly.",
+    "rawScore": 1,
+    "finalScore": 0,
+    "label": "Reject",
+    "capApplied": [],
+    "rejectReasons": [
+      "Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+      "Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q exited 1."
+    ],
+    "primaryLimiter": "Failed command evidence: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q -k not status_bar_trims_primary_score_category_bars_from_top_band exited 1.",
+    "missingProof": [],
+    "weakProof": [
+      "Weak command claim: npm run stax:sidecar-upgrade -- --repo (Command is named, but no command output was cited.).",
+      "Weak command claim: npm run stax:collect -- --repo (Command is named, but no command output was cited.)."
+    ],
+    "strongProof": [
+      "Grounded file_path claim: tools/validate_data.py.",
+      "Grounded file_path claim: tests/test_desktop_windowing.py.",
+      "Grounded completion claim: What is verified:.",
+      "Grounded verification claim: What is verified:.",
+      "Local STAX command evidence passed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m pytest -q --ignore=tests/test_desktop_windowing.py -k not status_bar_trims_primary_score_category_bars_from_top_band exited 0.",
+      "Local STAX command evidence passed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python tools/validate_data.py exited 0.",
+      "Local STAX command evidence passed: /Users/deanguedo/Documents/GitHub/studentbudgetwars/.venv/bin/python -m compileall -q src tests tools exited 0.",
+      "Local STAX command evidence passed: python3 -m compileall -q src tests tools exited 0.",
+      "Verified local STAX command provenance is present for this repo state.",
+      "Repo evidence enumerated source files.",
+      "Repo evidence enumerated test files."
+    ],
+    "oneNextAction": "Fix the failing command, rerun it through STAX command evidence, then re-gate the claim."
+  },
+  "protocolStatus": "warning",
+  "protocolFailures": [
+    {
+      "id": "current_turn_capture_missing_ack",
+      "severity": "warning",
+      "message": "Current Codex turn capture does not contain the current STAX acknowledgement; report acknowledgement is present, so this may be capture lag."
+    }
+  ],
+  "protocol": {
+    "schemaVersion": "stax-protocol-compliance-v1",
+    "generatedAt": "2026-05-28T04:04:57.992Z",
+    "mode": "normal",
+    "status": "warning",
+    "acknowledgedTurnContract": false,
+    "codexReportPresent": true,
+    "requiredSectionsPresent": [
+      "STAX acknowledgement",
+      "Objective",
+      "Files changed",
+      "Tests added",
+      "Commands run",
+      "Command output summary with exit codes",
+      "What is verified",
+      "What is weak/provisional",
+      "What is unverified",
+      "Risks",
+      "One next action"
+    ],
+    "missingRequiredSections": [],
+    "findings": [
+      {
+        "id": "current_turn_capture_missing_ack",
+        "severity": "warning",
+        "message": "Current Codex turn capture does not contain the current STAX acknowledgement; report acknowledgement is present, so this may be capture lag."
+      }
+    ],
+    "acknowledgement": "STAX_ACK turn_2026-05-28T04-04-18-336Z_b5ac d02f280b 35ccd7fe",
+    "contractTurnId": "turn_2026-05-28T04-04-18-336Z_b5ac"
+  },
+  "cardShapeIssues": []
+}

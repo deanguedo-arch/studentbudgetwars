@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "stax-proof-surface-pack-v1",
+  "repoPath": "/Users/deanguedo/Documents/GitHub/studentbudgetwars",
+  "repoName": "studentbudgetwars",
+  "status": "candidate",
+  "generatedAt": "2026-05-28T04:02:28.852Z",
+  "confidence": "high",
+  "detectedStack": [
+    "python"
+  ],
+  "proofSurfaces": [
+    {
+      "claimType": "tests_passed",
+      "requiredEvidence": [
+        "local_command_output",
+        "target_repo_cwd"
+      ],
+      "commands": [
+        "tools/validate_data.py"
+      ],
+      "blockedEvidence": [],
+      "confidence": "medium",
+      "source": "package.json scripts",
+      "nextAction": "Run tools/validate_data.py through stax:collect in the target repo."
+    },
+    {
+      "claimType": "data_pipeline_ready",
+      "requiredEvidence": [
+        "schema_or_fixture_validation",
+        "quality_command_output"
+      ],
+      "commands": [
+        "tools/import_costs_from_csv.py",
+        "tools/validate_data.py"
+      ],
+      "blockedEvidence": [
+        "file_exists_only",
+        "docs_updated_only"
+      ],
+      "confidence": "medium",
+      "source": "data script/path detection",
+      "nextAction": "Run tools/import_costs_from_csv.py through stax:collect and cite the validation output."
+    },
+    {
+      "claimType": "repo_identity",
+      "requiredEvidence": [
+        "target_repo_cwd",
+        "matching_repo_path",
+        "matching_worktree_fingerprint"
+      ],
+      "commands": [],
+      "blockedEvidence": [
+        "wrong_repo_command_output"
+      ],
+      "confidence": "high",
+      "source": "generic STAX sidecar rule",
+      "nextAction": "Collect command evidence from the target repo root; wrong-repo output cannot verify this repo."
+    }
+  ],
+  "blockedActions": [],
+  "warnings": []
+}
